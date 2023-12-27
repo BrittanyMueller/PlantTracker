@@ -9,26 +9,3 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-
-#include <string>
-
-class PlantListenerConfig {
- private:
-    std::string name_{};
-    std::string config_path_{};
-
-    // TODO(lmilne) add light and plant sensor lists
-
-public:
-    PlantListenerConfig(const std::string& config_path) {
-
-    }
-
-    void save() {
-
-    }
-
-    void load() {
-
-    }
-};

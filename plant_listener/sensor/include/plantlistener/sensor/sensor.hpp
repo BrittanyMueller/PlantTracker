@@ -12,8 +12,12 @@
 
 #include <iostream>
 
+namespace plantlistener::sensor {
+
 class Sensor {
  public:
   Sensor();
   void print();
 };
+
+}  // namespace plantlistener::client

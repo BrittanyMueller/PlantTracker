@@ -12,6 +12,8 @@
 
 #include "plantlistener/sensor/sensor.hpp"
 
+using plantlistener::sensor::Sensor;
+
 Sensor::Sensor() {}
 
 void Sensor::print() { std::cout << "hello" << std::endl; }

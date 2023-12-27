@@ -10,12 +10,22 @@
  * @author: BrittanyMueller
  */
 
-#include <nlohmann/json.hpp>
+#include <string>
 
-#include "plantlistener/sensor/sensor.hpp"
+namespace plantlistener::client {
 
-int main() {
-  plantlistener::sensor::Sensor sensor;
-  sensor.print();
-  return 0;
-}
+class PlantListenerConfig {
+ private:
+  std::string name_{};
+  std::string config_path_{};
+
+  // TODO(lmilne) add light and plant sensor lists
+
+ public:
+  PlantListenerConfig(const std::string& config_path) {}
+
+  void save();
+
+  void load() {}
+};
+}  // namespace plantlistener::client
