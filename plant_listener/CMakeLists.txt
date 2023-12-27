@@ -15,6 +15,17 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CXX_STANDARD 20)
 
+# Grab nlohmann JSON
+include(FetchContent)
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY  https://github.com/nlohmann/json.git
+    GIT_TAG         v3.11.3
+)
+FetchContent_Populate(nlohmann_json)
+add_library(json INTERFACE)
+target_include_directories(json INTERFACE ${nlohmann_json_SOURCE_DIR}/single_include/)
+
 add_subdirectory(sensor)
 add_subdirectory(device)
 add_subdirectory(client)

@@ -9,3 +9,11 @@
 # @author: qawse3dr a.k.a Larry Milne
 # @author: BrittanyMueller
 #
+
+add_library(plant-listener-device-mock-dev SHARED
+  mock_device.cpp
+)
+
+target_link_libraries(plant-listener-device-mock-dev
+  PRIVATE plant-listener-device_headers
+)

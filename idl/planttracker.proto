@@ -17,119 +17,115 @@ option java_package = "grpc.planttracker";
 option java_outer_classname = "HelloWorldProto";
 package planttracker.grpc;
 
-
 /*
  * App to server requests??? Bee help me here I am not sure what the interface should look like
  */
 service PlantTracker {
-    // should these all be one rpc call and just sub types??
-    // rpc AddPlant(Plant) returns (Result);
-    // rpc DelPlant(string plant_name) returns (Result);
-    
-    // rpc AddLight(Light) returns (Result);
-    // rpc DelLight(string light_name) returns (Result);
+  // should these all be one rpc call and just sub types??
+  // rpc AddPlant(Plant) returns (Result);
+  // rpc DelPlant(string plant_name) returns (Result);
+
+  // rpc AddLight(Light) returns (Result);
+  // rpc DelLight(string light_name) returns (Result);
 }
 
 /*
  * This service will act as a listener for plant events, as well as reporiting sensors.
- * Because the PlantListener must act as a client so we don't need to deal with networking configurations for clients we will do a long poll waiting for requests
- * as they come in
- * for the server -> client
- * 
+ * Because the PlantListener must act as a client so we don't need to deal with networking configurations for clients we
+ * will do a long poll waiting for requests as they come in for the server -> client
+ *
  * Main responsibilites for the listener are:
  *  1: add/remove plants/ light sensors
  *  2: requesting Live data from sensor
  *  3: setting baselines for plant light and moisture level.
  */
 service PlantListener {
+  rpc Initialze(PlantListenerConfig) returns (Result);
 
-    rpc Initialze(PlantListenerConfig) returns (Result);
+  rpc ReportSensor(SensorDataList) returns (Result);
 
-    rpc ReportSensor(SensorDataList) returns (Result);
-
-    // Duplex which will be passed back and forth with ListenerRequest holding the result of the last operation.
-    // On First operation it will always be return_code 0.
-    rpc PollRequest(stream ListenerResponse) returns (stream ListenerResponse);
+  // Duplex which will be passed back and forth with ListenerRequest holding the result of the last operation.
+  // On First operation it will always be return_code 0.
+  rpc PollRequest(stream ListenerResponse) returns (stream ListenerResponse);
 }
 
 message Result {
-    int64 return_code = 1;
-    optional string error = 2;
+  int64 return_code = 1;
+  optional string error = 2;
 }
 
 message PlantListenerConfig {
-    string name = 1;
-    repeated Plant plants = 2;
-    repeated Light lights = 3;
+  string name = 1;
+  repeated Plant plants = 2;
+  repeated Light lights = 3;
 }
 
 message SensorDataList {
-    repeated SensorData sensor_data = 1;
+  repeated SensorData sensor_data = 1;
 }
 
 message SensorData {
-    SensorType type = 1;
-    int32 sensor_id = 2;
-    oneof data {
-        MoistureSensorData moisture = 3;
-        LightSensorData light = 4;
-    }
+  SensorType type = 1;
+  int32 sensor_id = 2;
+  oneof data {
+    MoistureSensorData moisture = 3;
+    LightSensorData light = 4;
+  }
 }
 
 enum SensorType {
-    MoistureSensor = 0;
-    LightSensor = 1;
+  MoistureSensor = 0;
+  LightSensor = 1;
 }
 
 message MoistureSensorData {
-    double moisture_level = 1; // Percent
-    int32 sensor_value = 2; // Actual sensor value 0-SENSOR_MAX
+  double moisture_level = 1;  // Percent
+  int32 sensor_value = 2;     // Actual sensor value 0-SENSOR_MAX
 }
 
 message LightSensorData {
-    double lumens = 1; // Best guess a lumens
-    int32 sensor_value = 2; // Actual sensor value 0-SENSOR_MAX
+  double lumens = 1;       // Best guess a lumens
+  int32 sensor_value = 2;  // Actual sensor value 0-SENSOR_MAX
 }
 
-
 message ListenerRequest {
-    ListenerRequestType type = 1;
-    oneof res {
-        Plant plant = 2;
-        Light light = 3;
-        string plant_name = 4;
-        string light_name = 5;
-        SensorDataList  live_res = 6;
-        //CalibrateSensor = 6;
-    }
+  ListenerRequestType type = 1;
+  oneof res {
+    Plant plant = 2;
+    Light light = 3;
+    string plant_name = 4;
+    string light_name = 5;
+    SensorDataList live_res = 6;
+    // CalibrateSensor = 6;
+  }
 }
 
 enum ListenerRequestType {
-    NewPlant = 0;
-    DelPlant = 1;
-    NewLight = 2;
-    DelLight = 3;
-    LiveResults = 4;
-    // CalibrateSensor = 5;
+  NewPlant = 0;
+  DelPlant = 1;
+  NewLight = 2;
+  DelLight = 3;
+  LiveResults = 4;
+  // CalibrateSensor = 5;
 }
 
 message Plant {
-    int64 id = 1;
-    string name = 2;
-    string device_name = 3; // The string ID of the device 
-    uint32 device_port = 4; // Hardware ADC port of device
+  int64 id = 1;
+  string name = 2;
+  string device_name = 3;  // The string ID of the device
+  uint32 device_port = 4;  // Hardware ADC port of device
 }
 
 message Light {
-    int64 id = 1;
-    string name = 2;
-    string device_name = 3;
-    uint32 device_port = 4;
-    // Do we need some sort of light specs maybe we can estimate lumens better if we know the spec
+  int64 id = 1;
+  string name = 2;
+  string device_name = 3;
+  uint32 device_port = 4;
+  // Do we need some sort of light specs maybe we can estimate lumens better if we know the spec
 }
 
-
 message ListenerResponse {
-    Result res = 1; // The Result of the last request.
-    optional ListenerRequest res_data = 2; // The last request. optional in cases where we don't want to spend bandwith sending the request back.
+  Result res = 1;  // The Result of the last request.
+  optional ListenerRequest res_data =
+      2;  // The last request. optional in cases where we don't want to spend bandwith sending the request back.
 }

@@ -26,7 +26,6 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "test")
     enable_testing()
 endif()
 
-
 add_subdirectory(idl)
 add_subdirectory(plant_listener)
 
@@ -36,13 +35,18 @@ add_custom_target(PlantTracker
     COMMAND cp ${CMAKE_SOURCE_DIR}/PlantTracker/app/build/outputs/apk/debug/app-debug.apk ${CMAKE_BINARY_DIR}/app
 )
 
+set(FORMAT_SUFFIXES .h .hpp .c .cpp .java .proto)
+string(JOIN "' -o -name '*" FORMAT_SUFFIXES_OUT ${FORMAT_SUFFIXES})
+string(PREPEND FORMAT_SUFFIXES_OUT " -name '*")
+string(APPEND FORMAT_SUFFIXES_OUT "'")
+
 add_custom_target(format
-    COMMAND find ${CMAKE_SOURCE_DIR} -name '*.h' -o -name '*.hpp' -o -name '*.c' -o -name '*.cpp' -o -name '*.java' -exec clang-format -i {} "+"
+    COMMAND bash -c "find ${CMAKE_SOURCE_DIR} \"\\(\" ${FORMAT_SUFFIXES_OUT} \"\\)\" -a -not -path '*build*' -exec clang-format -i {} \"+\""
     COMMAND echo "Format Done"
     )
 
 add_custom_target(test-format
-    COMMAND find ${CMAKE_SOURCE_DIR} -name '*.h' -o -name '*.hpp' -o -name '*.c' -o -name '*.cpp' -o -name '*.java' -exec clang-format --dry-run -Werror {} "+"
+    COMMAND bash -c "find ${CMAKE_SOURCE_DIR} \"\\(\" ${FORMAT_SUFFIXES_OUT} \"\\)\" -a -not -path '*build*' -exec clang-format --dry-run -Werror {} \"+\""
     COMMAND echo "Format Check Passed"
 )
 
