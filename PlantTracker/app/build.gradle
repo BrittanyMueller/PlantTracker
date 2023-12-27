@@ -1,6 +1,5 @@
-plugins {
-    id 'com.android.application'
-}
+apply plugin: 'com.android.application'
+apply plugin: 'com.google.protobuf'
 
 android {
     namespace 'ca.planttracker'
@@ -13,7 +12,6 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -26,6 +24,35 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    sourceSets {
+        main {
+            proto {
+                srcDir '../../idl/'
+            }
+        }
+    }
+}
+
+protobuf {
+    protoc { artifact = 'com.google.protobuf:protoc:3.24.0' }
+    plugins {
+        grpc { artifact = 'io.grpc:protoc-gen-grpc-java:1.60.0' // CURRENT_GRPC_VERSION
+        }
+    }
+
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                java { option 'lite' }
+            }
+            task.plugins {
+                grpc { // Options added to --grpc_out
+                    option 'lite'
+                }
+            }
+        }
+    }
 }
 
 dependencies {
@@ -33,7 +60,8 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'io.grpc:grpc-okhttp:1.60.0' // CURRENT_GRPC_VERSION
+    implementation 'io.grpc:grpc-protobuf-lite:1.60.0' // CURRENT_GRPC_VERSION
+    implementation 'io.grpc:grpc-stub:1.60.0' // CURRENT_GRPC_VERSION
+    implementation 'org.apache.tomcat:annotations-api:6.0.53'
 }

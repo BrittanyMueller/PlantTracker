@@ -2,24 +2,79 @@
 stages:
   - lint
   - build
+  - test
+    
+.base_job:
+  image: registry.larrycloud.ca/qawse3dr/plant-tracker:latest 
 
 Lint:
+  extends: .base_job
   stage: lint
   script:
-    - echo "todo"
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make test-format
+  allow_failure: true
 
-Build Server Plant Tracker:
+
+  
+#########################################
+#                                       #
+#       PLANT TRACKER SERVER            #
+#                                       #
+#########################################
+Build Plant Tracker Server:
+  extends: .base_job
+  stage: build
+  script:
+    - echo "TODO"
+  
+Build Plant Listener:
   image: gcc # TODO will need to make my own build container to support building for RPI
+  extends: .base_job
   stage: build
   script:
     - echo "TODO"
 
 
-# Make Project
+#########################################
+#                                       #
+#           PLANT LISTENER              #
+#                                       #
+#########################################
+Build Plant Listener Tests:
+  extends: .base_job
+  stage: build
+  artifacts:
+    paths:
+      - build
+    expire_in: 1 week
+  script:
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=test
+    - make -j4
+
+
+Test Plant Listener:
+  extends: .base_job
+  stage: test
+  dependencies:
+    - Build Plant Listener Tests
+  script:
+    - cd build
+    - make test
+
+#########################################
+#                                       #
+#        PLANT TRACKER ANDROID          #
+#                                       #
+#########################################
 Build Android Plant Tracker Debug:
   interruptible: true
   stage: build
-  image: eclipse-temurin:17-jdk-jammy
+  image: registry.larrycloud.ca/qawse3dr/plant-tracker-android:latest
   variables:
     # ANDROID_COMPILE_SDK is the version of Android you're compiling with.
     # It should match compileSdkVersion.
@@ -37,9 +92,6 @@ Build Android Plant Tracker Debug:
     ANDROID_SDK_TOOLS: "9477386"
   stage: build
   before_script:
-    - apt-get --quiet update --yes
-    - apt-get --quiet install --yes wget unzip
-
     # Setup path as android_home for moving/exporting the downloaded sdk into it
     - export ANDROID_HOME="${PWD}/android-sdk-root"
     # Create a new directory at specified location
@@ -63,7 +115,11 @@ Build Android Plant Tracker Debug:
     - sdkmanager "build-tools;${ANDROID_BUILD_TOOLS}"
 
   script:
-    - cd PlantTracker; ./gradlew assembleDebug
+    - mkdir -p build
+    - cd build
+    - cmake ..
+    - make PlantTracker
   artifacts:
     paths:
-      - PlantTracker/app/build/outputs/
+      - build/app
+    expire_in: 1 week
