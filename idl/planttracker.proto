@@ -14,7 +14,7 @@ syntax = "proto3";
 
 option java_multiple_files = true;
 option java_package = "grpc.planttracker";
-option java_outer_classname = "HelloWorldProto";
+option java_outer_classname = "PlantTracker";
 package planttracker.grpc;
 
 /*
@@ -42,7 +42,7 @@ service PlantTracker {
 service PlantListener {
   rpc Initialze(PlantListenerConfig) returns (Result);
 
-  rpc ReportSensor(SensorDataList) returns (Result);
+  rpc ReportSensor(PlantDataList) returns (Result);
 
   // Duplex which will be passed back and forth with ListenerRequest holding the result of the last operation.
   // On First operation it will always be return_code 0.
@@ -60,22 +60,14 @@ message PlantListenerConfig {
   repeated Light lights = 3;
 }
 
-message SensorDataList {
-  repeated SensorData sensor_data = 1;
+message PlantDataList {
+  repeated PlantData data = 1;
 }
 
-message SensorData {
-  SensorType type = 1;
-  int32 sensor_id = 2;
-  oneof data {
-    MoistureSensorData moisture = 3;
-    LightSensorData light = 4;
-  }
-}
-
-enum SensorType {
-  MoistureSensor = 0;
-  LightSensor = 1;
+message PlantData {
+  int64 plant_id = 1;
+  MoistureSensorData moisture = 2;
+  LightSensorData light = 3;
 }
 
 message MoistureSensorData {
@@ -88,32 +80,29 @@ message LightSensorData {
   int32 sensor_value = 2;  // Actual sensor value 0-SENSOR_MAX
 }
 
-message ListenerRequest {
-  ListenerRequestType type = 1;
-  oneof res {
-    Plant plant = 2;
-    Light light = 3;
-    string plant_name = 4;
-    string light_name = 5;
-    SensorDataList live_res = 6;
-    // CalibrateSensor = 6;
-  }
-}
-
 enum ListenerRequestType {
   NewPlant = 0;
   DelPlant = 1;
   NewLight = 2;
   DelLight = 3;
-  LiveResults = 4;
-  // CalibrateSensor = 5;
+  UpdatePlant = 4;
+}
+
+message ListenerRequest {
+  ListenerRequestType type = 1;
+  oneof res {
+    Plant plant = 2;
+    Light light = 3;
+    int64 id = 4;
+  }
 }
 
 message Plant {
   int64 id = 1;
-  string name = 2;
-  string device_name = 3;  // The string ID of the device
-  uint32 device_port = 4;  // Hardware ADC port of device
+  int64 light_id = 2;
+  string name = 3;
+  string device_name = 4;  // The string ID of the device
+  uint32 device_port = 5;  // Hardware ADC port of device
 }
 
 message Light {
@@ -126,6 +115,6 @@ message Light {
 
 message ListenerResponse {
   Result res = 1;  // The Result of the last request.
-  optional ListenerRequest res_data =
-      2;  // The last request. optional in cases where we don't want to spend bandwith sending the request back.
+   // The last request. optional in cases where we don't want to spend bandwith sending the request back.
+  optional ListenerRequest res_data = 2; 
 }
