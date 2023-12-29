@@ -28,7 +28,23 @@ Build Plant Tracker Server:
   extends: .base_job
   stage: build
   script:
-    - echo "TODO"
+    - cd server
+    - chmod +x ./gradlew
+    - ./gradlew jar
+    - mkdir -p ../out
+    - mv app/build/libs/app.jar ../out # todo change name to be plant tracker something.
+  artifacts:
+    paths:
+      - out/
+    expire_in: 1 week
+
+Test Plant Tracker Server:
+  extends: .base_job
+  stage: test
+  script:
+    - cd server
+    - chmod +x gradlew
+    - ./gradlew test
 
 # TODO will need to make my own build container to support building for RPI
 # Build Plant Listener:
