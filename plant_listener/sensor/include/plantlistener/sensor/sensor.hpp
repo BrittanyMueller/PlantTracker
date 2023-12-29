@@ -9,6 +9,7 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
+#pragma once
 
 #include <iostream>
 
@@ -20,4 +21,4 @@ class Sensor {
   void print();
 };
 
-}  // namespace plantlistener::client
+}  // namespace plantlistener::sensor

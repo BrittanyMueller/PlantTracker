@@ -14,6 +14,7 @@ add_executable(plant_listener
   src/main.cpp
 )
 target_link_libraries(plant_listener 
-  plantlistener_sensor_objlib
+  plantlistener-sensor_objlib
+  plantlistener-device_objlib
   json
 )

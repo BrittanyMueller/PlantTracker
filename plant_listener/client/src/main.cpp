@@ -11,11 +11,22 @@
  */
 
 #include <nlohmann/json.hpp>
-
+#include <fstream>
 #include "plantlistener/sensor/sensor.hpp"
+#include "plantlistener/device/device_loader.hpp"
+
+using plantlistener::device::DeviceLoader;
 
 int main() {
-  plantlistener::sensor::Sensor sensor;
-  sensor.print();
+  std::ifstream config("./config.json");
+  auto cfg = nlohmann::json::parse(config);
+
+  DeviceLoader loader(cfg["devices"]);
+  {
+    auto devices = loader.getDevices();
+    std::cout << "device count" << devices.size() << std::endl;
+    std::cout << std::get<1>(devices[0]->getRange()) << std::endl;
+    std::cout << "read " << devices[0]->readPort(2) << std::endl;
+  }
   return 0;
 }

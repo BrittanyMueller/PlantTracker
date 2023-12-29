@@ -9,4 +9,27 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-namespace platnlistener::device {}
+#pragma once
+
+#include <memory>
+#include <nlohmann/json.hpp>
+#include <plantlistener/device/device.hpp>
+#include <vector>
+
+namespace plantlistener::device {
+
+class DeviceLoader {
+ private:
+  nlohmann::json config_;
+  std::unordered_map<std::string, void*> device_libs_;
+
+ public:
+  DeviceLoader(const nlohmann::json& config);
+  ~DeviceLoader();
+
+  /**
+   * Gets the device from the loaded device config
+   */
+  std::vector<std::unique_ptr<Device>> getDevices();
+};
+}  // namespace plantlistener::device

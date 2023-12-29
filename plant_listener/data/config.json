@@ -1,0 +1,28 @@
+{
+    "name": "Living Room",
+    "plants": [
+        {
+            "name": "Snake Plant",
+            "id": 1,
+            "light_name": "default_light",
+            "device_name": "dev1",
+            "port": 0
+        }
+    ],
+    "lights": [
+        {
+            "name": "default_light",
+            "id": 0,
+            "device_name": "dev1",
+            "port": 7
+        }
+
+    ],
+    "devices": [
+        {
+            "name": "dev1",
+            "ports" : 8,
+            "lib_name": "lib/libplantlistener-device-mock-dev.so"
+        }
+    ]
+}
