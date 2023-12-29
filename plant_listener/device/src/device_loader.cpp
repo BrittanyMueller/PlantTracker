@@ -21,9 +21,9 @@ using plantlistener::device::DeviceLoader;
 DeviceLoader::DeviceLoader(const nlohmann::json& config) : config_(config) {}
 
 DeviceLoader::~DeviceLoader() {
-    for (auto& lib : device_libs_) {
-        dlclose(lib.second);
-    }
+  for (auto& lib : device_libs_) {
+    dlclose(lib.second);
+  }
 }
 
 std::vector<std::unique_ptr<Device>> DeviceLoader::getDevices() {
@@ -56,16 +56,16 @@ std::vector<std::unique_ptr<Device>> DeviceLoader::getDevices() {
 
     void* handler = dlopen(lib.value().get<std::string>().c_str(), RTLD_LAZY);
     if (!handler) {
-        std::cerr << "ERROR: Failed to open dev lib " << lib.value() << " with: " << dlerror() << std::endl;
-        exit(-1);
+      std::cerr << "ERROR: Failed to open dev lib " << lib.value() << " with: " << dlerror() << std::endl;
+      exit(-1);
     }
     createDeviceftn createDev = reinterpret_cast<createDeviceftn>(dlsym(handler, PLANTLISTENER_CREATE_DEVICE_NAME));
     if (!createDev) {
-        std::cerr << "ERROR: Failed to get ftn from " << lib.value() << " with: " << dlerror() << std::endl;
-        exit(-1);
+      std::cerr << "ERROR: Failed to get ftn from " << lib.value() << " with: " << dlerror() << std::endl;
+      exit(-1);
     }
     device_libs_.emplace(std::make_pair(lib.value().get<std::string>(), handler));
     devices.emplace_back(createDev(dev, name->get<std::string>(), -1, ports->get<int32_t>()));
-  } 
+  }
   return devices;
 }

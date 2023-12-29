@@ -13,10 +13,10 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <tuple>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <tuple>
 
 namespace plantlistener::device {
 
@@ -40,7 +40,7 @@ class Device {
    */
   Device(const std::string& name, const int64_t device_id, const uint8_t ports, uint64_t max_value = 255,
          uint64_t min_value = 0);
-  virtual ~Device() {};
+  virtual ~Device(){};
 
   inline const std::string& getName() const { return name_; }
   inline const int64_t getId() const { return id_; }

@@ -17,10 +17,10 @@ namespace plantlistener::device {
 
 class MockDevice : public Device {
  public:
-    bool use_rand_value_ = true;
-    uint64_t fake_value_ = 128;
+  bool use_rand_value_ = true;
+  uint64_t fake_value_ = 128;
 
-    MockDevice(const std::string& name = "mock_device", const int64_t device_id = 0, const uint8_t ports = 8);
-    uint64_t readPort(const uint8_t port) override;
+  MockDevice(const std::string& name = "mock_device", const int64_t device_id = 0, const uint8_t ports = 8);
+  uint64_t readPort(const uint8_t port) override;
 };
 }  // namespace plantlistener::device

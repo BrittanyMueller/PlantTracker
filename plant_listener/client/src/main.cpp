@@ -10,10 +10,11 @@
  * @author: BrittanyMueller
  */
 
-#include <nlohmann/json.hpp>
 #include <fstream>
-#include "plantlistener/sensor/sensor.hpp"
+#include <nlohmann/json.hpp>
+
 #include "plantlistener/device/device_loader.hpp"
+#include "plantlistener/sensor/sensor.hpp"
 
 using plantlistener::device::DeviceLoader;
 
