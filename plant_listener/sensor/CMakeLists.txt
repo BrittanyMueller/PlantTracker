@@ -10,8 +10,8 @@
 # @author: BrittanyMueller
 #
 
-add_library(plantlistener_sensor_objlib OBJECT
+add_library(plantlistener-sensor_objlib OBJECT
     src/sensor.cpp
 )
-target_include_directories(plantlistener_sensor_objlib PUBLIC include)
+target_include_directories(plantlistener-sensor_objlib PUBLIC include)
 

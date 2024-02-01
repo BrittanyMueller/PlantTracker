@@ -10,10 +10,12 @@
 # @author: BrittanyMueller
 #
 
-add_library(plant-listener-device-mock-dev SHARED
+add_library(plantlistener-device-mock-dev SHARED
   mock_device.cpp
 )
 
-target_link_libraries(plant-listener-device-mock-dev
-  PRIVATE plant-listener-device_headers
+target_link_libraries(plantlistener-device-mock-dev
+  PRIVATE 
+  plantlistener-device_objlib
+  json
 )

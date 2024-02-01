@@ -22,7 +22,6 @@ Devices will take the form of shared libraries that are can be loaded in when st
 - pigpio (For ADC not needed if building tests)
 - gtest (for unit tests)
 - cmake (3.20 or greater)
-- nlohmann json
 
 ## Building
 If building on host machine you can only build unit tests as devices will require gpio libraries. instead a mock sensor will be build
@@ -37,5 +36,33 @@ make test
 
 ## Config
 The configure requies the following fields. and must be in a rw location as the server will update it
-```
+```json
+{
+    "name": "Living Room", // default value
+    "plants": [
+        {
+            "name": "Snake Plant",
+            "id": 1,
+            "light_name": "default_light",
+            "device_name": "dev1",
+            "port": 0
+        }
+    ],
+    "lights": [
+        {
+            "name": "default_light",
+            "id": 0,
+            "device_name": "dev1",
+            "port": 7
+        }
+
+    ],
+    "devices": [
+        {
+            "device_name": "dev1",
+            "ports" : 8,
+            "lib_name": "libplantlistener-device-mock-dev"
+        }
+    ]
+}
 ```

@@ -11,19 +11,20 @@
  */
 package planttracker.server;
 
-import org.junit.Test;
 import static org.junit.Assert.*;
 
-public class AppTest {
-    @Test 
-    public void appHasAGreeting() {
-        App classUnderTest = new App();
-        assertNotNull("app should have a greeting", classUnderTest.getGreeting());
-    }
+import org.junit.Test;
 
-    @Test
-    public void fail() {
-        App classUnderTest = new App();
-        assertNotNull("app die", classUnderTest.getGreeting());
-    }
+public class AppTest {
+  @Test
+  public void appHasAGreeting() {
+    App classUnderTest = new App();
+    assertNotNull("app should have a greeting", classUnderTest.getGreeting());
+  }
+
+  @Test
+  public void fail() {
+    App classUnderTest = new App();
+    assertNotNull("app die", classUnderTest.getGreeting());
+  }
 }

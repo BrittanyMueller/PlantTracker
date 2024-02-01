@@ -9,18 +9,11 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-#pragma once
 
 #include <plantlistener/device/device.hpp>
 
-namespace plantlistener::device {
+using plantlistener::device::Device;
 
-class MockDevice : public Device {
- public:
-  bool use_rand_value_ = true;
-  uint64_t fake_value_ = 128;
-
-  MockDevice(const std::string& name = "mock_device", const int64_t device_id = 0, const uint8_t ports = 8);
-  uint64_t readPort(const uint8_t port) override;
-};
-}  // namespace plantlistener::device
+Device::Device(const std::string& name, const int64_t device_id, const uint8_t ports, uint64_t max_value,
+               uint64_t min_value)
+    : name_(name), id_(device_id), ports_(ports), max_value_(max_value), min_value_(min_value){};

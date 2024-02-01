@@ -57,6 +57,7 @@ message PlantListenerConfig {
   string name = 1;
   repeated Plant plants = 2;
   repeated Light lights = 3;
+  repeated Device devices = 4;
 }
 
 message PlantDataList {
@@ -112,8 +113,14 @@ message Light {
   // Do we need some sort of light specs maybe we can estimate lumens better if we know the spec
 }
 
+message Device {
+  int64 id = 1;
+  string name = 2;
+  uint32 max_sensors = 3;
+}
+
 message ListenerResponse {
   Result res = 1;  // The Result of the last request.
-   // The last request. optional in cases where we don't want to spend bandwith sending the request back.
-  optional ListenerRequest res_data = 2; 
+  optional ListenerRequest res_data =
+      2;  // The last request. optional in cases where we don't want to spend bandwith sending the request back.
 }

@@ -14,6 +14,7 @@ Project("Plant Listener")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CXX_STANDARD 20)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Grab nlohmann JSON
 include(FetchContent)
@@ -25,6 +26,8 @@ FetchContent_Declare(
 FetchContent_Populate(nlohmann_json)
 add_library(json INTERFACE)
 target_include_directories(json INTERFACE ${nlohmann_json_SOURCE_DIR}/single_include/)
+
+add_compile_options(-g -Wall)
 
 add_subdirectory(sensor)
 add_subdirectory(device)
