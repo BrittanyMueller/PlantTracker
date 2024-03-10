@@ -17,3 +17,14 @@ using plantlistener::device::Device;
 Device::Device(const std::string& name, const int64_t device_id, const uint8_t ports, uint64_t max_value,
                uint64_t min_value)
     : name_(name), id_(device_id), ports_(ports), max_value_(max_value), min_value_(min_value){};
+
+nlohmann::json Device::dump() {
+  nlohmann::json dev = nlohmann::json::object();
+
+  dev["name"] = name_;
+  dev["device_id"] = id_;
+  dev["ports"] = ports_;
+  dev["max"] = max_value_;
+  dev["min"] = min_value_;
+  return dev;
+}

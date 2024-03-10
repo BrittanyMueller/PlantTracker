@@ -16,12 +16,12 @@
 #include <plantlistener/device/device_loader.hpp>
 
 using plantlistener::device::Device;
-using plantlistener::device::DeviceLoader;
+using plantlistener::core::DeviceLoader;
 
 DeviceLoader::DeviceLoader(const nlohmann::json& config) : config_(config) {}
 
 DeviceLoader::~DeviceLoader() {
-  for (auto& lib : device_libs_) {
+  for (const auto& lib : device_libs_) {
     dlclose(lib.second);
   }
 }
@@ -54,6 +54,15 @@ std::vector<std::unique_ptr<Device>> DeviceLoader::getDevices() {
       exit(-1);
     }
 
+    auto id = dev.find("device_id");
+    if (id == dev.end()) {
+      std::cerr << "ERROR: Missing \"device_id\" in dev config" << std::endl;
+      exit(-1);
+    } else if (!id.value().is_number_integer()) {
+      std::cerr << "ERROR: Expected int for \"device_id\" in dev config" << std::endl;
+      exit(-1);
+    }
+
     void* handler = dlopen(lib.value().get<std::string>().c_str(), RTLD_LAZY);
     if (!handler) {
       std::cerr << "ERROR: Failed to open dev lib " << lib.value() << " with: " << dlerror() << std::endl;
@@ -65,7 +74,7 @@ std::vector<std::unique_ptr<Device>> DeviceLoader::getDevices() {
       exit(-1);
     }
     device_libs_.emplace(std::make_pair(lib.value().get<std::string>(), handler));
-    devices.emplace_back(createDev(dev, name->get<std::string>(), -1, ports->get<int32_t>()));
+    devices.emplace_back(createDev(dev, name->get<std::string>(), id->get<int64_t>(), ports->get<int32_t>()));
   }
   return devices;
 }

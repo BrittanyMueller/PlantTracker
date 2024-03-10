@@ -54,6 +54,8 @@ class Device {
    * @returns value of sensor between [min_value, max_value], or -1 on error.
    */
   virtual uint64_t readPort(const uint8_t port) = 0;
+
+  virtual nlohmann::json dump();
 };
 
 }  // namespace plantlistener::device

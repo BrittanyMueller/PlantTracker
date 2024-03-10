@@ -12,17 +12,11 @@
 
 # Headers for both devices and using devices.
 add_library(plantlistener-device_headers INTERFACE)
-target_include_directories(plantlistener-device_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 # Build device object library
-add_library(plantlistener-device_objlib
-    src/device_loader.cpp
-    src/device.cpp
-)
-target_link_libraries(plantlistener-device_objlib 
-    PUBLIC plantlistener-device_headers
-    PRIVATE json
-)
+add_library(plantlistener-device_objlib src/device.cpp)
+target_link_libraries(plantlistener-device_objlib PUBLIC json spdlog::spdlog fmt::fmt)
+target_include_directories(plantlistener-device_objlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 
 # Only build the mock sensor if we aren't on actual hardware

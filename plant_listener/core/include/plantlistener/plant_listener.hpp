@@ -11,22 +11,11 @@
  */
 #pragma once
 
-#include <string>
+#include <plantlistener/device/device.hpp>
+#include <plantlistener/sensor/sensor.hpp>
+#include <vector>
 
 namespace plantlistener::client {
 
-class PlantListenerConfig {
- private:
-  std::string name_{};
-  std::string config_path_{};
-
-  // TODO(lmilne) add light and plant sensor lists
-
- public:
-  PlantListenerConfig(const std::string& config_path) {}
-
-  void save();
-
-  void load() {}
-};
+class PlantListener {};
 }  // namespace plantlistener::client

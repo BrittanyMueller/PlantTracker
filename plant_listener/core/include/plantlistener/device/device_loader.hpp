@@ -14,12 +14,18 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <plantlistener/device/device.hpp>
+#include <string>
 #include <vector>
 
-namespace plantlistener::device {
+namespace plantlistener::core {
 
 class DeviceLoader {
  private:
+  struct DeviceLoaderHandler {
+    std::string lib_name;
+    void* lib_handler;
+  };
+
   nlohmann::json config_;
   std::unordered_map<std::string, void*> device_libs_;
 
@@ -30,6 +36,8 @@ class DeviceLoader {
   /**
    * Gets the device from the loaded device config
    */
-  std::vector<std::unique_ptr<Device>> getDevices();
+  std::vector<std::unique_ptr<device::Device>> getDevices();
+
+  nlohmann::json dump();
 };
 }  // namespace plantlistener::device

@@ -1,5 +1,13 @@
 {
     "name": "Living Room",
+    "pi_id": -1,
+    "server": {
+        "address": "127.0.0.1",
+        "port": "31415",
+        "log_level": "ERR",
+        "retry_count": -1,
+        "retry_timeout": 5
+    },
     "plants": [
         {
             "name": "Snake Plant",
@@ -18,11 +26,29 @@
         }
 
     ],
-    "devices": [
-        {
-            "name": "dev1",
-            "ports" : 8,
-            "lib_name": "lib/libplantlistener-device-mock-dev.so"
-        }
-    ]
+    "devices": {
+        "instances": [
+            {
+                "name": "dev1",
+                "type": "ADC",
+                "lib": "mock_adc_dev",
+                "ports" : 8,
+                "device_id": -1,
+                "cfg": {
+                    "min": 0,
+                    "max": 255
+                }
+            }
+        ],
+        "libs": [
+            {
+                "name": "mock_adc_dev",
+                "lib_path": "lib/libplantlistener-device-mock-dev.so"
+            },
+            {
+                "name": "mock_temp_dev",
+                "lib_path": "lib/libplantlistener-device-mock-dev.so"
+            }
+        ]
+    }
 }

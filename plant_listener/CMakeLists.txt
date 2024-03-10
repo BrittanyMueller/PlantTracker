@@ -27,11 +27,16 @@ FetchContent_Populate(nlohmann_json)
 add_library(json INTERFACE)
 target_include_directories(json INTERFACE ${nlohmann_json_SOURCE_DIR}/single_include/)
 
+# Add spdlog for logging
+find_package(spdlog REQUIRED)
+find_package(fmt REQUIRED)
+
 add_compile_options(-g -Wall)
 
-add_subdirectory(sensor)
-add_subdirectory(device)
+add_subdirectory(devices)
 add_subdirectory(client)
+add_subdirectory(core)
+add_subdirectory(util)
 
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "test")
