@@ -15,8 +15,8 @@
 #include <iostream>
 #include <plantlistener/device/device_loader.hpp>
 
-using plantlistener::device::Device;
 using plantlistener::core::DeviceLoader;
+using plantlistener::device::Device;
 
 DeviceLoader::DeviceLoader(const nlohmann::json& config) : config_(config) {}
 

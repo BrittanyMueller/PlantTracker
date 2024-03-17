@@ -10,13 +10,31 @@
 # @author: BrittanyMueller
 #
 
-add_executable(plantlistener_test
-    example_test.cpp
-)
 
-target_link_libraries(plantlistener_test 
-    gtest 
-    gtest_main
-)
+# In order to add a test suite use the following format.
+# add_executable(plantlistener_test
+#     example_test.cpp
+# )
 
-gtest_add_tests(TARGET plantlistener_test)
+# target_link_libraries(plantlistener_test 
+#     gtest 
+#     gtest_main
+# )
+
+# gtest_add_tests(TARGET plantlistener_test)
+
+add_subdirectory(client)
+add_subdirectory(core)
+add_subdirectory(util)
+
+add_custom_target(plantlistener_coverage
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMAND pwd
+    COMMAND echo "=================== LCOV ===================="
+    COMMAND echo "-- Passing lcov tool under code coverage"
+    COMMAND lcov --capture --directory plant_listener --include plant_listener --exclude test --output-file lcoverage/main_coverage.info
+    COMMAND echo "-- Generating HTML output files"
+    COMMAND genhtml lcoverage/main_coverage.info --output-directory coverage/plantlistener
+    )
+
+

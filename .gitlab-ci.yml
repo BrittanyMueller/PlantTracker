@@ -73,15 +73,35 @@ Build Plant Listener Tests:
     - cmake .. -DCMAKE_BUILD_TYPE=test
     - make -j4
 
+Build Plant Listener Release:
+  extends: .base_job
+  stage: build
+  artifacts:
+    paths:
+      - build
+    expire_in: 1 week
+  script:
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=release
+    - make -j4
 
-Test Plant Listener:
+
+Test Coverage Plant Listener:
   extends: .base_job
   stage: test
   dependencies:
     - Build Plant Listener Tests
+  artifacts:
+    paths:
+      - out/coverage
   script:
     - cd build
-    - make test
+    - ctest --output-on-failure
+    - make coverage
+    - mkdir out
+    - mv build/coverage out/coverage
+
 
 #########################################
 #                                       #

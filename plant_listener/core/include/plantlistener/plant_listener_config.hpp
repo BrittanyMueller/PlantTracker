@@ -15,13 +15,12 @@
 
 #include <chrono>
 #include <optional>
+#include <plantlistener/device/device_config.hpp>
 #include <plantlistener/error.hpp>
-#include <string>
-#include <vector>
-
 #include <plantlistener/plant/plant_config.hpp>
 #include <plantlistener/sensor/sensor_config.hpp>
-#include <plantlistener/device/device_config.hpp>
+#include <string>
+#include <vector>
 
 namespace plantlistener::core {
 
@@ -34,7 +33,7 @@ class PlantListenerConfig {
   std::string address = {};
   uint16_t port = 1422;
   int32_t retry_count = -1;
-  std::chrono::seconds retry_timeout = 30;
+  std::chrono::seconds retry_timeout = std::chrono::seconds(30);
 
   std::vector<PlantConfig> plants = {};
   std::vector<SensorConfig> sensors = {};
@@ -45,8 +44,8 @@ class PlantListenerConfig {
   Error save();
 
   /**
-   * Loads config using config_path. 
-  */
+   * Loads config using config_path.
+   */
   Error load();
 };
-}  // namespace plantlistener::client
+}  // namespace plantlistener::core

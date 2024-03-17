@@ -13,7 +13,6 @@
 
 #include <iostream>
 #include <plantlistener/expected.hpp>
-
 #include <plantlistener/plant_listener_config.hpp>
 
 namespace plantlistener::client {

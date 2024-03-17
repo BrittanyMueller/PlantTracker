@@ -22,15 +22,15 @@ void plantlistener::client::helpMenu(std::ostream& out) {
   out << "Usage: plant_listener --config <config>.json [OPTION]...\n"
       << "Monitor for plants, collecting sensor data and reporting it back to the plant tracker server.\n"
       << "\n"
-      << "-h, --help                     Output this menu and exit.\n"
-      << "-c, --config       <cfg>.json  Configuration of plant tracker [required]"
-      << "-a, --tracker-ip   <address>   Override PlantTracker server address in config.\n"
-      << "-p, --tracker-port <port>      Override PlantTracker server port in config.\n"
-      << "-l, --log-level   <level>      Log level must be one of (ERR, WARN, STAT, INFO, DBG).\n"
-      << "-f, --log-file    <file>       Logging file. If it already exists it will\n"
-      << "                               be appendend.\n"
-      << "-q, --quiet                    Won't log anything to the console and only the log file\n"
-      << "                               if provided." << std::endl;
+      << "  -h, --help                     Output this menu and exit.\n"
+      << "  -c, --config       <cfg>       Configuration of plant tracker [required].\n"
+      << "  -a, --tracker-ip   <address>   Override PlantTracker server address in config.\n"
+      << "  -p, --tracker-port <port>      Override PlantTracker server port in config.\n"
+      << "  -l, --log-level    <level>     Log level must be one of (ERR, WARN, STAT, INFO, DBG).\n"
+      << "  -f, --log-file     <file>      Logging file. If it already exists it will\n"
+      << "                                 be appendend to the existing log.\n"
+      << "  -q, --quiet                    Won't log anything to the console and only the log file\n"
+      << "                                 if provided." << std::endl;
 }
 
 Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, char* argv[]) {
@@ -53,6 +53,10 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
   // First find the config and log level so we can load that in before the command line
   while ((c = getopt_long(argc, argv, short_args, long_options, &option_index)) != -1) {
     switch (c) {
+      case 'h':
+        plantlistener::client::helpMenu();
+        exit(0);
+        break;
       case 'c':
         cfg.config_path = optarg;
         break;
@@ -70,7 +74,7 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
         } else {
           return {Error::Code::ERROR_INVALID_VALUE, "Invald log level must be one of (ERR, WARN, STAT, INFO, DBG)"};
         }
-        spdlog::set_level(cfg.log_level.value());
+        spdlog::set_level(cfg.log_level);
         break;
     }
   }

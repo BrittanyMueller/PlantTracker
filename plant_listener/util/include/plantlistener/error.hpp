@@ -40,7 +40,7 @@ class Error {
   Error();
   Error(Code c, const std::string& m);
 
-  inline bool isError() const { return code == Code::OK; };
+  inline bool isError() const { return code != Code::OK; };
   std::string toStr() const;
   friend std::ostream& operator<<(std::ostream& out, const plantlistener::Error& err);
 };

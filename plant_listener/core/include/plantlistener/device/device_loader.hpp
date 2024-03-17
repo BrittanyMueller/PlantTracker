@@ -40,4 +40,4 @@ class DeviceLoader {
 
   nlohmann::json dump();
 };
-}  // namespace plantlistener::device
+}  // namespace plantlistener::core
