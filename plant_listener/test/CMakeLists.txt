@@ -29,12 +29,8 @@ add_subdirectory(util)
 
 add_custom_target(plantlistener_coverage
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    COMMAND pwd
-    COMMAND echo "=================== LCOV ===================="
-    COMMAND echo "-- Passing lcov tool under code coverage"
-    COMMAND lcov --capture --directory plant_listener --include plant_listener --exclude test --output-file lcoverage/main_coverage.info
-    COMMAND echo "-- Generating HTML output files"
-    COMMAND genhtml lcoverage/main_coverage.info --output-directory coverage/plantlistener
+    COMMAND mkdir -p coverage
+    COMMAND gcovr -r "${CMAKE_SOURCE_DIR}"  --txt --print-summary --gcov-ignore-parse-errors --filter ".*plant_listener.*" --gcov-exclude ".*test.*" --cobertura coverage.xml --html-details coverage/index.html
     )
 
 

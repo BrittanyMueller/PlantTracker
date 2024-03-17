@@ -16,8 +16,6 @@ Lint:
     - cmake ..
     - make test-format
   allow_failure: true
-
-
   
 #########################################
 #                                       #
@@ -94,14 +92,19 @@ Test Coverage Plant Listener:
     - Build Plant Listener Tests
   artifacts:
     paths:
-      - out/coverage
+      - out/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: out/coverage.xml
   script:
     - cd build
     - ctest --output-on-failure
-    - make coverage
+    - make plantlistener_coverage
+    - cd ..
     - mkdir out
     - mv build/coverage out/coverage
-
+    - mv build/coverage.xml out/coverage.xml
 
 #########################################
 #                                       #
