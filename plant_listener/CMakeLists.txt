@@ -27,12 +27,23 @@ FetchContent_Populate(nlohmann_json)
 add_library(json INTERFACE)
 target_include_directories(json INTERFACE ${nlohmann_json_SOURCE_DIR}/single_include/)
 
-add_compile_options(-g -Wall)
+# Add spdlog for logging
+find_package(spdlog REQUIRED)
+find_package(fmt REQUIRED)
 
-add_subdirectory(sensor)
-add_subdirectory(device)
+if("${CMAKE_BUILD_TYPE}" STREQUAL "test" OR "${CMAKE_BUILD_TYPE}" STREQUAL "coverage")
+    add_compile_options(-g -Wall -fprofile-arcs -ftest-coverage)
+    link_libraries(gcov)
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "debug")
+    add_compile_options(-g -Wall)
+elseif("${CMAKE_BUILD_TYPE}" STREQUAL "release")
+    add_compile_options(-Wall -Werror -O3)
+endif()
+
+add_subdirectory(devices)
 add_subdirectory(client)
-
+add_subdirectory(core)
+add_subdirectory(util)
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "test")
     include(GoogleTest)

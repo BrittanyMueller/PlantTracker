@@ -39,7 +39,7 @@ service PlantTracker {
  *  3: setting baselines for plant light and moisture level.
  */
 service PlantListener {
-  rpc Initialze(PlantListenerConfig) returns (Result);
+  rpc Initialze(PlantListenerConfig) returns (InitialzeResponse);
 
   rpc ReportSensor(PlantDataList) returns (Result);
 
@@ -55,9 +55,15 @@ message Result {
 
 message PlantListenerConfig {
   string name = 1;
-  repeated Plant plants = 2;
-  repeated Light lights = 3;
-  repeated Device devices = 4;
+  int64 pi_id = 2;
+  repeated Plant plants = 3;
+  repeated Light lights = 4;
+  repeated Device devices = 5;
+}
+
+message InitialzeResponse {
+  Result res = 1;
+  optional PlantListenerConfig cfg = 2;
 }
 
 message PlantDataList {

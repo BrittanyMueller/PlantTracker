@@ -18,7 +18,6 @@ release
 test # Don't build raspberrypi specific libaries
 )
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -27,7 +26,10 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "test")
 endif()
 
 add_subdirectory(idl)
-add_subdirectory(plant_listener)
+
+if(NOT "$ENV{BUILD_PLANT_LISTENER}" STREQUAL "0")
+    add_subdirectory(plant_listener)
+endif()
 
 add_custom_target(PlantTracker
     COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/app

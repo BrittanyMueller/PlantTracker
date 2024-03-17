@@ -9,24 +9,9 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-#pragma once
 
-#include <string>
+#include <gtest/gtest.h>
 
-namespace plantlistener::client {
+TEST(TestSuite, testpass) { ASSERT_TRUE(true); }
 
-class PlantListenerConfig {
- private:
-  std::string name_{};
-  std::string config_path_{};
-
-  // TODO(lmilne) add light and plant sensor lists
-
- public:
-  PlantListenerConfig(const std::string& config_path) {}
-
-  void save();
-
-  void load() {}
-};
-}  // namespace plantlistener::client
+TEST(TestSuite, testpass2) { ASSERT_TRUE(true); }

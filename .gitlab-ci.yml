@@ -16,8 +16,6 @@ Lint:
     - cmake ..
     - make test-format
   allow_failure: true
-
-
   
 #########################################
 #                                       #
@@ -73,15 +71,40 @@ Build Plant Listener Tests:
     - cmake .. -DCMAKE_BUILD_TYPE=test
     - make -j4
 
+Build Plant Listener Release:
+  extends: .base_job
+  stage: build
+  artifacts:
+    paths:
+      - build
+    expire_in: 1 week
+  script:
+    - mkdir build
+    - cd build
+    - cmake .. -DCMAKE_BUILD_TYPE=release
+    - make -j4
 
-Test Plant Listener:
+
+Test Coverage Plant Listener:
   extends: .base_job
   stage: test
   dependencies:
     - Build Plant Listener Tests
+  artifacts:
+    paths:
+      - out/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: out/coverage.xml
   script:
     - cd build
-    - make test
+    - ctest --output-on-failure
+    - make plantlistener_coverage
+    - cd ..
+    - mkdir out
+    - mv build/coverage out/coverage
+    - mv build/coverage.xml out/coverage.xml
 
 #########################################
 #                                       #
@@ -91,6 +114,8 @@ Test Plant Listener:
 Build Android Plant Tracker Debug:
   image: registry.larrycloud.ca/qawse3dr/plant-tracker-android:latest
   stage: build
+  variables:
+    BUILD_PLANT_LISTENER: 0
   script:
     - mkdir -p build
     - cd build

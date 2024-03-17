@@ -9,4 +9,9 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-#pragma once
+
+#include <gtest/gtest.h>
+
+TEST(TestSuite, testpass) { ASSERT_TRUE(true); }
+
+TEST(TestSuite, testpass2) { ASSERT_TRUE(true); }

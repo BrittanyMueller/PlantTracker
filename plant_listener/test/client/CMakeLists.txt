@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2023 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
+# (C) Copyright 2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
 #
 # This code is distributed on "AS IS" BASIS,
 # WITHOUT WARRANTINES OR CONDITIONS OF ANY KIND.
@@ -10,8 +10,13 @@
 # @author: BrittanyMueller
 #
 
-add_library(plantlistener-sensor_objlib OBJECT
-    src/sensor.cpp
+add_executable(plantlistener_core_test
+    example_test.cpp
 )
-target_include_directories(plantlistener-sensor_objlib PUBLIC include)
 
+target_link_libraries(plantlistener_core_test 
+    gtest 
+    gtest_main
+)
+
+gtest_add_tests(TARGET plantlistener_core_test)

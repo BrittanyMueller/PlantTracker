@@ -12,9 +12,6 @@
 
 add_executable(plant_listener
   src/main.cpp
+  src/command_line.cpp
 )
-target_link_libraries(plant_listener 
-  plantlistener-sensor_objlib
-  plantlistener-device_objlib
-  json
-)
+target_link_libraries(plant_listener plantlistener-core_objlib)
