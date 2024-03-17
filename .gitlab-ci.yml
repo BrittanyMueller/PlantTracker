@@ -111,6 +111,8 @@ Test Coverage Plant Listener:
 Build Android Plant Tracker Debug:
   image: registry.larrycloud.ca/qawse3dr/plant-tracker-android:latest
   stage: build
+  variables:
+    BUILD_PLANT_LISTENER: 0
   script:
     - mkdir -p build
     - cd build
