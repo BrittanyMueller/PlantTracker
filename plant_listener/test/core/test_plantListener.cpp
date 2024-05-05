@@ -9,11 +9,19 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-#pragma once
 
-#include <iostream>
+#include <gtest/gtest.h>
 
-namespace plantlistener::core {
+class PlantListenerTest : public ::testing::Test {};
 
-class SensorLoader {};
-}  // namespace plantlistener::core
+TEST_F(PlantListenerTest, test_init_again) {
+
+}
+
+TEST_F(PlantListenerTest, test_start_again) {
+  
+}
+
+TEST_F(PlantListenerTest, test_stop_again) {
+  
+}

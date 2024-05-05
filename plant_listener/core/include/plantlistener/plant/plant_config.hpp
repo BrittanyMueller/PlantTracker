@@ -12,5 +12,10 @@
 #pragma once
 
 namespace plantlistener::core {
-struct PlantConfig {};
+struct PlantConfig {
+  std::string name{};
+  int64_t id = -1;
+  int64_t light_id = -1;
+  int64_t moisture_id = -1;
+};
 }  // namespace plantlistener::core

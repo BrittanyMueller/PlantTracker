@@ -16,6 +16,8 @@ find_package(gRPC CONFIG REQUIRED)
 
 add_library(plant_tracker_idl planttracker.proto)
 target_link_libraries(plant_tracker_idl PUBLIC gRPC::grpc++)
+target_include_directories(plant_tracker_idl PUBLIC ${CMAKE_BINARY_DIR}/idl)
+
 protobuf_generate(TARGET plant_tracker_idl)
 protobuf_generate(
     TARGET plant_tracker_idl

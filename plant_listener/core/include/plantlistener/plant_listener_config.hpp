@@ -31,12 +31,11 @@ class PlantListenerConfig {
 
   spdlog::level::level_enum log_level = spdlog::level::warn;
   std::string address = {};
-  uint16_t port = 1422;
+  uint16_t port = 1234;
   int32_t retry_count = -1;
   std::chrono::seconds retry_timeout = std::chrono::seconds(30);
+  std::chrono::seconds poll_rate = std::chrono::seconds(10);
 
-  std::vector<PlantConfig> plants = {};
-  std::vector<SensorConfig> sensors = {};
   std::vector<plantlistener::device::DeviceConfig> devices = {};
 
   PlantListenerConfig() {}

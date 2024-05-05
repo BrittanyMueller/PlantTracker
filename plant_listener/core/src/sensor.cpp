@@ -10,10 +10,38 @@
  * @author: BrittanyMueller
  */
 
-#include "plantlistener/sensor/sensor.hpp"
+#include <fmt/format.h>
 
-using plantlistener::sensor::Sensor;
+#include <plantlistener/sensor/sensor.hpp>
 
-Sensor::Sensor() {}
+using plantlistener::Error;
+using plantlistener::core::Sensor;
 
-void Sensor::print() { std::cout << "hello" << std::endl; }
+Sensor::Sensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev)
+    : id_(cfg.id), dev_(dev), dev_port_(cfg.device_port) {}
+
+Error Sensor::addPlant(const std::shared_ptr<plantlistener::core::Plant>& plant) {
+  auto itr = plants_.find(plant->getId());
+  if (itr != plants_.end()) {
+    return {Error::Code::ERROR_AGAIN, fmt::format("Plant {} already added to sensor {}", plant->getId(), id_)};
+  }
+
+  plants_.insert(std::make_pair(plant->getId(), plant));
+  return {};
+}
+
+Error Sensor::removePlant(uint64_t plant_id) {
+  auto itr = plants_.find(plant_id);
+  if (itr == plants_.end()) {
+    return {Error::Code::ERROR_MISSING, fmt::format("Plant {} wasn't found in sensor {}", plant_id, id_)};
+  }
+  plants_.erase(itr);
+  return {};
+}
+
+Error Sensor::updatePlants() { 
+  auto data = dev_->readPort(dev_port_);
+  for (const auto& plant : plants_) {
+    updatePlant(plant.second, data);
+  }
+  return {}; }
