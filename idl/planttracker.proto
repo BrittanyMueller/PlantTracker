@@ -33,13 +33,13 @@ service PlantTracker {
  * Because the PlantListener must act as a client so we don't need to deal with networking configurations for clients we
  * will do a long poll waiting for requests as they come in for the server -> client
  *
- * Main responsibilites for the listener are:
+ * Main responsibilities for the listener are:
  *  1: add/remove plants/ light sensors
  *  2: requesting Live data from sensor
  *  3: setting baselines for plant light and moisture level.
  */
 service PlantListener {
-  rpc Initialze(PlantListenerConfig) returns (InitialzeResponse);
+  rpc Initialize(PlantListenerConfig) returns (InitializeResponse);
 
   rpc ReportSensor(PlantDataList) returns (Result);
 
@@ -53,6 +53,10 @@ message Result {
   optional string error = 2;
 }
 
+/*
+ * When connecting with the server the plantlistener will give the name, pi_id, and devices.
+ * When returning the server will fill in all the info about plants, lights and assign a pi_id if one wasn't already given.
+ */
 message PlantListenerConfig {
   string name = 1;
   int64 pi_id = 2;
@@ -61,7 +65,7 @@ message PlantListenerConfig {
   repeated Device devices = 5;
 }
 
-message InitialzeResponse {
+message InitializeResponse {
   Result res = 1;
   optional PlantListenerConfig cfg = 2;
 }

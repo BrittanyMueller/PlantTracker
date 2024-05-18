@@ -26,6 +26,8 @@
 add_subdirectory(client)
 add_subdirectory(core)
 add_subdirectory(util)
+add_subdirectory(live)
+
 
 add_custom_target(plantlistener_coverage
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}

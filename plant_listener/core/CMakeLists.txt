@@ -14,6 +14,7 @@
 add_library(plantlistener-core_objlib
     src/device_loader.cpp
     src/sensor.cpp
+    src/plant_listener.cpp
 )
-target_link_libraries(plantlistener-core_objlib PUBLIC plantlistener-device_objlib plantlistener-util_objlib json spdlog::spdlog fmt::fmt)
+target_link_libraries(plantlistener-core_objlib PUBLIC plantlistener-device_objlib plantlistener-util_objlib json plant_tracker_idl)
 target_include_directories(plantlistener-device_objlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)

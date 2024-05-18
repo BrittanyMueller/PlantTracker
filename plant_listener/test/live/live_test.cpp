@@ -9,15 +9,8 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-#pragma once
+#include <gtest/gtest.h>
 
-namespace plantlistener::core {
+TEST(LiveTests, start_stop_test) {
 
-enum SensorType { LightSensor, MoistureSensor };
-struct SensorConfig {
-  SensorType type;
-  int64_t id;
-  std::string device_name{};
-  int64_t device_port = 1;
-};
-}  // namespace plantlistener::core
+}

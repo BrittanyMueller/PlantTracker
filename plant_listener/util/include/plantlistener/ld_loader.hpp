@@ -12,45 +12,61 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <dlfcn.h>
 
+
+#include <filesystem>
 #include <nlohmann/json.hpp>
 #include <plantlistener/expected.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-namespace plantlistner {
+namespace plantlistener {
 
 template <typename U>
 class LdLoader {
  public:
   using LdLoaderHandler = void*;
 
+  struct LibInfo {
+    LdLoaderHandler handler;
+    std::string path;
+  };
+
  private:
-  std::unordered_map<std::string, LdLoaderHandler> loaded_libs_{};
+  std::unordered_map<std::string, LibInfo> loaded_libs_{};
   std::string access_ftn_{};
 
  public:
   LdLoader(const std::string& access_ftn) : access_ftn_(access_ftn) {}
   virtual ~LdLoader() {
     for (const auto& lib : loaded_libs_) {
-      dlclose(lib.second);
+      dlclose(lib.second.handler);
     }
   }
 
-  expected<U> getHandler(const std::string& name, const std::string& path) {
+  Expected<U> getHandler(const std::string& name, const std::string& path) {
     void* handler = nullptr;
 
     // Check if this lib is already loaded
     auto& lib_itr = loaded_libs_.find(name);
     if (lib_itr == loaded_libs_.end()) {
-      handler = dlopen(lib.value().get<std::string>().c_str(), RTLD_LAZY);
+      if (!std::filesystem::exists(path)) {
+        return {Error::Code::ERROR_FILE_NOT_FOUND, fmt::format("Library could not be found at {}.", path)};
+      }
+
+      handler = dlopen(path.c_str(), RTLD_LAZY);
       if (!handler) {
         return {Error::Code::ERROR_IO, fmt::format("Failed to open {} with: {}", path, dlerror())};
       }
-      loaded_libs_.emplace(std::make_pair(name.get<std::string>(), handler));
+      loaded_libs_.emplace(std::make_pair(name, LibInfo{handler, path}));
     } else {
-      handler = lib_itr.second;
+      if (!std::filesystem::equivalent(std::filesystem::path(path), std::filesystem::path(lib_itr.second.path))) {
+        return {Error::Code::ERROR_AGAIN,
+                fmt::format("Library already defined with name {}, path {}", name, lib_itr.second.path)};
+      }
+      handler = lib_itr.second.handler;
     }
 
     // Grab the function from the loaded lib.
@@ -62,6 +78,9 @@ class LdLoader {
     return {create_ftn};
   }
 
-  virtual nlohmann::json dump() { nlohmann::json d = nlohmann::json::object(); }
+  virtual nlohmann::json dump() {
+    nlohmann::json d = nlohmann::json::object();
+    return d;
+  }
 };
-}  // namespace plantlistner
+}  // namespace plantlistener

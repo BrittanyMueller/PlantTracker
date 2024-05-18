@@ -15,18 +15,16 @@
 
 namespace plantlistener {
 
-/**
- *
- */
 class Error {
  public:
   enum class Code {
-    OK = 1,
+    OK = 0,
     ERROR_INTERNAL,
     ERROR_INVALID_ARG,
     ERROR_INVALID_VALUE,
     ERROR_INVALID_TYPE,
     ERROR_MISSING,
+    ERROR_FILE_NOT_FOUND,
     ERROR_IO,
     ERROR_AGAIN,
     ERROR_NETWORKING,

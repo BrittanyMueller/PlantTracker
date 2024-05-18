@@ -12,13 +12,44 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
+#include <plantlistener/device/device.hpp>
+#include <plantlistener/error.hpp>
+#include <plantlistener/plant/plant.hpp>
+#include <plantlistener/sensor/sensor_config.hpp>
+#include <unordered_map>
 
-namespace plantlistener::sensor {
+namespace plantlistener::core {
 
 class Sensor {
+ private:
+  int64_t id_{};
+  std::shared_ptr<plantlistener::device::Device> dev_;
+  uint64_t dev_port_;
+
+  // Holds the result of the constructor.
+  std::unordered_map<uint64_t, std::shared_ptr<Plant>> plants_;
+  Error ctr_error{};
+
  public:
-  Sensor();
-  void print();
+  Sensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev);
+
+  inline Error valid() const { return ctr_error; };
+  inline const int64_t getId() const { return id_; }
+
+
+  Error addPlant(const std::shared_ptr<Plant>& plant);
+  Error removePlant(uint64_t plant_id);
+
+  /**
+   * Updates all of the plants with the data from the sensors
+  */
+  Error updatePlants();
+
+ protected:
+  // Function used to update the correct plant field.
+  virtual void updatePlant(const std::shared_ptr<Plant>& plant, uint64_t data) = 0;
+  
 };
 
-}  // namespace plantlistener::sensor
+}  // namespace plantlistener::core

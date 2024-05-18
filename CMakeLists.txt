@@ -18,8 +18,13 @@ release
 test # Don't build raspberrypi specific libaries
 )
 
+if (NOT DEFINED CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE debug)
+endif()
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "test")
     enable_testing()

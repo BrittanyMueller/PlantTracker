@@ -3,29 +3,11 @@
     "pi_id": -1,
     "server": {
         "address": "127.0.0.1",
-        "port": "31415",
+        "port": "1234",
         "log_level": "ERR",
         "retry_count": -1,
         "retry_timeout": 5
     },
-    "plants": [
-        {
-            "name": "Snake Plant",
-            "id": 1,
-            "light_name": "default_light",
-            "device_name": "dev1",
-            "port": 0
-        }
-    ],
-    "lights": [
-        {
-            "name": "default_light",
-            "id": 0,
-            "device_name": "dev1",
-            "port": 7
-        }
-
-    ],
     "devices": {
         "instances": [
             {
