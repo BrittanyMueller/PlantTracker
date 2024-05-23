@@ -15,7 +15,7 @@ public class ViewPlants extends AppCompatActivity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.view_plants);
     Toolbar myToolbar = findViewById(R.id.top_toolbar);
-    myToolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+//    myToolbar.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
     setSupportActionBar(myToolbar);
   }
 
