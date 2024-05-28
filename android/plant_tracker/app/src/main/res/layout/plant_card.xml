@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="#e7e7e7"
+    android:padding="10dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="5dp"
+        app:cardElevation="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -15,14 +23,24 @@
 
             <ImageView
                 android:id="@+id/plant_image"
-                android:layout_width="match_parent"
-                android:layout_height="50dp" />
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/bee_portrait"
+                android:contentDescription="TODO"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
             <TextView
                 android:id="@+id/plant_title"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_width="287dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="8dp"
+                android:text="Sample Plant Name"
                 android:textColor="@color/black"
-                android:textSize="20sp" />
+                android:textSize="20sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/plant_image"
+                app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

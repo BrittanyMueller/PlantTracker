@@ -1,5 +1,7 @@
 package ca.planttracker;
 
+import androidx.annotation.NonNull;
+
 public class Plant {
     private int id;
     private String name;
@@ -19,5 +21,11 @@ public class Plant {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return name;
     }
 }

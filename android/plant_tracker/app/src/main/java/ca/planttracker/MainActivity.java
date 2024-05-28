@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,20 +13,24 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.view_plants);
+        setContentView(R.layout.custom_appbar);
 
         try {
-            JSONArray plantArray = parseJSONArray("plants.json");
-            if (plantArray != null) {
-                for (int i = 0; i < plantArray.length(); i++) {
-                    JSONObject plantObj = plantArray.getJSONObject(i);
+            JSONArray objArray = parseJSONArray("plants.json");
+            if (objArray != null) {
+                ArrayList<Plant> plantList = new ArrayList<>();
+                for (int i = 0; i < objArray.length(); i++) {
+                    JSONObject plantObj = objArray.getJSONObject(i);
                     Log.i("TAG", plantObj.getString("name"));
+                    Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), plantObj.getString("imageUrl"));
+                    plantList.add(plant);
                 }
             }
         } catch (JSONException e) {
