@@ -4,7 +4,6 @@ import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -21,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ViewPlants extends AppCompatActivity {
-    private ListView listView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,12 +27,9 @@ public class ViewPlants extends AppCompatActivity {
 
         List<Plant> plantList = getPlantData();
 
-        listView = findViewById(R.id.plants_listview);
-
-        // TODO make custom array adapter for plant cards
-        ArrayAdapter<Plant> plantAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1, plantList);
+        PlantListAdapter plantAdapter = new PlantListAdapter(this, plantList);
+        ListView listView = findViewById(R.id.plants_listview);
         listView.setAdapter(plantAdapter);
-
     }
 
     private List<Plant> getPlantData() {

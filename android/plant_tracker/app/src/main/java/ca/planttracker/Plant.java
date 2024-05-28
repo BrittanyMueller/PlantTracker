@@ -9,7 +9,7 @@ public class Plant {
 
     // TODO add ref to sensors & light/moisture settings?
 
-    public Plant(int id, String name, String imageUrl) {
+    public Plant(int id, @NonNull String name, String imageUrl) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.id = id;
@@ -19,9 +19,9 @@ public class Plant {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
+    public String getName() { return name; }
+
+    public String getImageUrl() { return imageUrl; }
 
     @NonNull
     @Override
