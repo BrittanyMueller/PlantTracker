@@ -38,6 +38,8 @@ class Expected : public Error {
   Expected(const U& value) : value_(value) {}
   Expected(U&& value) : value_(std::move(value)) {}
   Expected(Error::Code error, const std::string& msg) : Error(error, msg) {}
+  Expected(const Error& e) : Error(e) {}
+
 
   /**
    * Access the value of the expected object.

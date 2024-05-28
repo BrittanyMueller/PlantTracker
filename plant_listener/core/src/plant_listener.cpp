@@ -66,22 +66,28 @@ plantlistener::Error PlantListener::start() {
   std::shared_ptr<grpc::Channel> channel =
       grpc::CreateChannel(fmt::format("{}:{}", cfg_.address, cfg_.port), grpc::InsecureChannelCredentials());
   std::unique_ptr<planttracker::grpc::PlantListener::Stub> client(planttracker::grpc::PlantListener::NewStub(channel));
-  grpc::ClientContext client_context;
 
+  // Don't lock when waiting for connection
+  // lck.unlock();
+  // channel->WaitForConnected(gpr_);
+  // lck.lock();
+  
   spdlog::info("PlantListener started!");
   state_ = State::STARTED;
+
+  // Init the data with the server
+  // client->Initialize();
 
   // Poll until we are told to stop
   Error res;
   while (state_ == State::STARTED) {
     auto next_poll = std::chrono::steady_clock::now() + cfg_.poll_rate;
-    spdlog::info("polling sensors");
     SPDLOG_DEBUG("POLLING SENSORS");
 
     for (const auto& sensor : sensors_) {
       res = sensor->updatePlants();
       if (res.isError()) {
-        spdlog::error("encountered error when updating plants: {}", res.toStr());
+        spdlog::error("Encountered error when updating plants: {}", res.toStr());
         break;
       }
     }
@@ -108,7 +114,16 @@ plantlistener::Error PlantListener::start() {
       plant_data->set_allocated_moisture(moistureData);
 
     }
-    client->ReportSensor(&client_context, plant_data_list, &report_res);
+
+
+    {
+      grpc::ClientContext client_context;
+      auto status = client->ReportSensor(&client_context, plant_data_list, &report_res);
+      if (!status.ok()) {
+        res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to report sensor with: {}", status.error_message())};
+        break;
+      }
+    }
 
     cv_.wait_until(lck, next_poll);
   }
