@@ -13,7 +13,7 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "grpc.planttracker";
+option java_package = "planttracker.server";
 package planttracker.grpc;
 
 /*
@@ -29,7 +29,7 @@ service PlantTracker {
 }
 
 /*
- * This service will act as a listener for plant events, as well as reporiting sensors.
+ * This service will act as a listener for plant events, as well as reporting sensors.
  * Because the PlantListener must act as a client so we don't need to deal with networking configurations for clients we
  * will do a long poll waiting for requests as they come in for the server -> client
  *
@@ -54,7 +54,7 @@ message Result {
 }
 
 /*
- * When connecting with the server the plantlistener will give the name, pi_id, and devices.
+ * When connecting with the server the PlantListener will give the name, pi_id, and devices.
  * When returning the server will fill in all the info about plants, lights and assign a pi_id if one wasn't already given.
  */
 message PlantListenerConfig {

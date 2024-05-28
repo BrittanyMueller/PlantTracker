@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
+ * (C) Copyright 2023-2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
  *
  * This code is distributed on "AS IS" BASIS,
  * WITHOUT WARRANTINES OR CONDITIONS OF ANY KIND.
@@ -11,12 +11,16 @@
  */
 package planttracker.server;
 
+
 public class App {
-  public String getGreeting() {
-    return "Hello World!";
-  }
 
   public static void main(String[] args) {
-    System.out.println(new App().getGreeting());
+    PlantListenerServer server = new PlantListenerServer();
+    try {
+      server.start();
+      server.blockUntilShutdown();
+    } catch (Exception e) {
+      System.err.println("Failed to run with " + e.toString());
+    }
   }
 }

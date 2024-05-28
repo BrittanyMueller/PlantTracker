@@ -2,6 +2,7 @@
 .gradle/
 build/
 server/app/build
+bin/
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -32,3 +33,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# VSCode
+.vscode/
