@@ -11,17 +11,16 @@
  */
 package planttracker.server;
 
-import io.grpc.Grpc;
-import io.grpc.InsecureServerCredentials;
-import io.grpc.Server;
-import io.grpc.stub.StreamObserver;
 
 public class App {
-  public String getGreeting() {
-    return "Hello World, again!";
-  }
 
   public static void main(String[] args) {
-    System.out.println(new App().getGreeting());
+    PlantListenerServer server = new PlantListenerServer();
+    try {
+      server.start();
+      server.blockUntilShutdown();
+    } catch (Exception e) {
+      System.err.println("Failed to run with " + e.toString());
+    }
   }
 }

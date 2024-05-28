@@ -2,6 +2,7 @@
 .gradle/
 build/
 server/app/build
+bin/
 
 # Local configuration file (sdk path, etc)
 local.properties
