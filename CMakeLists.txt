@@ -10,6 +10,8 @@
 # @author: BrittanyMueller
 #
 cmake_minimum_required(VERSION 3.20)
+
+set(CMAKE_CXX_COMPILER "g++")
 Project("Plant Tracker")
 
 set(CMAKE_CONFIGURATION_TYPES
@@ -17,6 +19,7 @@ debug
 release
 test # Don't build raspberrypi specific libaries
 )
+set (CMAKE_CXX_STANDARD 20)
 
 if (NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE debug)
@@ -38,8 +41,9 @@ endif()
 
 add_custom_target(PlantTracker
     COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/app
-    COMMAND cd ${CMAKE_SOURCE_DIR}/PlantTracker/ && ./gradlew assembleDebug
-    COMMAND cp ${CMAKE_SOURCE_DIR}/PlantTracker/app/build/outputs/apk/debug/app-debug.apk ${CMAKE_BINARY_DIR}/app
+    COMMAND chmod +x ${CMAKE_SOURCE_DIR}/android/plant_tracker//gradlew
+    COMMAND cd ${CMAKE_SOURCE_DIR}/android/plant_tracker/ && ./gradlew assembleDebug
+    COMMAND cp ${CMAKE_SOURCE_DIR}/android/plant_tracker/app/build/outputs/apk/debug/app-debug.apk ${CMAKE_BINARY_DIR}/app
 )
 
 set(FORMAT_SUFFIXES .h .hpp .c .cpp .java .proto)

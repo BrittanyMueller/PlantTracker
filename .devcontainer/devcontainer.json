@@ -1,0 +1,17 @@
+{
+  "image": "registry.larrycloud.ca/qawse3dr/plant-tracker:latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "streetsidesoftware.code-spell-checker",
+        "ms-vscode.cpptools-extension-pack",
+        "xaver.clang-format",
+        "ms-vscode.cmake-tools",
+        "vscjava.vscode-java-pack",
+        "eamodio.gitlens",
+        "vscjava.vscode-gradle"
+      ]
+    }
+  },
+  "forwardPorts": [3322]
+}
