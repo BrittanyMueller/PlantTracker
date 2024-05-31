@@ -9,7 +9,8 @@
         "ms-vscode.cmake-tools",
         "vscjava.vscode-java-pack",
         "eamodio.gitlens",
-        "vscjava.vscode-gradle"
+        "vscjava.vscode-gradle",
+        "mutantdino.resourcemonitor"
       ]
     }
   },

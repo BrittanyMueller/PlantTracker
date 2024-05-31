@@ -35,4 +35,5 @@ google-services.json
 *.hprof
 
 # VSCode
-.vscode/
+.vscode/*
+!.vscode/cmake-variants.yaml

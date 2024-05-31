@@ -1,0 +1,16 @@
+buildType:
+  default: test
+  description: Build Types
+  choices:
+    test:
+      short: test
+      long:  Build plantlister with unit tests and coverage info
+      buildType: test
+    debug:
+      short: debug
+      long: Build debug variant of plantlistener without coverage but with debuging symbols
+      buildType: debug
+    release:
+      short: release
+      long: Build plantlistener with optimzation and no debug symbols.
+      buildType: release
