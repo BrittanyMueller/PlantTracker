@@ -43,6 +43,8 @@ static const char* errorCodeToString(plantlistener::Error::Code code) {
       return "ERROR_NOT_CONNECTED";
     case Code::ERROR_NOT_INIT:
       return "ERROR_NOT_INIT";
+    case Code::ERROR_OUT_OF_RANGE:
+      return "ERROR_OUT_OF_RANGE";
     default:
       return "UNKNOWN";
   }

@@ -31,7 +31,7 @@ class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener:
   grpc::Status ReportSensor(grpc::ServerContext* context, const planttracker::grpc::PlantDataList* request,
                             planttracker::grpc::Result* response) {
     std::stringstream report;
-    report << "--------ReportSensor Start----------\n";
+    report << "\n--------ReportSensor Start----------\n";
     for (const auto& plant_data : request->data()) {
       report << "plant_id: " << plant_data.plant_id() << " Moisture: " << plant_data.moisture().sensor_value()
              << " Light: " << plant_data.light().sensor_value() << std::endl;

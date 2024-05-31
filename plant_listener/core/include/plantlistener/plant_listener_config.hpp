@@ -30,7 +30,7 @@ class PlantListenerConfig {
   std::string config_path{};
 
   spdlog::level::level_enum log_level = spdlog::level::warn;
-  std::string address = {};
+  std::string address = "127.0.0.1";
   uint16_t port = 1234;
   int32_t retry_count = -1;
   std::chrono::seconds retry_timeout = std::chrono::seconds(30);

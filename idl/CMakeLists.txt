@@ -13,7 +13,6 @@
 include(FindProtobuf)
 find_package(Protobuf REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
-
 find_package(absl REQUIRED)
 
 # It seems sometimes this is needed in the case of our build server but locally it isn't so if it isn't found ignore.
@@ -25,7 +24,7 @@ else()
 endif()
 
 add_library(plant_tracker_idl planttracker.proto)
-target_link_libraries(plant_tracker_idl PUBLIC gRPC::grpc++ protobuf::libprotobuf absl::check absl::flags absl::flags_parse absl::log ${utf8_range_libs})
+target_link_libraries(plant_tracker_idl PUBLIC gRPC::grpc++ protobuf::libprotobuf absl::check absl::flags ${utf8_range_libs})
 target_include_directories(plant_tracker_idl PUBLIC ${CMAKE_BINARY_DIR}/idl)
 
 protobuf_generate(TARGET plant_tracker_idl)

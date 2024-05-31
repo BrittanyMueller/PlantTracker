@@ -31,7 +31,7 @@ void sigHandler(sigset_t sig_mask, plantlistener::core::PlantListener* plant_lis
     spdlog::info("Stop requested trying to stop PlantListener");
     auto res = plant_listener->stop();
     if (res.isError()) {
-      spdlog::error("Failed to stop PlantListener with %s", res.toStr());
+      spdlog::error("Failed to stop PlantListener with {}", res.toStr());
     }
     return;
   }
@@ -47,14 +47,14 @@ int main(int argc, char* argv[]) {
 
   auto config_ret = plantlistener::client::parseArguments(argc, argv);
   if (config_ret.isError()) {
-    spdlog::error("Failed to read config with: %s", config_ret.toStr());
+    spdlog::error("Failed to read config with: {}", config_ret.toStr());
     return 1;
   }
   plantlistener::core::PlantListener plant_listener(std::move(*config_ret));
 
   auto res = plant_listener.init();
   if (res.isError()) {
-    spdlog::error("Failed to init with: %s", res.toStr());
+    spdlog::error("Failed to init with: {}", res.toStr());
   }
 
   auto sig_thread = std::thread(sigHandler, sig_mask, &plant_listener);
