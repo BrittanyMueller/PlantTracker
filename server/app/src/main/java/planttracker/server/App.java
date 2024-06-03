@@ -11,11 +11,17 @@
  */
 package planttracker.server;
 
+import java.sql.SQLException;
 
 public class App {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws SQLException {
     PlantListenerServer server = new PlantListenerServer();
+    
+    // Connect to database and create tables if needed.
+    Database db = new Database();
+    db.init();
+  
     try {
       server.start();
       server.blockUntilShutdown();

@@ -32,6 +32,10 @@ dependencies {
     implementation "io.grpc:grpc-stub:${grpcVersion}"
     compileOnly "org.apache.tomcat:annotations-api:6.0.53"
 
+    // https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation 'org.postgresql:postgresql:42.7.3'
+    implementation 'org.json:json:20171018'
+
     // examples/advanced need this for JsonFormat
     implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
 
