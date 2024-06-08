@@ -38,7 +38,7 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
   time_t now = time(NULL);
   if (now - dht22->last_read_ts < DHT22_COOLDOWN) {
     data = dht22->last_read_data;
-    goto read_exit; // Too early to read just return the lst result.
+    goto read_exit; // Too early to read, return the last result.
   }
 
   // Reset the reading data.
@@ -76,7 +76,7 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
     old_time = cur_time;
     gettimeofday(&cur_time, NULL);
 
-    // Ignore the first 2 as the data sheet says thats the handshake. We also only car about falling edges as that will be where the data is set.
+    // Ignore the first 2 state changes; the data sheet says that's the handshake. We also only care about falling edges as that will be where the data is set.
     if (old_value == 1 && i > 2) {
       uint8_t byte = count++ / 8;
       dht22->current_read.data[byte] <<= 1;
