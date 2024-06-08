@@ -46,7 +46,7 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
   dht22->finished_reading = 0;
   memset((void*)&dht22->current_read, 0, sizeof(struct DHT22ReadData));
 
-  // Write high than low for 3ms  this will notify DHT22 that we want to read.
+  // Write high then low for 3ms, this will notify DHT22 that we want to read.
   gpioSetMode(dht22->pin, PI_OUTPUT);
   gpioWrite(dht22->pin, 1);
   usleep(3000);
