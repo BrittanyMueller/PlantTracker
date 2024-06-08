@@ -23,4 +23,5 @@ target_include_directories(plantlistener-device_objlib PUBLIC ${CMAKE_CURRENT_SO
 add_subdirectory(mock)
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL "test")
     add_subdirectory(ADS7830)
+    add_subdirectory(dht22)
 endif()
