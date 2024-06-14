@@ -12,21 +12,55 @@
 package planttracker.server;
 
 import java.sql.SQLException;
+import org.apache.commons.cli.*;
 
 public class App {
 
-  public static void main(String[] args) throws SQLException {
-    PlantListenerServer server = new PlantListenerServer();
-    
-    // Connect to database and create tables if needed.
-    Database db = new Database();
-    db.init();
-  
-    try {
-      server.start();
-      server.blockUntilShutdown();
-    } catch (Exception e) {
-      System.err.println("Failed to run with " + e.toString());
+    public static void main(String[] args) throws SQLException {
+        PlantListenerServer server = new PlantListenerServer();
+
+        try {
+            parseArgs(args);
+        } catch (ParseException e) {
+            System.err.println("Parse exception poo");
+        }
+        // Connect to database and create tables if needed.
+        Database db = new Database();
+        db.init();
+
+        try {
+            server.start();
+            server.blockUntilShutdown();
+        } catch (Exception e) {
+            System.err.println("Failed to run with " + e.toString());
+        }
     }
-  }
+
+    private static void parseArgs(String[] args) throws ParseException {
+
+        // config path, log level
+
+        Options options = new Options();
+        options.addOption("c", "config", true, "File path of desired server config.");
+        options.addOption("l", "log-level", true, "Set log level of server, defaults to INFO.");
+        options.addOption("h", "help", false, "Display this help message and exit.");
+
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = parser.parse(options, args);
+
+        if (cmd.hasOption("h")) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("planttracker.jar -c <config> [options]", options);
+            System.exit(0);
+        }
+
+        if (cmd.hasOption("c") && cmd.getOptionValue("c") == null) {
+            // Throw custom exception, config arg required 
+        }
+        // Start server with provided config 
+        String configPath = cmd.getOptionValue("c");
+
+
+    }
+
 }
