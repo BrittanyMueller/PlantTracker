@@ -11,13 +11,17 @@
  */
 #pragma once
 
+#include <plantlistener/expected.hpp>
+#include <string>
 namespace plantlistener::core {
 
-enum SensorType { LightSensor, MoistureSensor };
+enum SensorType { LIGHT, MOISTURE, TEMP, HUMIDITY };
 struct SensorConfig {
   SensorType type;
-  int64_t id;
   std::string device_name{};
   int64_t device_port = 1;
 };
+
+Expected<SensorType> strToSensorType(const std::string& dev_type);
+
 }  // namespace plantlistener::core

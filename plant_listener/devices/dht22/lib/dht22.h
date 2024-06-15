@@ -25,10 +25,7 @@ struct DHT22Data {
 // Should read 40 bits
 struct DHT22ReadData {
   unsigned char bit_number; // Which bit we are reading.
-  int read_data; // If we are expecting a bit or if we are between bits.
-  uint64_t last_ts; // When the last bit was read. This loops afer MAX_INT
   uint16_t data[5];
-  int err;
 };
 
 struct DHT22 {

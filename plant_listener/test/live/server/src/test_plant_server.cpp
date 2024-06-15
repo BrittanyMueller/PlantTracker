@@ -34,7 +34,7 @@ class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener:
     report << "\n--------ReportSensor Start----------\n";
     for (const auto& plant_data : request->data()) {
       report << "plant_id: " << plant_data.plant_id() << " Moisture: " << plant_data.moisture().sensor_value()
-             << " Light: " << plant_data.light().sensor_value() << std::endl;
+             << " Light: " << plant_data.light().sensor_value() << " Humidity: " << plant_data.humidity() << " Temp: " << plant_data.temp() << std::endl;
     }
     report << "--------ReportSensor End----------\n";
     spdlog::info(report.str());

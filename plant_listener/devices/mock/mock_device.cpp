@@ -18,8 +18,7 @@
 using plantlistener::device::Device;
 using plantlistener::device::MockDevice;
 
-MockDevice::MockDevice(const std::string& name, const int64_t device_id, const uint8_t ports)
-    : Device(name, device_id, ports) {}
+MockDevice::MockDevice(const std::string& name, const uint8_t ports) : Device(name, 1, ports) {}
 
 uint64_t MockDevice::readPort(const uint8_t port) {
   if (port < 0 || port >= ports_) return -1;
@@ -35,8 +34,7 @@ uint64_t MockDevice::readPort(const uint8_t port) {
  * Device loader function
  */
 extern "C" {
-std::unique_ptr<Device> createDevice(const nlohmann::json&, const std::string& name, const int64_t device_id,
-                                     const uint8_t ports) {
-  return std::unique_ptr<MockDevice>(new MockDevice(name, device_id, ports));
+std::shared_ptr<Device> createDevice(const nlohmann::json&, const std::string& name, const uint8_t ports) {
+  return std::shared_ptr<Device>(new MockDevice(name, ports));
 }
 }

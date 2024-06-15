@@ -39,12 +39,12 @@ class PlantListener {
   PlantListenerConfig cfg_{};
   State state_{State::NOT_INITALIZED};
 
-  std::vector<std::unique_ptr<plantlistener::core::Sensor>> sensors_{};
-  std::vector<std::shared_ptr<plantlistener::core::Plant>> plants_{};
+  std::vector<std::unique_ptr<Sensor>> sensors_{};
+  std::vector<std::shared_ptr<Plant>> plants_{};
 
   // map of "dev_name" -> device
   std::unordered_map<std::string, std::shared_ptr<plantlistener::device::Device>> devices_{};
-  std::unique_ptr<plantlistener::core::DeviceLoader> device_loader_{};
+  std::unique_ptr<DeviceLoader> device_loader_{};
 
   std::mutex mutex_{};
   std::condition_variable cv_{};

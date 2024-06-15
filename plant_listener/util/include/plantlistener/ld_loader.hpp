@@ -50,10 +50,10 @@ class LdLoader {
     void* handler = nullptr;
 
     // Check if this lib is already loaded
-    auto& lib_itr = loaded_libs_.find(name);
+    auto lib_itr = loaded_libs_.find(name);
     if (lib_itr == loaded_libs_.end()) {
       if (!std::filesystem::exists(path)) {
-        return {Error::Code::ERROR_FILE_NOT_FOUND, fmt::format("Library could not be found at {}.", path)};
+        return {Error::Code::ERROR_NOT_FOUND, fmt::format("Library could not be found at {}.", path)};
       }
 
       handler = dlopen(path.c_str(), RTLD_LAZY);
@@ -62,11 +62,11 @@ class LdLoader {
       }
       loaded_libs_.emplace(std::make_pair(name, LibInfo{handler, path}));
     } else {
-      if (!std::filesystem::equivalent(std::filesystem::path(path), std::filesystem::path(lib_itr.second.path))) {
+      if (!std::filesystem::equivalent(std::filesystem::path(path), std::filesystem::path(lib_itr->second.path))) {
         return {Error::Code::ERROR_AGAIN,
-                fmt::format("Library already defined with name {}, path {}", name, lib_itr.second.path)};
+                fmt::format("Library already defined with name {}, path {}", name, lib_itr->second.path)};
       }
-      handler = lib_itr.second.handler;
+      handler = lib_itr->second.handler;
     }
 
     // Grab the function from the loaded lib.

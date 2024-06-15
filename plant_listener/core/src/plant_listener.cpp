@@ -13,9 +13,17 @@
 #include <planttracker.grpc.pb.h>
 
 #include <plantlistener/plant_listener.hpp>
+#include <plantlistener/sensor/light_sensor.hpp>
+#include <plantlistener/sensor/moisture_sensor.hpp>
+#include <plantlistener/sensor/humidity_sensor.hpp>
+#include <plantlistener/sensor/temp_sensor.hpp>
+
+#include <memory>
 
 using plantlistener::core::PlantListener;
 using plantlistener::core::PlantListenerConfig;
+using plantlistener::core::Sensor;
+
 using planttracker::grpc::PlantData;
 using planttracker::grpc::LightSensorData;
 using planttracker::grpc::MoistureSensorData;
@@ -44,7 +52,54 @@ plantlistener::Error PlantListener::init() {
     return {plantlistener::Error::Code::ERROR_AGAIN, "PlantListener is already initalized."};
   }
 
-  // TODO do init.
+  device_loader_ = std::make_unique<plantlistener::core::DeviceLoader>();
+
+  // load devices
+  for (const auto& dev_cfg : cfg_.devices) {
+    spdlog::debug("Loading device {} from {}", dev_cfg.name, dev_cfg.lib);
+    auto dev_res = device_loader_->createDevice(dev_cfg);
+    if (dev_res.isError()) {
+      return dev_res;
+    }
+    
+    devices_.emplace(std::make_pair(dev_cfg.name, dev_res.getValue()));      
+  }
+
+  // load pre-defined sensors
+  for (const auto& sensor_cfg : cfg_.sensors) {
+    spdlog::debug("Loading sensor from {}", sensor_cfg.device_name);
+    auto dev_it = devices_.find(sensor_cfg.device_name);
+    if (dev_it == devices_.end()) {
+      return {Error::Code::ERROR_NOT_FOUND, fmt::format("Failed to find device {}", sensor_cfg.device_name)};
+    }
+    std::shared_ptr<plantlistener::device::Device> sensor_dev = dev_it->second;
+    
+    std::unique_ptr<Sensor> sensor;
+    switch(sensor_cfg.type) {
+      case SensorType::LIGHT:
+        sensor = std::make_unique<plantlistener::core::LightSensor>(sensor_cfg, sensor_dev);
+        break;
+      case SensorType::TEMP:
+        sensor = std::make_unique<plantlistener::core::TempSensor>(sensor_cfg, sensor_dev);
+        break;
+      case SensorType::HUMIDITY:
+        sensor = std::make_unique<plantlistener::core::HumiditySensor>(sensor_cfg, sensor_dev);
+        break;
+      case SensorType::MOISTURE:
+        sensor = std::make_unique<plantlistener::core::MoistureSensor>(sensor_cfg, sensor_dev);
+    }
+    sensors_.emplace_back(std::move(sensor));
+  }
+  
+
+  // TODO remove plants once server gives plants.
+  PlantConfig plant_cfg {"snake plant", 1};
+  std::shared_ptr<Plant> snake_plant = std::make_shared<Plant>(std::move(plant_cfg));
+  plants_.emplace_back(snake_plant);
+
+  for (auto& sensor: sensors_) {
+    sensor->addPlant(snake_plant);
+  }
 
   state_ = State::INITALIZED;
   return {};
@@ -100,7 +155,10 @@ plantlistener::Error PlantListener::start() {
       const auto& data = plant->getPlantData();
       auto* plant_data = plant_data_list.add_data();
 
-      plant_data->set_plant_id(plant->getId());
+      plant_data->set_plant_id(1); // Do they need an ID?
+      plant_data->set_humidity(data.humidity_data);
+      plant_data->set_temp(data.temp_data);
+
       
       LightSensorData* lightData = new LightSensorData;
       lightData->set_sensor_value(data.light_data);

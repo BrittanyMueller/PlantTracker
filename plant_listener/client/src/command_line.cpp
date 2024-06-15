@@ -94,26 +94,15 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
         plantlistener::client::helpMenu();
         exit(0);
         break;
-      case 'c':
+      case 'c': 
         cfg.config_path = optarg;
         break;
-      case 'l':
-        if (strcmp(optarg, "ERR") == 0) {
-          cfg.log_level = spdlog::level::err;
-        } else if (strcmp(optarg, "WARN") == 0) {
-          cfg.log_level = spdlog::level::warn;
-        } else if (strcmp(optarg, "STAT") == 0) {
-          cfg.log_level = spdlog::level::info;
-        } else if (strcmp(optarg, "INFO") == 0) {
-          cfg.log_level = spdlog::level::info;
-        } else if (strcmp(optarg, "DBG") == 0) {
-          cfg.log_level = spdlog::level::debug;
-        } else {
-          return {Error::Code::ERROR_INVALID_VALUE, "Invald log level must be one of (ERR, WARN, STAT, INFO, DBG)"};
-        }
-        spdlog::set_level(cfg.log_level);
-        break;
     }
+  }
+
+  auto res = cfg.load();
+  if (res.isError()) {
+    return res;
   }
 
   optind = 1;
@@ -139,11 +128,25 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
           return {Error::Code::ERROR_IO, fmt::format("Failed to open log file '{}' with: {}", optarg, e.what())};
         }
         break;
+      case 'l':
+        if (strcmp(optarg, "ERR") == 0) {
+          cfg.log_level = spdlog::level::err;
+        } else if (strcmp(optarg, "WARN") == 0) {
+          cfg.log_level = spdlog::level::warn;
+        } else if (strcmp(optarg, "STAT") == 0) {
+          cfg.log_level = spdlog::level::info;
+        } else if (strcmp(optarg, "INFO") == 0) {
+          cfg.log_level = spdlog::level::info;
+        } else if (strcmp(optarg, "DBG") == 0) {
+          cfg.log_level = spdlog::level::debug;
+        } else {
+          return {Error::Code::ERROR_INVALID_VALUE, "Invalid log level must be one of (ERR, WARN, STAT, INFO, DBG)"};
+        }
+        spdlog::set_level(cfg.log_level);
+        break;
       case '?':
         plantlistener::client::helpMenu();
         return {Error::Code::ERROR_INVALID_ARG, fmt::format("Error on {}", argv[opterr])};
-      default:
-        plantlistener::client::helpMenu();
     }
   }
 

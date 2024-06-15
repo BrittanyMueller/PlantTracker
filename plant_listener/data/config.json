@@ -1,34 +1,54 @@
 {
     "name": "Living Room",
-    "pi_id": -1,
     "server": {
         "address": "127.0.0.1",
-        "port": "1234",
-        "log_level": "ERR",
+        "port": 1234,
+        "log_level": "DBG",
         "retry_count": -1,
         "retry_timeout": 5
     },
+    "sensors": [
+        {
+            "type": "light",
+            "device": "dev1",
+            "port": 1
+        },
+        {
+            "type": "temp",
+            "device": "temp_and_hum_dev"
+        },
+        {
+            "type": "humidity",
+            "device": "temp_and_hum_dev"
+        }
+    ],
+
     "devices": {
         "instances": [
             {
                 "name": "dev1",
                 "type": "ADC",
-                "lib": "mock_adc_dev",
+                "lib": "mock_dev",
                 "ports" : 8,
-                "device_id": -1,
                 "cfg": {
                     "min": 0,
                     "max": 255
+                }
+            },
+            {
+                "name": "temp_and_hum_dev",
+                "type": "TEMP_AND_HUMIDITY",
+                "lib": "mock_dev",
+                "ports": 2,
+                "cfg": {
+                    "min": 0,
+                    "max": 100
                 }
             }
         ],
         "libs": [
             {
-                "name": "mock_adc_dev",
-                "lib_path": "lib/libplantlistener-device-mock-dev.so"
-            },
-            {
-                "name": "mock_temp_dev",
+                "name": "mock_dev",
                 "lib_path": "lib/libplantlistener-device-mock-dev.so"
             }
         ]

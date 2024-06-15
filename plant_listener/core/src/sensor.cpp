@@ -18,30 +18,31 @@ using plantlistener::Error;
 using plantlistener::core::Sensor;
 
 Sensor::Sensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev)
-    : id_(cfg.id), dev_(dev), dev_port_(cfg.device_port) {}
+    : dev_(dev), dev_port_(cfg.device_port) {}
 
 Error Sensor::addPlant(const std::shared_ptr<plantlistener::core::Plant>& plant) {
-  auto itr = plants_.find(plant->getId());
+  auto itr = plants_.find(plant->getName());
   if (itr != plants_.end()) {
-    return {Error::Code::ERROR_AGAIN, fmt::format("Plant {} already added to sensor {}", plant->getId(), id_)};
+    return {Error::Code::ERROR_AGAIN, fmt::format("Plant {} already added to sensor {}", plant->getName(), id_)};
   }
 
-  plants_.insert(std::make_pair(plant->getId(), plant));
+  plants_.insert(std::make_pair(plant->getName(), plant));
   return {};
 }
 
-Error Sensor::removePlant(uint64_t plant_id) {
-  auto itr = plants_.find(plant_id);
+Error Sensor::removePlant(const std::string& plant_name) {
+  auto itr = plants_.find(plant_name);
   if (itr == plants_.end()) {
-    return {Error::Code::ERROR_MISSING, fmt::format("Plant {} wasn't found in sensor {}", plant_id, id_)};
+    return {Error::Code::ERROR_MISSING, fmt::format("Plant {} wasn't found in sensor {}", plant_name, id_)};
   }
   plants_.erase(itr);
   return {};
 }
 
-Error Sensor::updatePlants() { 
+Error Sensor::updatePlants() {
   auto data = dev_->readPort(dev_port_);
   for (const auto& plant : plants_) {
     updatePlant(plant.second, data);
   }
-  return {}; }
+  return {};
+}
