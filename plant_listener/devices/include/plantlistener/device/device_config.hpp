@@ -13,10 +13,11 @@
 
 #include <nlohmann/json.hpp>
 #include <string>
+#include <plantlistener/expected.hpp>
 
 namespace plantlistener::device {
 
-enum class DeviceTypes { ADC, TEMPATURE_AND_HUMIDITY, PH_LEVEL };
+enum class DeviceType { ADC, TEMP_AND_HUMIDITY, PH_LEVEL };
 
 // since only ADC support multiple ports instead hardcode
 // port configuration for other device types.
@@ -27,11 +28,12 @@ enum class DeviceTypes { ADC, TEMPATURE_AND_HUMIDITY, PH_LEVEL };
 
 struct DeviceConfig {
   std::string name;
-  DeviceTypes type;
+  DeviceType type;
   std::string lib;
-  int64_t device_id;
   uint32_t ports;
   nlohmann::json cfg;
 };
+
+Expected<DeviceType> strToDeviceType(const std::string& dev_type);
 
 }  // namespace plantlistener::device

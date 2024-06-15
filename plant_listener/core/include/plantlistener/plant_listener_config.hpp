@@ -37,14 +37,14 @@ class PlantListenerConfig {
   std::chrono::seconds poll_rate = std::chrono::seconds(10);
 
   std::vector<plantlistener::device::DeviceConfig> devices = {};
+  std::vector<SensorConfig> sensors = {};
 
   PlantListenerConfig() {}
-
-  Error save();
 
   /**
    * Loads config using config_path.
    */
   Error load();
+
 };
 }  // namespace plantlistener::core

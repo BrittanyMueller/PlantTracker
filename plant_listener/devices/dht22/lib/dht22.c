@@ -80,7 +80,7 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
     if (old_value == 1 && i > 2) {
       uint8_t byte = count++ / 8;
       dht22->current_read.data[byte] <<= 1;
-      dht22->current_read.data[byte] |= (MICROSECONDS(cur_time) - MICROSECONDS(old_time) >= 50);
+      dht22->current_read.data[byte] |= (MICROSECONDS(cur_time) - MICROSECONDS(old_time) >= 60);
     }
     old_value = !old_value;
   }

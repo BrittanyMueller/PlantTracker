@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2023 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
+# (C) Copyright 2023-2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
 #
 # This code is distributed on "AS IS" BASIS,
 # WITHOUT WARRANTINES OR CONDITIONS OF ANY KIND.
@@ -14,8 +14,8 @@
 add_library(plantlistener-device_headers INTERFACE)
 
 # Build device object library
-add_library(plantlistener-device_objlib src/device.cpp)
-target_link_libraries(plantlistener-device_objlib PUBLIC json spdlog::spdlog fmt::fmt)
+add_library(plantlistener-device_objlib src/device.cpp src/device_config.cpp)
+target_link_libraries(plantlistener-device_objlib PUBLIC json spdlog::spdlog fmt::fmt plantlistener-util_objlib)
 target_include_directories(plantlistener-device_objlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 
 

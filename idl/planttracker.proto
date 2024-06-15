@@ -78,6 +78,8 @@ message PlantData {
   int64 plant_id = 1;
   MoistureSensorData moisture = 2;
   LightSensorData light = 3;
+  double humidity = 4;
+  double temp = 5;
 }
 
 message MoistureSensorData {

@@ -21,7 +21,7 @@
 
 namespace plantlistener::core {
 
-class DeviceLoader : protected LdLoader<plantlistener::device::Device> {
+class DeviceLoader : protected LdLoader<createDeviceftn> {
  private:
   nlohmann::json config_;
 

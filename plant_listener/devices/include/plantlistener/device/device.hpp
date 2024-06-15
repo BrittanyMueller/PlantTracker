@@ -61,8 +61,8 @@ class Device {
 }  // namespace plantlistener::device
 
 extern "C" {
-typedef std::unique_ptr<plantlistener::device::Device> (*createDeviceftn)(const nlohmann::json&,
+typedef std::shared_ptr<plantlistener::device::Device> (*createDeviceftn)(const nlohmann::json&,
                                                                           const std::string& name,
-                                                                          const int64_t device_id, const uint8_t ports);
+                                                                          const uint8_t ports);
 }
 #define PLANTLISTENER_CREATE_DEVICE_NAME "createDevice"
