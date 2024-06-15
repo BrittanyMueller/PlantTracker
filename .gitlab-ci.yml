@@ -30,7 +30,7 @@ Build Plant Tracker Server:
     - chmod +x ./gradlew
     - ./gradlew jar
     - mkdir -p ../out
-    - mv app/build/libs/app.jar ../out # todo change name to be plant tracker something.
+    - mv app/build/libs/plant-tracker.jar ../out
   artifacts:
     paths:
       - out/
