@@ -14,7 +14,13 @@ public class PlantTrackerConfig {
     public String dbName;
 
     public PlantTrackerConfig(JSONObject config) {
-        port = config.getInt("port");
-        host = config.getString("host");
+        if (config == null) {
+            // TODO only for testing, throw custom exception if bad config obj
+            port = 5050;
+            host = "127.0.0.1";
+        } else {
+            port = config.getInt("port");
+            host = config.getString("host");
+        }
     }
 }

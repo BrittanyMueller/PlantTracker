@@ -19,26 +19,32 @@ public class App {
     public static void main(String[] args) throws SQLException {
         PlantListenerServer server = new PlantListenerServer();
 
+        // take config from cmd line args
         try {
             parseArgs(args);
         } catch (ParseException e) {
             System.err.println("Parse exception poo");
         }
-        // Connect to database and create tables if needed.
-        Database db = new Database();
-        db.init();
+    
+        // TODO parse config file, instantiate config for session
+        PlantTrackerConfig config = new PlantTrackerConfig(null);
 
+        // Create db connection with config
+        // Connect to database and create tables if needed.
+        Database db = new Database(config);
+        db.init();
+  
         try {
-            server.start();
-            server.blockUntilShutdown();
+        server.start();
+        server.blockUntilShutdown();
+
+        // TODO close db
         } catch (Exception e) {
-            System.err.println("Failed to run with " + e.toString());
+        System.err.println("Failed to run with " + e.toString());
         }
     }
 
     private static void parseArgs(String[] args) throws ParseException {
-
-        // config path, log level
 
         Options options = new Options();
         options.addOption("c", "config", true, "File path of desired server config.");
@@ -59,8 +65,6 @@ public class App {
         }
         // Start server with provided config 
         String configPath = cmd.getOptionValue("c");
-
-
     }
 
 }
