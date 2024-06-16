@@ -79,7 +79,13 @@ class LdLoader {
   }
 
   virtual nlohmann::json dump() {
-    nlohmann::json d = nlohmann::json::object();
+    nlohmann::json d = nlohmann::json::array();
+    for (const auto& lib: loaded_libs_) {
+      nlohmann::json l = nlohmann::json::object();
+      l["lib_name"] = lib.first;
+      l["lib_path"] = lib.second.path;
+      d.push_back(l);
+    }
     return d;
   }
 };
