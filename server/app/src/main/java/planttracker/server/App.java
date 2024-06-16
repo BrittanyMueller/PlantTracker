@@ -46,14 +46,16 @@ public class App {
             // Create db connection with config
             // Connect to database and create tables if needed.
             db = new Database(config);
-            db.init();
+            db.createTables();  // todo maybe only call first time
   
             server.start();
             server.blockUntilShutdown();
 
-        // TODO close db
         } catch (PlantTrackerException e) {
-            System.err.println("Failed to run with " + e.toString());
+            System.err.println(e.getMessage());
+            if (e.getCause() != null) {
+                System.err.println(e.getCause().getMessage());
+            }
             System.exit(1);
         } finally {
             // stop servers?
