@@ -4,33 +4,31 @@ import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
 import io.grpc.stub.StreamObserver;
+import planttracker.server.exceptions.PlantTrackerException;
+
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class PlantListenerServer {
   private Server server;
+  private int port;
 
-  public void start() throws IOException {
+  public PlantListenerServer(PlantTrackerConfig config) {
+
+  }
+
+  public void start() throws PlantTrackerException {
     /* The port on which the server should run */
     int port = 50051;
-    server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-                 .addService(new PlantListenerImpl())
-                 .build()
-                 .start();
-
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        // Use stderr here since the logger may have been reset by its JVM shutdown hook.
-        System.err.println("*** shutting down gRPC server since JVM is shutting down");
-        try {
-          PlantListenerServer.this.stop();
-        } catch (InterruptedException e) {
-          e.printStackTrace(System.err);
-        }
-        System.err.println("*** server shut down");
-      }
-    });
+    // todo replace port with from config
+    try {
+      server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
+                   .addService(new PlantListenerImpl())
+                   .build()
+                   .start();
+    } catch (IOException e) {
+      throw new PlantTrackerException("server start fail", e);
+    }
   }
 
   public void stop() throws InterruptedException {
@@ -42,9 +40,13 @@ public class PlantListenerServer {
   /**
    * Await termination on the main thread since the grpc library uses daemon threads.
    */
-  public void blockUntilShutdown() throws InterruptedException {
-    if (server != null) {
-      server.awaitTermination();
+  public void blockUntilShutdown() throws PlantTrackerException {
+    try {
+      if (server != null) {
+        server.awaitTermination();
+      }
+    } catch (InterruptedException e) {
+      throw new PlantTrackerException("failed to shutdown server", e);
     }
   }
 

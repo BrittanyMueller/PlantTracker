@@ -32,6 +32,11 @@ dependencies {
     implementation "io.grpc:grpc-stub:${grpcVersion}"
     compileOnly "org.apache.tomcat:annotations-api:6.0.53"
 
+    // https://mvnrepository.com/artifact/org.postgresql/postgresql
+    implementation 'org.postgresql:postgresql:42.7.3'
+    implementation 'org.json:json:20171018'
+    implementation 'commons-cli:commons-cli:1.8.0'
+
     // examples/advanced need this for JsonFormat
     implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
 
@@ -77,4 +82,21 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'planttracker.server.App'
+}
+
+run {
+    args = ["-c", "src/main/resources/config.json"]
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'planttracker.server.App'
+    }
+    archiveBaseName.set("plant-tracker")
+
+    // TODO figure out why this worked. nvm only includes some
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
