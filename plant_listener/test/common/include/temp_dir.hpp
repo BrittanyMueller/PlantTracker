@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
+ * (C) Copyright 2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
  *
  * This code is distributed on "AS IS" BASIS,
  * WITHOUT WARRANTINES OR CONDITIONS OF ANY KIND.
@@ -10,8 +10,14 @@
  * @author: BrittanyMueller
  */
 
-#include <gtest/gtest.h>
+#pragma once
 
-TEST(TestSuite, testpass) { ASSERT_TRUE(true); }
+#include <string>
 
-TEST(TestSuite, testpass2) { ASSERT_TRUE(true); }
+class TempDir {
+ public:
+  std::string path;
+
+  TempDir(std::string prefix = "plantlistener");
+  ~TempDir();
+};

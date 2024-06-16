@@ -100,6 +100,10 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
     }
   }
 
+  if (cfg.config_path == "") {
+    return {Error::Code::ERROR_MISSING, "A config must be supplied (to supply a config use --config <config>)"};
+  }
+
   auto res = cfg.load();
   if (res.isError()) {
     return res;

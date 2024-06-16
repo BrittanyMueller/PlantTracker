@@ -12,12 +12,19 @@
 
 add_executable(plantlistener_util_test
     test_error.cpp
+    test_expected.cpp
+    test_ld_loader.cpp
 )
 
 target_link_libraries(plantlistener_util_test 
     gtest 
+    gmock
     gtest_main
     plantlistener-util_objlib
 )
 
-gtest_add_tests(TARGET plantlistener_util_test)
+# Test lib for test_ld_loader
+add_library(ld_loader_lib SHARED ld_loader_lib.c)
+add_library(ld_loader_lib2 SHARED ld_loader_lib.c)
+
+gtest_add_tests(TARGET plantlistener_util_test WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

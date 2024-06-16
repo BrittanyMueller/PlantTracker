@@ -10,17 +10,7 @@
 # @author: BrittanyMueller
 #
 
-add_executable(plantlistener_core_test
-    test_command_line.cpp
-)
+add_library(test_common STATIC src/temp_dir.cpp)
+target_include_directories(test_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_link_libraries(plantlistener_core_test 
-    PUBLIC
-    gtest 
-    gmock
-    gtest_main
-    plantlistener-client_objlib
-    test_common
-)
 
-gtest_add_tests(TARGET plantlistener_core_test)

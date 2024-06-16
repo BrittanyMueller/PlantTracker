@@ -10,8 +10,11 @@
 # @author: BrittanyMueller
 #
 
+add_library(plantlistener-client_objlib OBJECT src/command_line.cpp)
+target_include_directories(plantlistener-client_objlib PUBLIC src)
+target_link_libraries(plantlistener-client_objlib PUBLIC plantlistener-core_objlib)
+
 add_executable(plant_listener
   src/main.cpp
-  src/command_line.cpp
 )
-target_link_libraries(plant_listener plantlistener-core_objlib)
+target_link_libraries(plant_listener plantlistener-client_objlib)
