@@ -12,7 +12,6 @@
 package planttracker.server;
 
 import planttracker.server.exceptions.*;
-import planttracker.server.exceptions.MissingArgumentException;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,17 +29,10 @@ public class App {
     public static void main(String[] args) throws SQLException {
 
         Database db = null;
-        
+
         try {
-            // take config from cmd line args
-            // String configPath = parseArgs(args);
-            String configPath = "/workspaces/PlantTracker/server/app/src/main/resources/config.json";
-            JSONObject configObj = parseConfig(configPath); 
-
-            // TODO parse config file, instantiate config for session
-            PlantTrackerConfig config = new PlantTrackerConfig(configObj.getJSONObject("planttracker"));
-
-            // server needs config
+            // Take config from cmd line args
+            PlantTrackerConfig config = parseArgs(args);
             PlantListenerServer server = new PlantListenerServer(config);
 
             // Create db connection with config
@@ -65,19 +57,19 @@ public class App {
         }
     }
 
-    private static JSONObject parseConfig(String filePath) {
+    private static JSONObject parseConfig(String filePath) throws PlantTrackerException {
         try {
             InputStream inputStream = new FileInputStream(filePath);
             JSONTokener tokener = new JSONTokener(inputStream);
             return new JSONObject(tokener);
-
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
-            return null;
+        } catch (IOException e) {
+            throw new PlantTrackerException("Failed to read config file.", e);
+        } catch (JSONException e) {
+            throw new PlantTrackerException("Failed to parse config file.", e);
         }
     }
 
-    private static String parseArgs(String[] args) throws PlantTrackerException {
+    private static PlantTrackerConfig parseArgs(String[] args) throws PlantTrackerException {
 
         Options options = new Options();
         options.addOption("c", "config", true, "File path of desired server config.");
@@ -93,19 +85,28 @@ public class App {
             throw new PlantTrackerException("Failed to parse cli", e);
         }
 
-        if (cmd.hasOption("h")) {
+        if (cmd.hasOption('h')) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("plant-tracker.jar -c <config> [options]", options);
             System.exit(0);
         }
 
-        if (cmd.hasOption("c") && cmd.getOptionValue("c") == null) {
+        if (!cmd.hasOption('c') || cmd.hasOption('c') && cmd.getOptionValue('c') == null) {
             // Throw custom exception, config arg required 
-            throw new MissingArgumentException("test");
+            throw new PlantTrackerException("Missing required argument -c/--config <config>");
 
-        }
+        } 
         // Start server with provided config 
-        String configPath = cmd.getOptionValue("c");
-        return configPath;
+        String configPath = cmd.getOptionValue('c');
+        JSONObject configObj = parseConfig(configPath); 
+        PlantTrackerConfig config = new PlantTrackerConfig(configObj.getJSONObject("planttracker"));
+
+        if (cmd.hasOption('l')) {
+            if (cmd.getOptionValue('l') == null) {
+                throw new PlantTrackerException("Option '-l' requires an argument.");
+            }
+            config.logLevel = cmd.getOptionValue('l');
+        }
+        return config;
     }
 }

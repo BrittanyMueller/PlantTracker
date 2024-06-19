@@ -11,16 +11,16 @@ import java.util.concurrent.TimeUnit;
 
 public class PlantListenerServer {
   private Server server;
+
+  /* The port on which the server should run */
   private int port;
 
   public PlantListenerServer(PlantTrackerConfig config) {
-
+    server = null;
+    port = config.listenerPort;
   }
 
   public void start() throws PlantTrackerException {
-    /* The port on which the server should run */
-    int port = 50051;
-    // todo replace port with from config
     try {
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
                    .addService(new PlantListenerImpl())
