@@ -52,11 +52,12 @@ public class PlantListenerServer {
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
     @Override
-    public void initialize(PlantListenerConfig request, StreamObserver<InitializeResponse> responseObserver) {
-      System.out.println("Got init request from " + request.getName());
-      PlantListenerConfig cfg = PlantListenerConfig.newBuilder(request).build();
+    public void initialize(PlantListenerConfig config, StreamObserver<InitializeResponse> responseObserver) {
+      System.out.println("Received init request from " + config.getName());
       Result res = Result.newBuilder().setReturnCode(0).build();
-      InitializeResponse response = InitializeResponse.newBuilder().setCfg(cfg).setRes(res).build();
+      // TODO add pi in config to database if doesn't exist 
+      // TODO return plants associated with that pi from database
+      InitializeResponse response = InitializeResponse.newBuilder().setRes(res).build();
       responseObserver.onNext(response);
       responseObserver.onCompleted();
     }
