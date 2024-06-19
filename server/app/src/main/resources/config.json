@@ -1,14 +1,12 @@
 {
-    "plantlistener": {
-        "host": "127.0.0.1",
-        "port": 5051
-    },
     "planttracker": {
         "host": "127.0.0.1",
-        "port": 5050,
+        "tracker-port": 5050,
+        "listener-port": 5051,
         "db-host": "jdbc:postgresql://127.0.0.1/",
         "db-user": "postgres",
         "db-pass": "planttracker",
-        "db-name": "planttracker"
+        "db-name": "planttracker",
+        "log-level": "INFO"
     }
 }

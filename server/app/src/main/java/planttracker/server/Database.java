@@ -12,12 +12,15 @@
 package planttracker.server;
 
 import java.sql.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 import planttracker.server.exceptions.PlantTrackerException;
 
 public class Database {
 
     public Connection connection;
+
+    private final ReentrantLock dbLock = new ReentrantLock();
 
     private static String[] createTableQueries = {
         """
@@ -77,6 +80,7 @@ public class Database {
 
     public void createTables() throws PlantTrackerException {
         Statement st = null;
+        lockDatabase();
         try {
             st = connection.createStatement();
             for (String sql : createTableQueries) {
@@ -85,7 +89,17 @@ public class Database {
             st.close();
         } catch (SQLException e) {
             throw new PlantTrackerException("Failed to create tables.", e);
+        } finally {
+            unlockDatabase();
         }
+    }
+
+    public void lockDatabase() {
+        dbLock.lock();
+    }
+
+    public void unlockDatabase() {
+        dbLock.unlock();
     }
 
     public void close() throws SQLException {

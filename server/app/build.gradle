@@ -85,7 +85,7 @@ application {
 }
 
 run {
-    args = ["-c", "src/main/resources/config.json"]
+    args = ["-c", "/workspaces/PlantTracker/server/app/src/main/resources/config.json"]
 }
 
 jar {
