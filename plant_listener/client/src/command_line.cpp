@@ -148,6 +148,8 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
         }
         spdlog::set_level(cfg.log_level);
         break;
+      case 'c':
+        break;
       case '?':
         plantlistener::client::helpMenu();
         return {Error::Code::ERROR_INVALID_ARG, fmt::format("Error on {}", argv[opterr])};

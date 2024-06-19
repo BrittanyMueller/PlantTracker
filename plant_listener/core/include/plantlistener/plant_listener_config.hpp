@@ -31,8 +31,8 @@ class PlantListenerConfig {
 
   spdlog::level::level_enum log_level = spdlog::level::warn;
   std::string address = "127.0.0.1";
-  uint16_t port = 1234;
-  int32_t retry_count = -1;
+  uint16_t port = 5051;
+  int32_t retry_count = -1; // TODO(implement retry and time outs)
   std::chrono::seconds retry_timeout = std::chrono::seconds(30);
   std::chrono::seconds poll_rate = std::chrono::seconds(10);
 
