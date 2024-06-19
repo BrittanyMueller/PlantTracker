@@ -24,14 +24,14 @@ class Plant {
     double humidity_data = -1;
   };
  private:
-  const std::string name_;
+  const int64_t id_;
   PlantData data_{};
   
  public:
-  Plant(const PlantConfig& config): name_(config.name) {}
+  Plant(const PlantConfig& config): id_(config.id) {}
 
   inline const PlantData& getPlantData() const { return data_; }
-  inline const std::string& getName() const { return name_; }
+  inline const int64_t getId() const { return id_; }
 
   inline void setLight(int64_t data) { data_.light_data = data; }
   inline void setMoisture(int64_t data) { data_.moisture_data = data; }

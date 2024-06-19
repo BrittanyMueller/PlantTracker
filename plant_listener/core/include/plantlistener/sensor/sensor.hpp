@@ -28,8 +28,10 @@ class Sensor {
   uint64_t dev_port_;
 
   // Holds the result of the constructor.
-  std::unordered_map<std::string, std::shared_ptr<Plant>> plants_;
   Error ctr_error{};
+
+  // Holds map of plant_id to plant.
+  std::unordered_map<int64_t, std::shared_ptr<Plant>> plants_;
 
  public:
   Sensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev);
@@ -39,7 +41,7 @@ class Sensor {
 
 
   Error addPlant(const std::shared_ptr<Plant>& plant);
-  Error removePlant(const std::string& plant_name);
+  Error removePlant(const int64_t plant_id);
 
   /**
    * Updates all of the plants with the data from the sensors

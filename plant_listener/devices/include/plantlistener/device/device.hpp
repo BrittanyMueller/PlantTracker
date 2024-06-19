@@ -18,12 +18,14 @@
 #include <string>
 #include <tuple>
 
+#include "device_config.hpp"
+
 namespace plantlistener::device {
 
 class Device {
  protected:
   std::string name_;
-  int64_t id_;
+  DeviceType type_;
   uint8_t ports_;
   uint64_t max_value_;
   uint64_t min_value_;
@@ -33,19 +35,18 @@ class Device {
    * An device that abstracts away hardware devices that are used to read sensors i.e., an ADC.
    *
    * @param name Human readable name of device
-   * @param device_id internal id of device used in database.
-   * @param ports The amount of ports supported by this device. Ports are index from [0,ports-1]
+   * @param type The type of device.
    * @param max_value The max value expected out of this device.
    * @param min_value The min value expected out of this device. This should normally be left as 0.
    */
-  Device(const std::string& name, const int64_t device_id, const uint8_t ports, uint64_t max_value = 255,
+  Device(const std::string& name, const DeviceType type, const uint8_t ports, uint64_t max_value = 255,
          uint64_t min_value = 0);
   virtual ~Device(){};
 
   inline const std::string& getName() const { return name_; }
-  inline const int64_t getId() const { return id_; }
   inline std::tuple<uint64_t, uint64_t> getRange() const { return {min_value_, max_value_}; }
   inline uint8_t getPortCount() const { return ports_; }
+  inline const DeviceType getType() const { return type_; }
 
   /**
    * Reads the value from a specfic port. If the read fails for any reason -1 will be returned instead.
@@ -63,6 +64,6 @@ class Device {
 extern "C" {
 typedef std::shared_ptr<plantlistener::device::Device> (*createDeviceftn)(const nlohmann::json&,
                                                                           const std::string& name,
-                                                                          const uint8_t ports);
+                                                                          const plantlistener::device::DeviceType type, const uint8_t ports);
 }
 #define PLANTLISTENER_CREATE_DEVICE_NAME "createDevice"

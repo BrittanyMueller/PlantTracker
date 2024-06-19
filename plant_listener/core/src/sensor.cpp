@@ -21,19 +21,19 @@ Sensor::Sensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::D
     : dev_(dev), dev_port_(cfg.device_port) {}
 
 Error Sensor::addPlant(const std::shared_ptr<plantlistener::core::Plant>& plant) {
-  auto itr = plants_.find(plant->getName());
+  auto itr = plants_.find(plant->getId());
   if (itr != plants_.end()) {
-    return {Error::Code::ERROR_AGAIN, fmt::format("Plant {} already added to sensor {}", plant->getName(), id_)};
+    return {Error::Code::ERROR_AGAIN, fmt::format("Plant {} already added to sensor {}", plant->getId(), id_)};
   }
 
-  plants_.insert(std::make_pair(plant->getName(), plant));
+  plants_.insert(std::make_pair(plant->getId(), plant));
   return {};
 }
 
-Error Sensor::removePlant(const std::string& plant_name) {
-  auto itr = plants_.find(plant_name);
+Error Sensor::removePlant(const int64_t plant_id) {
+  auto itr = plants_.find(plant_id);
   if (itr == plants_.end()) {
-    return {Error::Code::ERROR_MISSING, fmt::format("Plant {} wasn't found in sensor {}", plant_name, id_)};
+    return {Error::Code::ERROR_MISSING, fmt::format("Plant {} wasn't found in sensor {}", plant_id, id_)};
   }
   plants_.erase(itr);
   return {};

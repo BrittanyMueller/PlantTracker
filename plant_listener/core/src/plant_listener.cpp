@@ -93,13 +93,9 @@ plantlistener::Error PlantListener::init() {
   
 
   // TODO remove plants once server gives plants.
-  PlantConfig plant_cfg {"snake plant", 1};
+  PlantConfig plant_cfg {1, "dev1", 2};
   std::shared_ptr<Plant> snake_plant = std::make_shared<Plant>(std::move(plant_cfg));
   plants_.emplace_back(snake_plant);
-
-  for (auto& sensor: sensors_) {
-    sensor->addPlant(snake_plant);
-  }
 
   state_ = State::INITALIZED;
   return {};
@@ -127,11 +123,44 @@ plantlistener::Error PlantListener::start() {
   // channel->WaitForConnected(gpr_);
   // lck.lock();
   
+  // Init the data with the server
+  {
+    grpc::ClientContext client_context;
+    planttracker::grpc::PlantListenerConfig cfg;
+    planttracker::grpc::InitializeResponse res;
+    
+    for (const auto& [name, dev] : devices_) {
+      if (dev->getType() != plantlistener::device::DeviceType::ADC) {
+        continue; // We only care about ADC's
+      }
+
+      auto* new_dev = cfg.add_devices();
+      new_dev->set_name(name);
+      new_dev->set_num_sensors(dev->getPortCount()); // TODO(qawse3dr) account for water sensor using a port.
+    }
+
+    auto status = client->Initialize(&client_context, cfg, &res);
+    if (!status.ok()) {
+      cv_.notify_all(); // Incase anyone is waiting for us to start.
+      return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", status.error_message())};
+    } else if(res.res().return_code() != 0) {
+      cv_.notify_all(); // Incase anyone is waiting for us to start.
+      return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", res.res().error())};
+    }
+
+    // Adds all plants based on the return.
+    for (const auto& plant : res.plants()) {
+      PlantConfig plant_cfg;
+      plant_cfg.id = plant.id();
+      plant_cfg.moisture_device_name = plant.device_name();
+      plant_cfg.moisture_device_port = plant.device_port();
+
+      plants_.emplace_back(std::make_shared<Plant>(std::move(plant_cfg)));
+    }
+  }
+
   spdlog::info("PlantListener started!");
   state_ = State::STARTED;
-
-  // Init the data with the server
-  // client->Initialize();
 
   // Poll until we are told to stop
   Error res;
