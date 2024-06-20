@@ -14,12 +14,13 @@ package planttracker.server;
 import java.sql.*;
 import java.util.concurrent.locks.ReentrantLock;
 
+import java.util.logging.*;
 import planttracker.server.exceptions.PlantTrackerException;
 
 public class Database {
 
     public Connection connection;
-
+    private final static Logger logger = Logger.getGlobal(); 
     private final ReentrantLock dbLock = new ReentrantLock();
 
     private static String[] createTableQueries = {
@@ -72,7 +73,8 @@ public class Database {
         try {
             // User required to create database beforehand
             connection = DriverManager.getConnection(config.dbHost + config.dbName, config.dbUser, config.dbPass);
-            System.out.println("Connected to Postgres");
+            logger.info("Connected to Postgres database " + config.dbHost + config.dbName);
+
         } catch (SQLException e) {
             throw new PlantTrackerException("Failed to connect to database.", e);
         } 
@@ -95,14 +97,20 @@ public class Database {
     }
 
     public void lockDatabase() {
+        logger.finest("Database LOCK.");
         dbLock.lock();
     }
 
     public void unlockDatabase() {
+        logger.finest("Database UNLOCK.");
         dbLock.unlock();
     }
 
-    public void close() throws SQLException {
-        connection.close();
+    public void close() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            logger.warning("Failed to close database connection: " + e.getMessage());
+        }
     }
 }

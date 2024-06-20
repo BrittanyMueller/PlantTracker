@@ -23,30 +23,55 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.util.logging.*;
 
 public class App {
 
-    public static void main(String[] args) throws SQLException {
+    private final static Logger logger = Logger.getGlobal(); 
+
+    public static void main(String[] args) {
 
         Database db = null;
 
         try {
             // Take config from cmd line args
             PlantTrackerConfig config = parseArgs(args);
-            PlantListenerServer server = new PlantListenerServer(config);
 
-            // Create db connection with config
-            // Connect to database and create tables if needed.
+            ConsoleHandler handler = new ConsoleHandler();
+            handler.setLevel(Level.ALL);    // Allow handler to output any level of log
+            logger.setUseParentHandlers(false);
+            logger.addHandler(handler);
+
+            // Set global loggers level, map our log levels to Java's
+            switch (config.logLevel) {
+                case "MAX":
+                case "DEBUG":
+                    logger.setLevel(Level.ALL);
+                    break;
+                case "INFO":
+                    logger.setLevel(Level.INFO);
+                    break;
+                case "WARN":
+                    logger.setLevel(Level.WARNING);
+                    break;
+                case "ERR":
+                    logger.setLevel(Level.SEVERE);
+                    break;
+                default:
+                    throw new PlantTrackerException("Invalid log level, must be one of MAX, DEBUG, INFO, WARN, ERR.");
+            }
+            // Connect to database with config, create tables if needed.
             db = new Database(config);
-            db.createTables();  // todo maybe only call first time
-  
+            db.createTables();  
+            
+            PlantListenerServer server = new PlantListenerServer(config);
             server.start();
             server.blockUntilShutdown();
 
         } catch (PlantTrackerException e) {
-            System.err.println(e.getMessage());
+            logger.severe(e.getMessage());
             if (e.getCause() != null) {
-                System.err.println(e.getCause().getMessage());
+                logger.severe(e.getCause().getMessage());
             }
             System.exit(1);
         } finally {

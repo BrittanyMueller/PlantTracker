@@ -9,7 +9,10 @@ import planttracker.server.exceptions.PlantTrackerException;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import java.util.logging.*;
+
 public class PlantListenerServer {
+  private final static Logger logger = Logger.getGlobal(); 
   private Server server;
 
   /* The port on which the server should run */
@@ -22,6 +25,7 @@ public class PlantListenerServer {
 
   public void start() throws PlantTrackerException {
     try {
+      logger.finer("Starting plant listener server on port " + port);
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
                    .addService(new PlantListenerImpl())
                    .build()
