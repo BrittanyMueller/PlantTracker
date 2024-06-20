@@ -13,7 +13,7 @@
 # Shared object for unit tests.
 add_library(plantlistener-test-server SHARED src/test_plant_server.cpp)
 target_link_libraries(plantlistener-test-server PRIVATE plantlistener-util_objlib)
-target_link_libraries(plantlistener-test-server PUBLIC plant_tracker_idl)
+target_link_libraries(plantlistener-test-server PUBLIC plant_tracker_idl plantlistener-core_objlib)
 target_include_directories(plantlistener-test-server PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Server for manual testing.

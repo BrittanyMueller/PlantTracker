@@ -48,6 +48,10 @@ int main(int argc, char* argv[]) {
 
   auto res = server.start();
 
+  if (!res.isError()) {
+    res = server.wait();
+  }
+
   if (sig_thread.joinable()) {
     // Send user signal to notify exit.
     pthread_kill(sig_thread.native_handle(), SIGUSR1);

@@ -11,7 +11,12 @@
  */
 
 #include <plantlistener/error.hpp>
+#include <plantlistener/device/device.hpp>
+#include <planttracker.grpc.pb.h>
+
 #include <grpcpp/grpcpp.h>
+
+class PlantListenerServiceImpl;
 
 namespace plantlistener::test {
 
@@ -22,6 +27,7 @@ class TestPlantServer {
   State state_{State::NOT_INITALIZED};
 
   std::unique_ptr<grpc::Server> server{};
+  std::unique_ptr<PlantListenerServiceImpl> service{};
 
  public:
   TestPlantServer();
@@ -32,8 +38,12 @@ class TestPlantServer {
   TestPlantServer& operator=(const TestPlantServer&) = delete;
   TestPlantServer& operator=(TestPlantServer&&) = delete;
 
+  // Saves the server data.
+  std::vector<planttracker::grpc::MoistureDevice> devices;
+  std::vector<planttracker::grpc::PlantData> data;
+
   /**
-   * Starts running the application. This won't return until stop is called.
+   * Starts running the application. 
    *
    * The following will be done when start is called.
    * Starts the application
@@ -50,6 +60,12 @@ class TestPlantServer {
    *    OK PlantListener was stopped.
    */
   Error stop();
+
+  /** Waits for the application to stop.
+   * This won't return until stop is called.
+   */
+  Error wait();
+
 
   // TODO do I need an add/remove plant
 };

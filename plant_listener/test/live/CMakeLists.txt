@@ -19,8 +19,10 @@ add_executable(plantlistener_live_test
 target_link_libraries(plantlistener_live_test 
     gtest 
     gtest_main
+    plantlistener-core_objlib
+    plantlistener-test-server
 )
 
 
 
-gtest_add_tests(TARGET plantlistener_live_test)
+gtest_add_tests(TARGET plantlistener_live_test WORKING_DIRECTORY ${CMAKE_BINARY_DIR})

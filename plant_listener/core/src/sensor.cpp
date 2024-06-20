@@ -18,7 +18,7 @@ using plantlistener::Error;
 using plantlistener::core::Sensor;
 
 Sensor::Sensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev)
-    : dev_(dev), dev_port_(cfg.device_port) {}
+    : id_(cfg.id), dev_(dev), dev_port_(cfg.device_port), type_(cfg.type) {}
 
 Error Sensor::addPlant(const std::shared_ptr<plantlistener::core::Plant>& plant) {
   auto itr = plants_.find(plant->getId());
