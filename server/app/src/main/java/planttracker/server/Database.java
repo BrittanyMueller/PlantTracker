@@ -33,7 +33,7 @@ public class Database {
         """
         CREATE TABLE IF NOT EXISTS moisture_devices (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(20) NOT NULL,
+        name VARCHAR(20) NOT NULL UNIQUE,
         num_sensors INT NOT NULL,
         pid INT,
         FOREIGN KEY (pid) REFERENCES pi(id)
@@ -63,10 +63,6 @@ public class Database {
         FOREIGN KEY (plant_id) REFERENCES plants(id),
         PRIMARY KEY (plant_id, ts)
         );"""
-    };
-
-    private static String[] insertTestQueries = {
-
     };
 
     public Database(PlantTrackerConfig config) throws PlantTrackerException {
