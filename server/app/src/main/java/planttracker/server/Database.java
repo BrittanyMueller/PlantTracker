@@ -28,7 +28,7 @@ public class Database {
         CREATE TABLE IF NOT EXISTS pi (
         id SERIAL PRIMARY KEY,
         mac VARCHAR(20) NOT NULL UNIQUE,
-        location VARCHAR(32)
+        name VARCHAR(32)
         );""",
         """
         CREATE TABLE IF NOT EXISTS moisture_devices (
@@ -36,7 +36,7 @@ public class Database {
         name VARCHAR(20) NOT NULL UNIQUE,
         num_sensors INT NOT NULL,
         pid INT,
-        FOREIGN KEY (pid) REFERENCES pi(id)
+        FOREIGN KEY (pid) REFERENCES pi(id) ON DELETE CASCADE
         );""",
         """
         CREATE TABLE IF NOT EXISTS plants (
@@ -49,8 +49,8 @@ public class Database {
         min_moisture INT, -- checked value 1-10
         min_humidity INT, -- checked value 0-100
         pid INT,
-        FOREIGN KEY (moisture_sensor_device_id) REFERENCES moisture_devices(id),
-        FOREIGN KEY (pid) REFERENCES pi(id)
+        FOREIGN KEY (moisture_sensor_device_id) REFERENCES moisture_devices(id) ON DELETE CASCADE,
+        FOREIGN KEY (pid) REFERENCES pi(id) ON DELETE CASCADE
         );""",
         """
         CREATE TABLE IF NOT EXISTS plant_data (

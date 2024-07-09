@@ -50,8 +50,9 @@ service PlantListener {
  * The server will initialize the pi if it doesn't exist and return a list of associated Plants.
  */
 message PlantListenerConfig {
-  string name = 1;
-  repeated MoistureDevice devices = 2;
+  string mac = 1;
+  string name = 2;
+  repeated MoistureDevice devices = 3;
 }
 
 message Result {

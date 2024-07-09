@@ -7,6 +7,7 @@ import io.grpc.stub.StreamObserver;
 import planttracker.server.exceptions.PlantTrackerException;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import java.util.logging.*;
@@ -59,6 +60,11 @@ public class PlantListenerServer {
     public void initialize(PlantListenerConfig config, StreamObserver<InitializeResponse> responseObserver) {
       System.out.println("Received init request from " + config.getName());
       Result res = Result.newBuilder().setReturnCode(0).build();
+      
+      String piName = config.getName();
+      List<MoistureDevice> devices = config.getDevicesList();
+
+      
       // TODO add pi in config to database if doesn't exist 
       // TODO return plants associated with that pi from database
       InitializeResponse response = InitializeResponse.newBuilder().setRes(res).build();
