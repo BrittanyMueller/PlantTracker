@@ -89,6 +89,10 @@ class PlantListener {
    */
   Error stop();
 
-  // TODO do I need an add/remove plant
+ private:
+  friend class PlantListenerTester;
+  Error addSensor(const SensorConfig& cfg);
+  Error addPlant(const PlantConfig& cfg);
+
 };
 }  // namespace plantlistener::core

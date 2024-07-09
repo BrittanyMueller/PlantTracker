@@ -12,21 +12,22 @@
 #include <grpcpp/grpcpp.h>
 #include <planttracker.grpc.pb.h>
 
+#include <memory>
 #include <plantlistener/plant_listener.hpp>
+#include <plantlistener/sensor/humidity_sensor.hpp>
 #include <plantlistener/sensor/light_sensor.hpp>
 #include <plantlistener/sensor/moisture_sensor.hpp>
-#include <plantlistener/sensor/humidity_sensor.hpp>
 #include <plantlistener/sensor/temp_sensor.hpp>
 
-#include <memory>
-
+using plantlistener::Error;
+using plantlistener::Expected;
 using plantlistener::core::PlantListener;
 using plantlistener::core::PlantListenerConfig;
 using plantlistener::core::Sensor;
 
-using planttracker::grpc::PlantData;
 using planttracker::grpc::LightSensorData;
 using planttracker::grpc::MoistureSensorData;
+using planttracker::grpc::PlantData;
 using planttracker::grpc::PlantDataList;
 
 PlantListener::PlantListener(PlantListenerConfig&& cfg) : cfg_(std::move(cfg)) {}
@@ -45,7 +46,71 @@ PlantListener::~PlantListener() {
   device_loader_.reset();
 }
 
-plantlistener::Error PlantListener::init() {
+Error PlantListener::addSensor(const plantlistener::core::SensorConfig& cfg) {
+  spdlog::info("Adding sensor (id: {}, dev_name {}, dev_port {}, type {})", cfg.id, cfg.device_name, cfg.device_port, static_cast<int>(cfg.type));
+
+  std::unique_ptr<Sensor> sensor = nullptr;
+  std::shared_ptr<plantlistener::device::Device> sensor_dev;
+
+  auto dev_it = devices_.find(cfg.device_name);
+  if (dev_it == devices_.end()) {
+    return {Error::Code::ERROR_NOT_FOUND, fmt::format("Sensor requested device {}:{} but wasn't found", cfg.device_name, cfg.device_port)};
+  }
+
+  switch (cfg.type) {
+    case SensorType::LIGHT:
+      sensor = std::make_unique<plantlistener::core::LightSensor>(cfg, dev_it->second);
+      break;
+    case SensorType::TEMP:
+      sensor = std::make_unique<plantlistener::core::TempSensor>(cfg, dev_it->second);
+      break;
+    case SensorType::HUMIDITY:
+      sensor = std::make_unique<plantlistener::core::HumiditySensor>(cfg, dev_it->second);
+      break;
+    case SensorType::MOISTURE:
+      sensor = std::make_unique<plantlistener::core::MoistureSensor>(cfg, dev_it->second);
+      break;
+    default:
+      return {Error::Code::ERROR_INTERNAL, fmt::format("Tried to create unknown sensor type {} dev {}:{}!", static_cast<int>(cfg.type), cfg.device_name, cfg.device_port)};
+  }
+  // If the constructor failed just return the error code instead of the object.
+  if (sensor->valid().isError()) {
+    return sensor->valid();
+  }
+  sensors_.emplace_back(std::move(sensor));
+  return {};
+}
+
+Error PlantListener::addPlant(const PlantConfig& cfg) {
+  spdlog::info("Adding plant (id: {}, dev_name {}, dev_port {})", cfg.id, cfg.moisture_device_name, cfg.moisture_device_port);
+  plants_.emplace_back(std::make_shared<Plant>(std::move(cfg)));
+
+  // Non-Moisture sensors provide data to all plants so add them once all plants are added
+  for (auto& sensor : sensors_) {
+    if (sensor->getType() == SensorType::MOISTURE) continue;
+    auto res = sensor->addPlant(plants_.back());
+    if (res.isError()) {
+      return res;
+    }
+  }
+
+  // Now create a sensor for the plant
+  SensorConfig sensor_cfg {};
+  sensor_cfg.device_name = cfg.moisture_device_name;
+  sensor_cfg.device_port = cfg.moisture_device_port;
+  sensor_cfg.type = SensorType::MOISTURE;
+  sensor_cfg.id = cfg.id; // Associate the sensor ID with the plant.
+
+  auto res = addSensor(sensor_cfg);
+  if (res.isError()) {
+    return res;
+  }
+
+  // now associated the last sensor with the plant.
+  return sensors_.back()->addPlant(plants_.back());
+}
+
+Error PlantListener::init() {
   std::lock_guard<std::mutex> lck(mutex_);
 
   if (state_ != State::NOT_INITALIZED) {
@@ -61,47 +126,23 @@ plantlistener::Error PlantListener::init() {
     if (dev_res.isError()) {
       return dev_res;
     }
-    
-    devices_.emplace(std::make_pair(dev_cfg.name, dev_res.getValue()));      
+
+    devices_.emplace(std::make_pair(dev_cfg.name, dev_res.getValue()));
   }
 
   // load pre-defined sensors
   for (const auto& sensor_cfg : cfg_.sensors) {
-    spdlog::debug("Loading sensor from {}", sensor_cfg.device_name);
-    auto dev_it = devices_.find(sensor_cfg.device_name);
-    if (dev_it == devices_.end()) {
-      return {Error::Code::ERROR_NOT_FOUND, fmt::format("Failed to find device {}", sensor_cfg.device_name)};
+    auto res = addSensor(sensor_cfg);
+    if (res.isError()) {
+      return res;
     }
-    std::shared_ptr<plantlistener::device::Device> sensor_dev = dev_it->second;
-    
-    std::unique_ptr<Sensor> sensor;
-    switch(sensor_cfg.type) {
-      case SensorType::LIGHT:
-        sensor = std::make_unique<plantlistener::core::LightSensor>(sensor_cfg, sensor_dev);
-        break;
-      case SensorType::TEMP:
-        sensor = std::make_unique<plantlistener::core::TempSensor>(sensor_cfg, sensor_dev);
-        break;
-      case SensorType::HUMIDITY:
-        sensor = std::make_unique<plantlistener::core::HumiditySensor>(sensor_cfg, sensor_dev);
-        break;
-      case SensorType::MOISTURE:
-        sensor = std::make_unique<plantlistener::core::MoistureSensor>(sensor_cfg, sensor_dev);
-    }
-    sensors_.emplace_back(std::move(sensor));
   }
-  
-
-  // TODO remove plants once server gives plants.
-  PlantConfig plant_cfg {1, "dev1", 2};
-  std::shared_ptr<Plant> snake_plant = std::make_shared<Plant>(std::move(plant_cfg));
-  plants_.emplace_back(snake_plant);
 
   state_ = State::INITALIZED;
   return {};
 }
 
-plantlistener::Error PlantListener::start() {
+Error PlantListener::start() {
   std::unique_lock<std::mutex> lck(mutex_);
 
   if (state_ == State::STARTED) {
@@ -118,33 +159,27 @@ plantlistener::Error PlantListener::start() {
       grpc::CreateChannel(fmt::format("{}:{}", cfg_.address, cfg_.port), grpc::InsecureChannelCredentials());
   std::unique_ptr<planttracker::grpc::PlantListener::Stub> client(planttracker::grpc::PlantListener::NewStub(channel));
 
-  // Don't lock when waiting for connection
-  // lck.unlock();
-  // channel->WaitForConnected(gpr_);
-  // lck.lock();
-  
   // Init the data with the server
   {
     grpc::ClientContext client_context;
     planttracker::grpc::PlantListenerConfig cfg;
     planttracker::grpc::InitializeResponse res;
-    
+
     for (const auto& [name, dev] : devices_) {
       if (dev->getType() != plantlistener::device::DeviceType::ADC) {
-        continue; // We only care about ADC's
+        continue;  // We only care about ADC's
       }
 
+      cfg.set_name(cfg_.name);
       auto* new_dev = cfg.add_devices();
       new_dev->set_name(name);
-      new_dev->set_num_sensors(dev->getPortCount()); // TODO(qawse3dr) account for water sensor using a port.
+      new_dev->set_num_sensors(dev->getPortCount());  // TODO(qawse3dr) account for water sensor using a port.
     }
 
     auto status = client->Initialize(&client_context, cfg, &res);
     if (!status.ok()) {
-      cv_.notify_all(); // Incase anyone is waiting for us to start.
       return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", status.error_message())};
-    } else if(res.res().return_code() != 0) {
-      cv_.notify_all(); // Incase anyone is waiting for us to start.
+    } else if (res.res().return_code() != 0) {
       return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", res.res().error())};
     }
 
@@ -155,7 +190,10 @@ plantlistener::Error PlantListener::start() {
       plant_cfg.moisture_device_name = plant.device_name();
       plant_cfg.moisture_device_port = plant.device_port();
 
-      plants_.emplace_back(std::make_shared<Plant>(std::move(plant_cfg)));
+      auto res = addPlant(plant_cfg);
+      if (res.isError()) {
+        return res;
+      }
     }
   }
 
@@ -184,24 +222,21 @@ plantlistener::Error PlantListener::start() {
       const auto& data = plant->getPlantData();
       auto* plant_data = plant_data_list.add_data();
 
-      plant_data->set_plant_id(1); // Do they need an ID?
+      plant_data->set_plant_id(1);  // Do they need an ID?
       plant_data->set_humidity(data.humidity_data);
       plant_data->set_temp(data.temp_data);
 
-      
       LightSensorData* lightData = new LightSensorData;
       lightData->set_sensor_value(data.light_data);
-      lightData->set_lumens(data.light_data * 1.023); // TODO replace a with a real coefficient.
-      
+      lightData->set_lumens(data.light_data * 1.023);  // TODO replace a with a real coefficient.
+
       MoistureSensorData* moistureData = new MoistureSensorData;
       moistureData->set_sensor_value(data.moisture_data);
       moistureData->set_moisture_level(data.moisture_data / 255.0);
 
       plant_data->set_allocated_light(lightData);
       plant_data->set_allocated_moisture(moistureData);
-
     }
-
 
     {
       grpc::ClientContext client_context;
@@ -223,12 +258,12 @@ plantlistener::Error PlantListener::start() {
   return res;
 }
 
-plantlistener::Error PlantListener::stop() {
+Error PlantListener::stop() {
   std::unique_lock<std::mutex> lck(mutex_);
   if (state_ == State::STOPPING) {
-    return {plantlistener::Error::Code::ERROR_AGAIN, "PlantListener stop already requested."};
+    return {Error::Code::ERROR_AGAIN, "PlantListener stop already requested."};
   } else if (state_ != State::STARTED) {
-    return {plantlistener::Error::Code::ERROR_NOT_INIT, "PlantListener not running"};
+    return {Error::Code::ERROR_NOT_INIT, "PlantListener not running"};
   }
   state_ = State::STOPPING;
   spdlog::info("Stopping PlantListener please wait... ");

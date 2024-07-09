@@ -23,9 +23,11 @@ namespace plantlistener::core {
 
 class Sensor {
  private:
-  int64_t id_{};
+  // ID is sensor specific and set to -1 if it has no meaning.
+  int64_t id_;
   std::shared_ptr<plantlistener::device::Device> dev_;
   uint64_t dev_port_;
+  SensorType type_;
 
   // Holds the result of the constructor.
   Error ctr_error{};
@@ -38,6 +40,7 @@ class Sensor {
 
   inline Error valid() const { return ctr_error; };
   inline const int64_t getId() const { return id_; }
+  inline const SensorType getType() const { return type_; }
 
 
   Error addPlant(const std::shared_ptr<Plant>& plant);

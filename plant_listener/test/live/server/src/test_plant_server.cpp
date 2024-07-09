@@ -21,10 +21,33 @@ using plantlistener::Error;
 using plantlistener::test::TestPlantServer;
 
 class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener::Service {
-  grpc::Status Initialize(grpc::ServerContext* context, const planttracker::grpc::PlantListenerConfig* request,
+ private:
+  size_t max_data_records = 100; // max data records to save memory.
+  std::vector<planttracker::grpc::MoistureDevice>& devices_;
+  std::vector<planttracker::grpc::PlantData>& data_;
+
+ public:
+  PlantListenerServiceImpl(std::vector<planttracker::grpc::MoistureDevice>& devices, std::vector<planttracker::grpc::PlantData>& data): devices_(devices), data_(data) {}
+  
+
+ private:
+  grpc::Status Initialize(grpc::ServerContext* context, const planttracker::grpc::PlantListenerConfig* cfg,
                           planttracker::grpc::InitializeResponse* response) {
-    spdlog::info("Initialzed called.");
-    spdlog::info("PlantInfo.");
+
+    std::string dev_name = "foobar";
+    spdlog::info("Initialzed called for \"{}\". START", cfg->name());
+    for (const auto& dev: cfg->devices()) {
+      spdlog::info ("Devices (name: {}, num_sensors: {})", dev.name(), dev.num_sensors());
+      dev_name = dev.name(); // Grab the last dev name so we can use it for a fake plant.
+      devices_.push_back(dev);
+    }
+    spdlog::info("Initialzed called for \"{}\". END", cfg->name());
+
+    // Returns fake plants
+    auto* plant = response->add_plants();
+    plant->set_device_name(dev_name);
+    plant->set_device_port(1);
+    plant->set_id(1);
 
     return grpc::Status::OK;
   }
@@ -35,6 +58,7 @@ class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener:
     for (const auto& plant_data : request->data()) {
       report << "plant_id: " << plant_data.plant_id() << " Moisture: " << plant_data.moisture().sensor_value()
              << " Light: " << plant_data.light().sensor_value() << " Humidity: " << plant_data.humidity() << " Temp: " << plant_data.temp() << std::endl;
+      if (data_.size() < max_data_records) data_.push_back(plant_data);
     }
     report << "--------ReportSensor End----------\n";
     spdlog::info(report.str());
@@ -63,17 +87,16 @@ Error TestPlantServer::start() {
   }
 
   state_ = State::INITIALIZING;
-  std::string address = "127.0.0.1:1234";
+  std::string address = "127.0.0.1:5051";
 
-  PlantListenerServiceImpl service;
+  service = std::make_unique<PlantListenerServiceImpl>(devices, data);
   grpc::ServerBuilder builder;
   builder.AddListeningPort(address, grpc::InsecureServerCredentials());
-  builder.RegisterService(&service);
+  builder.RegisterService(service.get());
   server = builder.BuildAndStart();
 
   spdlog::info("Starting server on {}", address);
   state_ = State::STARTED;
-  server->Wait();
   return {};
 };
 
@@ -86,3 +109,8 @@ Error TestPlantServer::stop() {
   server->Shutdown();
   return {};
 };
+
+Error TestPlantServer::wait() {
+  server->Wait();
+  return {};
+}
