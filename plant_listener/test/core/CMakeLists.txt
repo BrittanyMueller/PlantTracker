@@ -10,13 +10,16 @@
 # @author: BrittanyMueller
 #
 
-# add_executable(plantlistener_client_test
-#     example_test.cpp
-# )
+add_executable(plantlistener_core_test
+    test_plantlistener_config.cpp
+    test_plantlistener.cpp
+)
 
-# target_link_libraries(plantlistener_client_test 
-#     gtest 
-#     gtest_main
-# )
+target_link_libraries(plantlistener_core_test 
+    gtest 
+    gtest_main
+    plantlistener-core_objlib
+    test_common
+)
 
-# gtest_add_tests(TARGET plantlistener_client_test)
+gtest_add_tests(TARGET plantlistener_core_test)

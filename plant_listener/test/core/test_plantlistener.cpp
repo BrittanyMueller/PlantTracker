@@ -14,14 +14,8 @@
 
 class PlantListenerTest : public ::testing::Test {};
 
-TEST_F(PlantListenerTest, test_init_again) {
+TEST_F(PlantListenerTest, test_init_again) {}
 
-}
+TEST_F(PlantListenerTest, test_start_again) {}
 
-TEST_F(PlantListenerTest, test_start_again) {
-  
-}
-
-TEST_F(PlantListenerTest, test_stop_again) {
-  
-}
+TEST_F(PlantListenerTest, test_stop_again) {}

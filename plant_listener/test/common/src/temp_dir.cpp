@@ -10,27 +10,24 @@
  * @author: BrittanyMueller
  */
 
-#include <filesystem>
-#include <cstdlib>
-#include <iostream>
-#include <cstring>
-
 #include "temp_dir.hpp"
 
+#include <cstdlib>
+#include <cstring>
+#include <filesystem>
+#include <iostream>
 
 TempDir::TempDir(std::string prefix) {
-    char tmp[prefix.size() + 20] = "/tmp/";
-    strncat(tmp, prefix.c_str() , prefix.size());
-    strncat(tmp, "XXXXXX" , 7);
+  char tmp[prefix.size() + 20] = "/tmp/";
+  strncat(tmp, prefix.c_str(), prefix.size());
+  strncat(tmp, "XXXXXX", 7);
 
-    char* p = mkdtemp(tmp);
-    if (!p) {
-        std::cerr << "Failed to create temp directory" << std::endl;
-        exit(1);
-    }
-    path = p;
+  char* p = mkdtemp(tmp);
+  if (!p) {
+    std::cerr << "Failed to create temp directory" << std::endl;
+    exit(1);
+  }
+  path = p;
 }
 
-TempDir::~TempDir() {
-    std::filesystem::remove_all(path); 
-}
+TempDir::~TempDir() { std::filesystem::remove_all(path); }

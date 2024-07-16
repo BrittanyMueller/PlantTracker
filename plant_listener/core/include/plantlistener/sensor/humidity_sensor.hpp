@@ -15,12 +15,9 @@
 namespace plantlistener::core {
 
 class HumiditySensor : public Sensor {
-
  public:
-  HumiditySensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev) {};
+  HumiditySensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev){};
 
-  void updatePlant(const std::shared_ptr<Plant>& plant, double data) override {
-    plant->setHumidity(data);
-  }
+  void updatePlant(const std::shared_ptr<Plant>& plant, double data) override { plant->setHumidity(data); }
 };
-}
+}  // namespace plantlistener::core

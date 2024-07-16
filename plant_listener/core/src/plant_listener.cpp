@@ -47,14 +47,16 @@ PlantListener::~PlantListener() {
 }
 
 Error PlantListener::addSensor(const plantlistener::core::SensorConfig& cfg) {
-  spdlog::info("Adding sensor (id: {}, dev_name {}, dev_port {}, type {})", cfg.id, cfg.device_name, cfg.device_port, static_cast<int>(cfg.type));
+  spdlog::info("Adding sensor (id: {}, dev_name {}, dev_port {}, type {})", cfg.id, cfg.device_name, cfg.device_port,
+               static_cast<int>(cfg.type));
 
   std::unique_ptr<Sensor> sensor = nullptr;
   std::shared_ptr<plantlistener::device::Device> sensor_dev;
 
   auto dev_it = devices_.find(cfg.device_name);
   if (dev_it == devices_.end()) {
-    return {Error::Code::ERROR_NOT_FOUND, fmt::format("Sensor requested device {}:{} but wasn't found", cfg.device_name, cfg.device_port)};
+    return {Error::Code::ERROR_NOT_FOUND,
+            fmt::format("Sensor requested device {}:{} but wasn't found", cfg.device_name, cfg.device_port)};
   }
 
   switch (cfg.type) {
@@ -71,7 +73,8 @@ Error PlantListener::addSensor(const plantlistener::core::SensorConfig& cfg) {
       sensor = std::make_unique<plantlistener::core::MoistureSensor>(cfg, dev_it->second);
       break;
     default:
-      return {Error::Code::ERROR_INTERNAL, fmt::format("Tried to create unknown sensor type {} dev {}:{}!", static_cast<int>(cfg.type), cfg.device_name, cfg.device_port)};
+      return {Error::Code::ERROR_INTERNAL, fmt::format("Tried to create unknown sensor type {} dev {}:{}!",
+                                                       static_cast<int>(cfg.type), cfg.device_name, cfg.device_port)};
   }
   // If the constructor failed just return the error code instead of the object.
   if (sensor->valid().isError()) {
@@ -82,7 +85,8 @@ Error PlantListener::addSensor(const plantlistener::core::SensorConfig& cfg) {
 }
 
 Error PlantListener::addPlant(const PlantConfig& cfg) {
-  spdlog::info("Adding plant (id: {}, dev_name {}, dev_port {})", cfg.id, cfg.moisture_device_name, cfg.moisture_device_port);
+  spdlog::info("Adding plant (id: {}, dev_name {}, dev_port {})", cfg.id, cfg.moisture_device_name,
+               cfg.moisture_device_port);
   plants_.emplace_back(std::make_shared<Plant>(std::move(cfg)));
 
   // Non-Moisture sensors provide data to all plants so add them once all plants are added
@@ -95,11 +99,11 @@ Error PlantListener::addPlant(const PlantConfig& cfg) {
   }
 
   // Now create a sensor for the plant
-  SensorConfig sensor_cfg {};
+  SensorConfig sensor_cfg{};
   sensor_cfg.device_name = cfg.moisture_device_name;
   sensor_cfg.device_port = cfg.moisture_device_port;
   sensor_cfg.type = SensorType::MOISTURE;
-  sensor_cfg.id = cfg.id; // Associate the sensor ID with the plant.
+  sensor_cfg.id = cfg.id;  // Associate the sensor ID with the plant.
 
   auto res = addSensor(sensor_cfg);
   if (res.isError()) {

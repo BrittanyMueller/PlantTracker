@@ -10,11 +10,11 @@
  * @author: BrittanyMueller
  */
 
-// Created based on https://github.com/adafruit/Adafruit_CircuitPython_DHT/tree/main
-#include <time.h>
+// Created based on
+// https://github.com/adafruit/Adafruit_CircuitPython_DHT/tree/main
 #include <pthread.h>
 #include <stdint.h>
-
+#include <time.h>
 
 struct DHT22Data {
   float temp;
@@ -24,7 +24,7 @@ struct DHT22Data {
 
 // Should read 40 bits
 struct DHT22ReadData {
-  unsigned char bit_number; // Which bit we are reading.
+  unsigned char bit_number;  // Which bit we are reading.
   uint16_t data[5];
 };
 
@@ -32,7 +32,7 @@ struct DHT22 {
   // Info about last read.
   time_t last_read_ts;
   struct DHT22Data last_read_data;
-  
+
   // Info needed while reading the data.
   struct DHT22ReadData current_read;
   int pin;

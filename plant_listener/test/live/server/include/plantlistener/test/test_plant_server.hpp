@@ -10,11 +10,11 @@
  * @author: BrittanyMueller
  */
 
-#include <plantlistener/error.hpp>
-#include <plantlistener/device/device.hpp>
+#include <grpcpp/grpcpp.h>
 #include <planttracker.grpc.pb.h>
 
-#include <grpcpp/grpcpp.h>
+#include <plantlistener/device/device.hpp>
+#include <plantlistener/error.hpp>
 
 class PlantListenerServiceImpl;
 
@@ -43,7 +43,7 @@ class TestPlantServer {
   std::vector<planttracker::grpc::PlantData> data;
 
   /**
-   * Starts running the application. 
+   * Starts running the application.
    *
    * The following will be done when start is called.
    * Starts the application
@@ -54,7 +54,8 @@ class TestPlantServer {
   Error start();
 
   /**
-   * Stops the application. This won't return until the application could be stopped.
+   * Stops the application. This won't return until the application could be
+   * stopped.
    *
    * @returns Error if the operation was successful.
    *    OK PlantListener was stopped.
@@ -66,8 +67,7 @@ class TestPlantServer {
    */
   Error wait();
 
-
   // TODO do I need an add/remove plant
 };
 
-}  // namespace plantlistener::test::server
+}  // namespace plantlistener::test

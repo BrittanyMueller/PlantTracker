@@ -15,7 +15,7 @@
     }
   },
   "forwardPorts": [5050, 5051, 5432],
-  "postCreateCommand": "service postgresql start",
+  "postStartCommand": "service postgresql start",
 
   "mounts": [
     "source=planttracker_db,target=/var/lib/postgresql,type=volume"

@@ -10,3 +10,21 @@
  * @author: BrittanyMueller
  */
 #pragma once
+
+#include <pigpio.h>
+
+namespace plantlistener::device {
+
+class ADS7830 {
+ private:
+  int handle_ = 0;
+
+ public:
+  ADS7830(uint8_t bus = 0, uint8_t address = 0b10010);
+  ~ADS7830();
+
+  inline bool valid() const { return handle_ <= 0; }
+
+  uint64_t readPort(const uint8_t port) override;
+};
+}  // namespace plantlistener::device

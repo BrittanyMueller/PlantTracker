@@ -15,12 +15,11 @@
 namespace plantlistener::core {
 
 class MoistureSensor : public Sensor {
-
  public:
-  MoistureSensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev) {};
+  MoistureSensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev){};
 
   void updatePlant(const std::shared_ptr<Plant>& plant, double data) override {
     plant->setMoisture(static_cast<uint64_t>(data));
   }
 };
-}
+}  // namespace plantlistener::core

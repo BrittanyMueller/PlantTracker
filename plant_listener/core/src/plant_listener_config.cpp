@@ -24,31 +24,9 @@ using plantlistener::core::SensorConfig;
 using plantlistener::core::SensorType;
 using plantlistener::device::DeviceConfig;
 
-class ParseException : public std::exception {
-  Error err_;
-
- public:
-  ParseException(const plantlistener::Error::Code code, const std::string& msg) : err_(code, msg) {}
-  const Error& getError() const { return err_; }
-};
-
 using nlohmann::json;
 
-template <typename T>
-void parseValue(const json& j, const std::string& key, T& value) {
-  auto it = j.find(key);
-  if (it == j.end()) {
-    throw ParseException(Error::Code::ERROR_NOT_FOUND, fmt::format("Missing key {}", key));
-  }
-
-  try {
-    value = it->get<T>();
-  } catch (const json::type_error& e) {
-    throw ParseException(Error::Code::ERROR_INVALID_TYPE, std::format("Failed to parse key {} with: {}", key, e.what()));
-  }
-}
-
-SensorConfig parseSensor(const json& j) {
+SensorConfig PlantListenerConfig::parseSensor(const json& j) {
   SensorConfig sensor_cfg;
 
   if (!j.is_object()) {
@@ -58,7 +36,6 @@ SensorConfig parseSensor(const json& j) {
   std::string sensor_type_str;
   parseValue<std::string>(j, "type", sensor_type_str);
   parseValue<std::string>(j, "device", sensor_cfg.device_name);
-
 
   auto type_res = plantlistener::core::strToSensorType(sensor_type_str);
   if (type_res.isError()) {
@@ -135,10 +112,9 @@ Error PlantListenerConfig::load() {
     if (sensor_it == cfg.end() || !sensor_it->is_array()) {
       return {Error::Code::ERROR_NOT_FOUND, "Missing key sensor or is not array"};
     }
-    for (auto& sensor: *sensor_it) {
+    for (auto& sensor : *sensor_it) {
       sensors.emplace_back(parseSensor(sensor));
       spdlog::debug("Found sensor {} in config", sensors.back().device_name);
-
     }
 
     // Parse devices TODO parse safer
@@ -149,7 +125,6 @@ Error PlantListenerConfig::load() {
       parseValue<std::string>(dev, "lib_path", lib_path);
       libs.emplace(std::make_pair(lib_name, lib_path));
       spdlog::debug("Found dev_lib {}={} in config", lib_name, lib_path);
-
     }
 
     for (const auto& dev : cfg["devices"]["instances"]) {
@@ -160,11 +135,10 @@ Error PlantListenerConfig::load() {
       parseValue<std::string>(dev, "name", dev_cfg.name);
       parseValue<uint32_t>(dev, "ports", dev_cfg.ports);
 
-
       parseValue<std::string>(dev, "lib", lib_name);
       parseValue<std::string>(dev, "type", dev_type);
 
-      dev_cfg.lib = libs[lib_name]; // todo verify the lib was found.
+      dev_cfg.lib = libs[lib_name];  // todo verify the lib was found.
 
       auto dev_res = plantlistener::device::strToDeviceType(dev_type);
       if (dev_res.isError()) {
@@ -175,7 +149,7 @@ Error PlantListenerConfig::load() {
       spdlog::debug("Found dev {} in config", dev_cfg.name);
       devices.emplace_back(std::move(dev_cfg));
     }
-  } catch(const ParseException& e) {
+  } catch (const ParseException& e) {
     return e.getError();
   }
 

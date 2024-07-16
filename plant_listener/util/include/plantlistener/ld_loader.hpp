@@ -11,9 +11,8 @@
  */
 #pragma once
 
-#include <fmt/format.h>
 #include <dlfcn.h>
-
+#include <fmt/format.h>
 
 #include <filesystem>
 #include <nlohmann/json.hpp>
@@ -80,7 +79,7 @@ class LdLoader {
 
   virtual nlohmann::json dump() {
     nlohmann::json d = nlohmann::json::array();
-    for (const auto& lib: loaded_libs_) {
+    for (const auto& lib : loaded_libs_) {
       nlohmann::json l = nlohmann::json::object();
       l["lib_name"] = lib.first;
       l["lib_path"] = lib.second.path;

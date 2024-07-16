@@ -94,7 +94,7 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
         plantlistener::client::helpMenu();
         exit(0);
         break;
-      case 'c': 
+      case 'c':
         cfg.config_path = optarg;
         break;
     }
@@ -126,8 +126,7 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
       }
       case 'f':
         try {
-          spdlog::default_logger()->sinks().emplace_back(
-              std::make_shared<spdlog::sinks::basic_file_sink_mt>(optarg));
+          spdlog::default_logger()->sinks().emplace_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>(optarg));
         } catch (const spdlog::spdlog_ex& e) {
           return {Error::Code::ERROR_IO, fmt::format("Failed to open log file '{}' with: {}", optarg, e.what())};
         }

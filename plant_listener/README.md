@@ -38,31 +38,59 @@ make test
 The configure requies the following fields. and must be in a rw location as the server will update it
 ```json
 {
-    "name": "Living Room", // default value
-    "plants": [
+    "name": "Living Room",
+    "server": {
+        "address": "127.0.0.1",
+        "port": 5051,
+        "log_level": "DBG",
+        "retry_count": -1,
+        "retry_timeout": 5
+    },
+    "sensors": [
         {
-            "name": "Snake Plant",
-            "id": 1,
-            "light_name": "default_light",
-            "device_name": "dev1",
-            "port": 0
+            "type": "light",
+            "device": "dev1",
+            "port": 1
+        },
+        {
+            "type": "temp",
+            "device": "temp_and_hum_dev"
+        },
+        {
+            "type": "humidity",
+            "device": "temp_and_hum_dev"
         }
     ],
-    "lights": [
-        {
-            "name": "default_light",
-            "id": 0,
-            "device_name": "dev1",
-            "port": 7
-        }
 
-    ],
-    "devices": [
-        {
-            "device_name": "dev1",
-            "ports" : 8,
-            "lib_name": "libplantlistener-device-mock-dev"
-        }
-    ]
+    "devices": {
+        "instances": [
+            {
+                "name": "dev1",
+                "type": "ADC",
+                "lib": "mock_dev",
+                "ports" : 8,
+                "cfg": {
+                    "min": 0,
+                    "max": 255
+                }
+            },
+            {
+                "name": "temp_and_hum_dev",
+                "type": "TEMP_AND_HUMIDITY",
+                "lib": "mock_dev",
+                "ports": 2,
+                "cfg": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        ],
+        "libs": [
+            {
+                "name": "mock_dev",
+                "lib_path": "lib/libplantlistener-device-mock-dev.so"
+            }
+        ]
+    }
 }
 ```

@@ -1,8 +1,15 @@
 BasedOnStyle: Google
 ColumnLimit: 120
 ---
+BasedOnStyle: Google
 Language: Cpp
 IndentWidth: 2
+ColumnLimit: 120
+IncludeBlocks: Regroup
+DerivePointerAlignment: false
+PointerAlignment: Left
+SortIncludes: true
+
 ---
 Language: Java
 ---

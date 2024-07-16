@@ -24,9 +24,9 @@ void sigHandler(sigset_t sig_mask, plantlistener::core::PlantListener* plant_lis
   while (1) {
     auto sig = sigwaitinfo(&sig_mask, NULL);
     if (sig == -1) continue;
-    
+
     if (sig == SIGUSR1) {
-      return; // Just exit a cancel request was made. 
+      return;  // Just exit a cancel request was made.
     }
     spdlog::info("Stop requested trying to stop PlantListener");
     auto res = plant_listener->stop();

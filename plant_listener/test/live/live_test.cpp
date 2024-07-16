@@ -93,33 +93,33 @@ TEST(LiveTests, start_stop_test) {
 
   // Start the listener.
   std::thread listener_thread([&] {
-     auto res = tester.listener.start();
-     EXPECT_FALSE(res.isError()) << res.toStr();
-   });
+    auto res = tester.listener.start();
+    EXPECT_FALSE(res.isError()) << res.toStr();
+  });
 
   std::this_thread::sleep_for(std::chrono::seconds(10));
 
   // Stop the listener.
-   res = tester.listener.stop();
-   EXPECT_FALSE(res.isError()) << res.toStr();
+  res = tester.listener.stop();
+  EXPECT_FALSE(res.isError()) << res.toStr();
 
-
-   listener_thread.join();
+  listener_thread.join();
   // Stop the server
   res = server.stop();
   EXPECT_FALSE(res.isError()) << res.toStr();
 
-  // Check that at least 10 data points were sent for 10 second of runtime with 1 second timeout on reads.
+  // Check that at least 10 data points were sent for 10 second of runtime with
+  // 1 second timeout on reads.
   ASSERT_GE(server.data.size(), 10);
-  for (const auto& data: server.data) {
+  for (const auto& data : server.data) {
     ASSERT_EQ(data.plant_id(), 1);
   }
-  
-  // Check the device was added
-  ASSERT_EQ(server.devices.size(), 1); // Only the ADC should be sent over
-  ASSERT_EQ(server.devices[0].name(), "mock_dev_adc");
-  ASSERT_EQ(server.devices[0].num_sensors(), 8); // TODO(lmilne) This should be 7 because one is used for light.
 
+  // Check the device was added
+  ASSERT_EQ(server.devices.size(), 1);  // Only the ADC should be sent over
+  ASSERT_EQ(server.devices[0].name(), "mock_dev_adc");
+  ASSERT_EQ(server.devices[0].num_sensors(),
+            8);  // TODO(lmilne) This should be 7 because one is used for light.
 
   // Check to make sure the plants are added
   ASSERT_EQ(tester.getPlants().size(), 1);

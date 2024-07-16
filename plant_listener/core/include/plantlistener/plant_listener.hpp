@@ -11,6 +11,7 @@
  */
 #pragma once
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <plantlistener/device/device.hpp>
@@ -21,7 +22,6 @@
 #include <plantlistener/sensor/sensor.hpp>
 #include <unordered_map>
 #include <vector>
-#include <condition_variable>
 
 namespace plantlistener::core {
 
@@ -93,6 +93,5 @@ class PlantListener {
   friend class PlantListenerTester;
   Error addSensor(const SensorConfig& cfg);
   Error addPlant(const PlantConfig& cfg);
-
 };
 }  // namespace plantlistener::core
