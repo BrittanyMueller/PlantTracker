@@ -23,12 +23,13 @@ class Plant {
     double temp_data = -1;
     double humidity_data = -1;
   };
+
  private:
   const int64_t id_;
   PlantData data_{};
-  
+
  public:
-  Plant(const PlantConfig& config): id_(config.id) {}
+  Plant(const PlantConfig& config) : id_(config.id) {}
 
   inline const PlantData& getPlantData() const { return data_; }
   inline const int64_t getId() const { return id_; }
@@ -37,6 +38,5 @@ class Plant {
   inline void setMoisture(int64_t data) { data_.moisture_data = data; }
   inline void setHumidity(double data) { data_.humidity_data = data; }
   inline void setTemp(double data) { data_.temp_data = data; }
-
 };
 }  // namespace plantlistener::core

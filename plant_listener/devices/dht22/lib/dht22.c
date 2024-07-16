@@ -20,15 +20,11 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-// TODO(qawse3dr) make this not seconds.
 #define DHT22_COOLDOWN 2
-//(CLOCKS_PER_SEC * 2)
-
 #define MICROSECONDS(t) (t.tv_sec * (int)1e6 + t.tv_usec)
 
 struct DHT22Data read_dht22(struct DHT22* dht22) {
   struct DHT22Data data = {0, 0, 0};
-
 
   // If someone is already reading wait for their result.
   pthread_mutex_lock(&dht22->mutex);
@@ -38,7 +34,7 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
   time_t now = time(NULL);
   if (now - dht22->last_read_ts < DHT22_COOLDOWN) {
     data = dht22->last_read_data;
-    goto read_exit; // Too early to read, return the last result.
+    goto read_exit;  // Too early to read, return the last result.
   }
 
   // Reset the reading data.
@@ -52,11 +48,10 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
   usleep(3000);
   gpioWrite(dht22->pin, 0);
   usleep(3000);
-  
+
   struct timeval cur_time, old_time, timeout;
   gettimeofday(&cur_time, NULL);
   timeout = cur_time;
-
 
   // change to input to get the data
   gpioSetMode(dht22->pin, PI_INPUT);
@@ -76,7 +71,9 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
     old_time = cur_time;
     gettimeofday(&cur_time, NULL);
 
-    // Ignore the first 2 state changes; the data sheet says that's the handshake. We also only care about falling edges as that will be where the data is set.
+    // Ignore the first 2 state changes; the data sheet says that's the
+    // handshake. We also only care about falling edges as that will be where
+    // the data is set.
     if (old_value == 1 && i > 2) {
       uint8_t byte = count++ / 8;
       dht22->current_read.data[byte] <<= 1;
@@ -88,10 +85,11 @@ struct DHT22Data read_dht22(struct DHT22* dht22) {
   // Calculate humidity and temp with the retrievd data.
   data.humidity = ((dht22->current_read.data[0] << 8) + dht22->current_read.data[1]) / 10.0f;
   data.temp = (((dht22->current_read.data[2] & 0x7F) << 8) + dht22->current_read.data[3]) / 10.0f;
-  
+
   // Check sums is all the bits added together compared to the last one.
   if (((dht22->current_read.data[0] + dht22->current_read.data[1] + dht22->current_read.data[2] +
-        dht22->current_read.data[3]) & 0xFF) != dht22->current_read.data[4]) {
+        dht22->current_read.data[3]) &
+       0xFF) != dht22->current_read.data[4]) {
     data.err = 1;
   }
 
@@ -118,6 +116,6 @@ struct DHT22 init_dht22(int pin) {
 }
 
 void free_dht22(struct DHT22* dht22) {
-    pthread_mutex_destroy(&dht22->mutex);
-    pthread_cond_destroy(&dht22->cv);
+  pthread_mutex_destroy(&dht22->mutex);
+  pthread_cond_destroy(&dht22->cv);
 }

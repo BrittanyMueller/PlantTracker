@@ -20,7 +20,7 @@ struct SensorConfig {
   SensorType type;
   std::string device_name{};
   int64_t device_port = 1;
-  int64_t id = -1; // ID for the associated plant. if it is -1 it's not for any given plant.
+  int64_t id = -1;  // ID for the associated plant. if it is -1 it's not for any given plant.
 };
 
 Expected<SensorType> strToSensorType(const std::string& dev_type);

@@ -40,14 +40,14 @@ class Expected : public Error {
   Expected(Error::Code error, const std::string& msg) : Error(error, msg) {}
   Expected(const Error& e) : Error(e) {}
 
-
   /**
    * Access the value of the expected object.
    *
-   * @return U& value of type Expected. If isError() is true or it doesn't contain a
-   *         value BadExpectedAccess will be thrown instead.
+   * @return U& value of type Expected. If isError() is true or it doesn't
+   * contain a value BadExpectedAccess will be thrown instead.
    *
-   * @throws BadExpectedAccess if expected contains an error, or doesn't contain a value.
+   * @throws BadExpectedAccess if expected contains an error, or doesn't contain
+   * a value.
    */
   U& getValue() {
     if (!value_.has_value() || isError()) {

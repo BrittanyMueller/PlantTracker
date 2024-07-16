@@ -42,19 +42,17 @@ class Sensor {
   inline const int64_t getId() const { return id_; }
   inline const SensorType getType() const { return type_; }
 
-
   Error addPlant(const std::shared_ptr<Plant>& plant);
   Error removePlant(const int64_t plant_id);
 
   /**
    * Updates all of the plants with the data from the sensors
-  */
+   */
   Error updatePlants();
 
  protected:
   // Function used to update the correct plant field.
   virtual void updatePlant(const std::shared_ptr<Plant>& plant, double data) = 0;
-  
 };
 
 }  // namespace plantlistener::core

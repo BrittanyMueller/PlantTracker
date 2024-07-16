@@ -11,10 +11,10 @@
  */
 #include <spdlog/spdlog.h>
 
+#include <chrono>
 #include <csignal>
 #include <plantlistener/test/test_plant_server.hpp>
 #include <thread>
-#include <chrono>
 
 void sigHandler(sigset_t sig_mask, plantlistener::test::TestPlantServer* server) {
   while (1) {

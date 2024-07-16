@@ -12,21 +12,21 @@
 
 #include <plantlistener/sensor/sensor_config.hpp>
 
-using plantlistener::core::SensorType;
-using plantlistener::Expected;
 using plantlistener::Error;
-
+using plantlistener::Expected;
+using plantlistener::core::SensorType;
 
 Expected<SensorType> plantlistener::core::strToSensorType(const std::string& sensor_type) {
-    if (sensor_type == "light") {
-        return {SensorType::LIGHT};
-    } else if (sensor_type == "moisture") {
-        return {SensorType::MOISTURE};
-    } else if (sensor_type == "humidity") {
-        return {SensorType::HUMIDITY};
-    } else if (sensor_type == "temp") {
-        return {SensorType::TEMP};
-    } else {
-        return {Error::Code::ERROR_INVALID_VALUE, "SensorType must be one of (moisture, temp, humidity, light) but got " + sensor_type};
-    }
+  if (sensor_type == "light") {
+    return {SensorType::LIGHT};
+  } else if (sensor_type == "moisture") {
+    return {SensorType::MOISTURE};
+  } else if (sensor_type == "humidity") {
+    return {SensorType::HUMIDITY};
+  } else if (sensor_type == "temp") {
+    return {SensorType::TEMP};
+  } else {
+    return {Error::Code::ERROR_INVALID_VALUE,
+            "SensorType must be one of (moisture, temp, humidity, light) but got " + sensor_type};
+  }
 }

@@ -32,12 +32,14 @@ class Device {
 
  public:
   /**
-   * An device that abstracts away hardware devices that are used to read sensors i.e., an ADC.
+   * An device that abstracts away hardware devices that are used to read
+   * sensors i.e., an ADC.
    *
    * @param name Human readable name of device
    * @param type The type of device.
    * @param max_value The max value expected out of this device.
-   * @param min_value The min value expected out of this device. This should normally be left as 0.
+   * @param min_value The min value expected out of this device. This should
+   * normally be left as 0.
    */
   Device(const std::string& name, const DeviceType type, const uint8_t ports, uint64_t max_value = 255,
          uint64_t min_value = 0);
@@ -49,7 +51,8 @@ class Device {
   inline const DeviceType getType() const { return type_; }
 
   /**
-   * Reads the value from a specfic port. If the read fails for any reason -1 will be returned instead.
+   * Reads the value from a specfic port. If the read fails for any reason -1
+   * will be returned instead.
    *
    * @param port The port to be read.
    * @returns value of sensor between [min_value, max_value], or -1 on error.
@@ -64,6 +67,7 @@ class Device {
 extern "C" {
 typedef std::shared_ptr<plantlistener::device::Device> (*createDeviceftn)(const nlohmann::json&,
                                                                           const std::string& name,
-                                                                          const plantlistener::device::DeviceType type, const uint8_t ports);
+                                                                          const plantlistener::device::DeviceType type,
+                                                                          const uint8_t ports);
 }
 #define PLANTLISTENER_CREATE_DEVICE_NAME "createDevice"

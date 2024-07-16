@@ -15,12 +15,9 @@
 namespace plantlistener::core {
 
 class TempSensor : public Sensor {
-
  public:
-  TempSensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev) {};
+  TempSensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev){};
 
-  void updatePlant(const std::shared_ptr<Plant>& plant, double data) override {
-    plant->setTemp(data);
-  }
+  void updatePlant(const std::shared_ptr<Plant>& plant, double data) override { plant->setTemp(data); }
 };
-}
+}  // namespace plantlistener::core

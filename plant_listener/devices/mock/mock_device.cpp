@@ -16,10 +16,11 @@
 #include <nlohmann/json.hpp>
 
 using plantlistener::device::Device;
-using plantlistener::device::MockDevice;
 using plantlistener::device::DeviceType;
+using plantlistener::device::MockDevice;
 
-MockDevice::MockDevice(const std::string& name, const DeviceType type, const uint8_t ports) : Device(name, type, ports) {}
+MockDevice::MockDevice(const std::string& name, const DeviceType type, const uint8_t ports)
+    : Device(name, type, ports) {}
 
 uint64_t MockDevice::readPort(const uint8_t port) {
   if (port < 0 || port >= ports_) return -1;
@@ -35,7 +36,8 @@ uint64_t MockDevice::readPort(const uint8_t port) {
  * Device loader function
  */
 extern "C" {
-std::shared_ptr<Device> createDevice(const nlohmann::json&, const std::string& name, const DeviceType type, const uint8_t ports) {
+std::shared_ptr<Device> createDevice(const nlohmann::json&, const std::string& name, const DeviceType type,
+                                     const uint8_t ports) {
   return std::shared_ptr<Device>(new MockDevice(name, type, ports));
 }
 }

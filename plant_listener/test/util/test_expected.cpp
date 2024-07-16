@@ -14,29 +14,28 @@
 
 #include <plantlistener/expected.hpp>
 
-using plantlistener::Expected;
 using plantlistener::Error;
-
+using plantlistener::Expected;
 
 TEST(TestExpected, test_ErrorToExpected) {
-    Error ok_err;
-    Expected<int> ok(ok_err);
-    ASSERT_FALSE(ok.isError());
-    ASSERT_EQ(ok.code, Error::Code::OK);
+  Error ok_err;
+  Expected<int> ok(ok_err);
+  ASSERT_FALSE(ok.isError());
+  ASSERT_EQ(ok.code, Error::Code::OK);
 
-    Error err_err(Error::Code::ERROR_INTERNAL, "internal error");
-    Expected<int> err(err_err);
-    ASSERT_TRUE(err.isError());
-    ASSERT_EQ(err.code, Error::Code::ERROR_INTERNAL);
+  Error err_err(Error::Code::ERROR_INTERNAL, "internal error");
+  Expected<int> err(err_err);
+  ASSERT_TRUE(err.isError());
+  ASSERT_EQ(err.code, Error::Code::ERROR_INTERNAL);
 }
 
 TEST(TestExpected, test_badAccess) {
-    Expected<int> err(Error::Code::ERROR_INTERNAL, "internal error");
-    EXPECT_THROW(err.getValue(), plantlistener::Expected<int>::BadExpectedAccess);
-    EXPECT_THROW(*err, plantlistener::Expected<int>::BadExpectedAccess);
+  Expected<int> err(Error::Code::ERROR_INTERNAL, "internal error");
+  EXPECT_THROW(err.getValue(), plantlistener::Expected<int>::BadExpectedAccess);
+  EXPECT_THROW(*err, plantlistener::Expected<int>::BadExpectedAccess);
 }
 
 TEST(TestExpected, test_value) {
-    Expected<int> ten(10);
-    ASSERT_EQ(ten.getValue(), 10);
+  Expected<int> ten(10);
+  ASSERT_EQ(ten.getValue(), 10);
 }

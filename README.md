@@ -2,6 +2,8 @@
 
 Plant Tracker is a simple Raspberry Pi powered plant monitoring application. It is broken into components the server (found under /sever) and an Android application (found under /PlantTracker) and the RPI component (found under /plant_listener)
 
+## Wiki
+Project wiki can be found here [PlantTracker Wiki](https://gitlab.larrycloud.ca/plant-tracker/plant-tracker/-/wikis/home).
 ## Building
 See each subdirectory README for build instructions.
 

@@ -13,12 +13,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <command_line.hpp>
 #include <fstream>
+#include <nlohmann/json.hpp>
 #include <sstream>
 #include <vector>
-
-#include <command_line.hpp>
-#include <nlohmann/json.hpp>
 
 #include "temp_dir.hpp"
 
@@ -79,7 +78,7 @@ TEST_F(TestCommandLine, helpMenu) {
 }
 
 TEST_F(TestCommandLine, unknownOption) {
-    std::cout << config_path << std::endl;
+  std::cout << config_path << std::endl;
   std::vector<std::string> argv = {"plantlistener", "--config", config_path, "--foo"};
   char* argv_char[argv.size()];
   for (size_t i = 0; i < argv.size(); i++) argv_char[i] = argv[i].data();

@@ -14,6 +14,7 @@
 #include <spdlog/spdlog.h>
 
 #include <chrono>
+#include <nlohmann/json.hpp>
 #include <optional>
 #include <plantlistener/device/device_config.hpp>
 #include <plantlistener/error.hpp>
@@ -26,13 +27,22 @@ namespace plantlistener::core {
 
 class PlantListenerConfig {
  public:
+  class ParseException : public std::exception {
+    Error err_;
+
+   public:
+    ParseException(const plantlistener::Error::Code code, const std::string& msg) : err_(code, msg) {}
+    const Error& getError() const { return err_; }
+  };
+
+ public:
   std::string name{};
   std::string config_path{};
 
   spdlog::level::level_enum log_level = spdlog::level::warn;
   std::string address = "127.0.0.1";
   uint16_t port = 5051;
-  int32_t retry_count = -1; // TODO(implement retry and time outs)
+  int32_t retry_count = -1;  // TODO(implement retry and time outs)
   std::chrono::seconds retry_timeout = std::chrono::seconds(30);
   std::chrono::seconds poll_rate = std::chrono::seconds(10);
 
@@ -46,5 +56,24 @@ class PlantListenerConfig {
    */
   Error load();
 
+ private:
+  friend class PlantListenerConfigTester;
+
+  static SensorConfig parseSensor(const nlohmann::json& j);
+
+  template <typename T>
+  static void parseValue(const nlohmann::json& j, const std::string& key, T& value) {
+    auto it = j.find(key);
+    if (it == j.end()) {
+      throw ParseException(Error::Code::ERROR_NOT_FOUND, fmt::format("Missing key {}", key));
+    }
+
+    try {
+      value = it->get<T>();
+    } catch (const nlohmann::json::type_error& e) {
+      throw ParseException(Error::Code::ERROR_INVALID_TYPE,
+                           std::format("Failed to parse key {} with: {}", key, e.what()));
+    }
+  }
 };
 }  // namespace plantlistener::core

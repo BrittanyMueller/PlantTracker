@@ -10,11 +10,11 @@
 # @author: BrittanyMueller
 #
 
-add_executable(plantlistener_core_test
+add_executable(plantlistener_client_test
     test_command_line.cpp
 )
 
-target_link_libraries(plantlistener_core_test 
+target_link_libraries(plantlistener_client_test 
     PUBLIC
     gtest 
     gmock
@@ -23,4 +23,4 @@ target_link_libraries(plantlistener_core_test
     test_common
 )
 
-gtest_add_tests(TARGET plantlistener_core_test)
+gtest_add_tests(TARGET plantlistener_client_test)
