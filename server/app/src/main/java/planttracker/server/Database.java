@@ -20,7 +20,7 @@ import planttracker.server.exceptions.PlantTrackerException;
 public class Database {
 
     private static Database instance = null;
-    private Connection connection;
+    public Connection connection;
 
     private final static Logger logger = Logger.getGlobal(); 
     private final ReentrantLock dbLock = new ReentrantLock();
