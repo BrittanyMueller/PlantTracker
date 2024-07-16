@@ -59,9 +59,10 @@ public class App {
                 default:
                     throw new PlantTrackerException("Invalid log level, must be one of MAX, DEBUG, INFO, WARN, ERR.");
             }
-            // Connect to database with config, create tables if needed.
-            db = new Database(config);
-            db.createTables();  
+            // Initialize singleton database with config
+            Database.init(config);
+            db = Database.getInstance();
+            db.createTables();  // Create tables if not exists
             
             PlantListenerServer server = new PlantListenerServer(config);
             server.start();
