@@ -49,7 +49,7 @@
         "libs": [
             {
                 "name": "mock_dev",
-                "lib_path": "lib/libplantlistener-device-mock-dev.so"
+                "lib_path": "/workspaces/PlantTracker/build/lib/libplantlistener-device-mock-dev.so"
             }
         ]
     }
