@@ -169,12 +169,14 @@ Error PlantListener::start() {
     planttracker::grpc::PlantListenerConfig cfg;
     planttracker::grpc::InitializeResponse res;
 
+    cfg.set_name(cfg_.name);
+    cfg.set_mac("45:e0:66:20:e2:da");
+
     for (const auto& [name, dev] : devices_) {
       if (dev->getType() != plantlistener::device::DeviceType::ADC) {
         continue;  // We only care about ADC's
       }
 
-      cfg.set_name(cfg_.name);
       auto* new_dev = cfg.add_devices();
       new_dev->set_name(name);
       new_dev->set_num_sensors(dev->getPortCount());  // TODO(qawse3dr) account for water sensor using a port.
