@@ -170,7 +170,7 @@ Error PlantListener::start() {
     planttracker::grpc::InitializeResponse res;
 
     cfg.set_name(cfg_.name);
-    cfg.set_mac("45:e0:66:20:e2:da");
+    cfg.set_mac("85:b6:e8:7e:45:d2");
 
     for (const auto& [name, dev] : devices_) {
       if (dev->getType() != plantlistener::device::DeviceType::ADC) {
@@ -228,7 +228,7 @@ Error PlantListener::start() {
       const auto& data = plant->getPlantData();
       auto* plant_data = plant_data_list.add_data();
 
-      plant_data->set_plant_id(1);  // Do they need an ID?
+      plant_data->set_plant_id(plant->getId()); 
       plant_data->set_humidity(data.humidity_data);
       plant_data->set_temp(data.temp_data);
 

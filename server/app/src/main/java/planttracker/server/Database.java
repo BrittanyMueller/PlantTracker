@@ -55,13 +55,13 @@ public class Database {
         FOREIGN KEY (pid) REFERENCES pi(id) ON DELETE CASCADE
         );""",
         """
-        CREATE TABLE IF NOT EXISTS plant_data (
+        CREATE TABLE IF NOT EXISTS plant_sensor_data (
         plant_id INT,
-        ts TIMESTAMP NOT NULL,
         moisture REAL,
         light REAL, -- lumens? lux? what actually is this
         temp REAL,
         humidity REAL,
+        ts TIMESTAMP NOT NULL,
         FOREIGN KEY (plant_id) REFERENCES plants(id),
         PRIMARY KEY (plant_id, ts)
         );"""

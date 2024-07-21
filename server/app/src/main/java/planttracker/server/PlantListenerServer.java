@@ -116,6 +116,12 @@ public class PlantListenerServer {
       }
     }
 
+    /**
+     * Retrieves all Plants for a pi ID from the database.
+     * @param pid Database ID of the pi
+     * @return ArrayList of protobuf Plant type.
+     * @throws PlantTrackerException
+     */
     private ArrayList<Plant> getPlants(int pid) throws PlantTrackerException {
 
       ArrayList<Plant> plantList = new ArrayList<Plant>();
@@ -210,9 +216,36 @@ public class PlantListenerServer {
 
     @Override
     public void reportSensor(PlantDataList request, StreamObserver<Result> responseObserver) {
-      System.out.println("Sensor report");
-      responseObserver.onNext(Result.newBuilder().setReturnCode(0).build());
-      responseObserver.onCompleted();
+      logger.finest("Sensor report request received.");
+      Result res = Result.newBuilder().setError("").setReturnCode(0).build();
+      try {
+        Database db = Database.getInstance();
+        String insertData = "INSERT INTO plant_sensor_data VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        PreparedStatement insertStmt = db.connection.prepareStatement(insertData);
+  
+        List<PlantData> dataList = request.getDataList();
+        for (PlantData data : dataList) {
+          insertStmt.setLong(1, data.getPlantId());
+          insertStmt.setDouble(2, data.getMoisture().getMoistureLevel());
+          insertStmt.setDouble(3, data.getLight().getLumens());
+          insertStmt.setDouble(4, data.getHumidity());
+          insertStmt.setDouble(5, data.getTemp());
+
+          int affectedRows = insertStmt.executeUpdate();
+          if (affectedRows == 1) {
+            logger.finest("Sensor data for Plant ID " + data.getPlantId() + " inserted successfully.");
+          } else {
+            throw new SQLException("Expected 1 affected row after inserting sensor data, but rows affected were: " + affectedRows);
+          }
+        }
+      } catch (SQLException | PlantTrackerException e) {
+        res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();
+        logger.warning("Failed to send save sensor data with: " + e);
+      } finally {
+        logger.finest("Sensor report response sent.");
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+      }
     }
 
     @Override
