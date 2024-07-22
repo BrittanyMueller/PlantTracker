@@ -192,7 +192,7 @@ Error PlantListener::start() {
     // Adds all plants based on the return.
     for (const auto& plant : res.plants()) {
       PlantConfig plant_cfg;
-      plant_cfg.id = plant.id();
+      plant_cfg.id = plant.plant_id();
       plant_cfg.moisture_device_name = plant.device_name();
       plant_cfg.moisture_device_port = plant.device_port();
 

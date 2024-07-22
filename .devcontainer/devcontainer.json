@@ -10,7 +10,8 @@
         "vscjava.vscode-java-pack",
         "eamodio.gitlens",
         "vscjava.vscode-gradle",
-        "mutantdino.resourcemonitor"
+        "mutantdino.resourcemonitor",
+        "zxh404.vscode-proto3"
       ]
     }
   },

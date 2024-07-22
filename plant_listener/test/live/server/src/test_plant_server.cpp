@@ -33,7 +33,7 @@ class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener:
 
  private:
   grpc::Status Initialize(grpc::ServerContext* context, const planttracker::grpc::PlantListenerConfig* cfg,
-                          planttracker::grpc::InitializeResponse* response) {
+                          planttracker::grpc::InitializeResponse* response) override {
     std::string dev_name = "foobar";
     spdlog::info("Initialzed called for \"{}\". START", cfg->name());
     for (const auto& dev : cfg->devices()) {
@@ -48,12 +48,12 @@ class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener:
     auto* plant = response->add_plants();
     plant->set_device_name(dev_name);
     plant->set_device_port(1);
-    plant->set_id(1);
+    plant->set_plant_id(1);
 
     return grpc::Status::OK;
   }
   grpc::Status ReportSensor(grpc::ServerContext* context, const planttracker::grpc::PlantDataList* request,
-                            planttracker::grpc::Result* response) {
+                            planttracker::grpc::Result* response) override {
     std::stringstream report;
     report << "\n--------ReportSensor Start----------\n";
     for (const auto& plant_data : request->data()) {
@@ -70,7 +70,7 @@ class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener:
   }
   grpc::Status PollRequest(
       grpc::ServerContext* context,
-      grpc::ServerReaderWriter<planttracker::grpc::ListenerResponse, planttracker::grpc::ListenerResponse>* stream) {
+      grpc::ServerReaderWriter<planttracker::grpc::ListenerResponse, planttracker::grpc::ListenerResponse>* stream) override {
     spdlog::info("PollRequest Started.");
 
     // TODO(lmilne) we might need a queue for the test server and maybe a cli to
