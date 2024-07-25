@@ -29,13 +29,12 @@ public class PlantTrackerServer {
 
   public void start() throws PlantTrackerException {
     try {
-      logger.finer("Starting plant tracker server on port " + port);
+      logger.finer("Starting PlantTracker Server on port " + port);
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
                    .addService(new PlantTrackerImpl())
-                   .build()
-                   .start();
+                   .build().start();
     } catch (IOException e) {
-      throw new PlantTrackerException("server start fail", e);
+      throw new PlantTrackerException("Failed to start PlantTracker Server", e);
     }
   }
 
@@ -69,12 +68,11 @@ public class PlantTrackerServer {
       logger.severe("updatePlant Not Implemented");
     }
 
-    
-
-
     public void getPlants(GetPlantsRequest request, io.grpc.stub.StreamObserver<GetPlantsResponse> responseObserver) {
       GetPlantsResponse response = null;
       ArrayList<Plant> plantList = null;
+      String sql = "SELECT * FROM plants";
+      
       try {
         switch(request.getType()) {
           case GET_PLANT:
@@ -82,18 +80,18 @@ public class PlantTrackerServer {
               throw new PlantTrackerException("Request type " + GetPlantsRequestType.GET_PLANT.toString() + " requires an ID.");
             }
             logger.info("Request to GET_PLANT with ID " + request.getId() + " received.");
-            // TODO other functions will return their own built lists? 
-            plantList = new ArrayList<Plant>();
-            plantList.add(getPlant(request.getId(), request.getFetchImages()));
+            plantList = selectPlants(sql + " WHERE id = ?", request.getId(), request.getFetchImages());
             break;
           case GET_PLANTS_BY_PI:
             if (!request.hasId()) {
               throw new PlantTrackerException("Request type " + GetPlantsRequestType.GET_PLANTS_BY_PI.toString() + " requires an ID.");
             }
-            logger.severe("getPlantsByPi Not Implemented");
+            logger.info("Request to GET_PLANTS_BY_PI with ID " + request.getId() + " received.");
+            plantList = selectPlants(sql + " WHERE pid = ?", request.getId(), request.getFetchImages());
             break;
           case GET_ALL_PLANTS:
-            logger.severe("getAllPlants Not Implemented");
+            logger.info("Request to GET_ALL_PLANTS received.");
+            plantList = selectPlants(sql, -1, request.getFetchImages());
             break;
           default:
             throw new PlantTrackerException("Invalid request type.");
@@ -110,19 +108,28 @@ public class PlantTrackerServer {
       }
     }
 
-    private Plant getPlant(long id, boolean fetchImage) throws PlantTrackerException {
+    /**
+     * Executes the provided select statement to get Plants from DB.
+     * @param sql Select query to plants table, optional where clause.
+     * @param id  Optional ID to be set as where condition.
+     * @param fetchImage  Flag indicating if images should be...
+     * @return  Array of Protobuf Plants selected from DB.
+     * @throws PlantTrackerException
+     */
+    private ArrayList<Plant> selectPlants(String sql, long id, boolean fetchImage) throws PlantTrackerException {
 
-      Plant plant = null;
+      ArrayList<Plant> plantList = new ArrayList<Plant>();
       Database db = Database.getInstance();
-      String sql = "SELECT * FROM plants WHERE id = ?";
 
       try {
-        PreparedStatement selectStmt = db.connection.prepareStatement(sql);      
-        selectStmt.setLong(1, id);
-
+        PreparedStatement selectStmt = db.connection.prepareStatement(sql);
+        if (id != -1) {
+          // Set optional id field in where clause
+          selectStmt.setLong(1, id);
+        }      
         ResultSet res = selectStmt.executeQuery();
-        if (res.next()) {
-          plant = buildPlant(res, fetchImage);
+        while (res.next()) {
+          plantList.add(buildPlant(res, fetchImage));
         }
         selectStmt.close();
         res.close();
@@ -131,22 +138,15 @@ public class PlantTrackerServer {
         System.out.println(e.getMessage());
         throw new PlantTrackerException(e);
       }
-      return plant;
+      return plantList;
     }
 
     /**
-      message Plant {
-        uint64 id = 1;
-        string name = 2;
-        uint64 moisture_device_id = 3;
-        uint32 sensor_port = 4;
-        LightLevel light_level = 5;
-        uint32 min_moisture = 6;
-        uint32 min_humidity = 7;
-        uint64 pid = 8;
-        optional string img_url = 9;
-        optional bytes img = 10;
-      }
+     * Builds a new Protobuf Plant from a JDBC ResultSet.
+     * @param res ResultSet obtained after selecting a Plant from the DB. 
+     * @param fetchImage Flag indicating if images should be...
+     * @return Protobuf Plant built using the ResultSet data.
+     * @throws SQLException
      */
     private Plant buildPlant(ResultSet res, boolean fetchImage) throws SQLException {
       Plant.Builder plant = Plant.newBuilder().setId(res.getLong("id"))
@@ -165,10 +165,6 @@ public class PlantTrackerServer {
       }
       return plant.build();
     }
-
-    // private ArrayList<Plant> getAllPlants() {}
-
-    // private ArrayList<Plant> getPlantsByPi(int pid) {}
 
     public void getPlantData(GetPlantDataRequest request, io.grpc.stub.StreamObserver<PlantDataList> responseObserver) {
       logger.severe("getPlantData Not Implemented");
