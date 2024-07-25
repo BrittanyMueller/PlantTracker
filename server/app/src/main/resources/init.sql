@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS moisture_devices (
 CREATE TABLE IF NOT EXISTS plants (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
-    img_path VARCHAR(50),
+    img_url VARCHAR(50),
     moisture_sensor_device_id INT,
     moisture_sensor_port INT,
     light_level INT, -- checked value 0, 1, 2? enum?
@@ -26,13 +26,13 @@ CREATE TABLE IF NOT EXISTS plants (
     FOREIGN KEY (pid) REFERENCES pi(id)
 );
 
-CREATE TABLE IF NOT EXISTS plant_data (
+CREATE TABLE IF NOT EXISTS plant_sensor_data (
     plant_id INT,
-    ts TIMESTAMP NOT NULL,
     moisture REAL,
     light REAL, -- lumens? lux? what actually is this
     temp REAL,
     humidity REAL,
+    ts TIMESTAMP NOT NULL,
     FOREIGN KEY (plant_id) REFERENCES plants(id),
     PRIMARY KEY (plant_id, ts)
 );

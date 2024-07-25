@@ -104,7 +104,7 @@ public class PlantListenerServer {
           resultSet.close();
         }
 
-        ArrayList<Plant> plantList = getPlants(pid);
+        ArrayList<PlantSensor> plantList = getPlantSensors(pid);
         Result res = Result.newBuilder().setReturnCode(0).build();
         response = InitializeResponse.newBuilder().setRes(res).addAllPlants(plantList).build();
       } catch (SQLException | PlantTrackerException e) {
@@ -116,9 +116,15 @@ public class PlantListenerServer {
       }
     }
 
-    private ArrayList<Plant> getPlants(int pid) throws PlantTrackerException {
+    /**
+     * Retrieves all Plants for a pi ID from the database.
+     * @param pid Database ID of the pi
+     * @return ArrayList of protobuf PlantSensor type.
+     * @throws PlantTrackerException
+     */
+    private ArrayList<PlantSensor> getPlantSensors(int pid) throws PlantTrackerException {
 
-      ArrayList<Plant> plantList = new ArrayList<Plant>();
+      ArrayList<PlantSensor> plantList = new ArrayList<PlantSensor>();
       Database db = Database.getInstance();
 
       String plantQuery = "SELECT plants.id AS plant_id, moisture_devices.name AS device_name, moisture_sensor_port"
@@ -132,9 +138,9 @@ public class PlantListenerServer {
         ResultSet res = plantStmt.executeQuery();
   
         while (res.next()) {
-          Plant plant = Plant.newBuilder().setDeviceName(res.getString("device_name"))
+          PlantSensor plant = PlantSensor.newBuilder().setDeviceName(res.getString("device_name"))
                                           .setDevicePort(res.getInt("moisture_sensor_port"))
-                                          .setId(res.getInt("plant_id")).build();
+                                          .setPlantId(res.getInt("plant_id")).build();
           plantList.add(plant);
         }
         plantStmt.close();
@@ -210,9 +216,37 @@ public class PlantListenerServer {
 
     @Override
     public void reportSensor(PlantDataList request, StreamObserver<Result> responseObserver) {
-      System.out.println("Sensor report");
-      responseObserver.onNext(Result.newBuilder().setReturnCode(0).build());
-      responseObserver.onCompleted();
+      logger.finest("Sensor report request received.");
+      Result res = Result.newBuilder().setError("").setReturnCode(0).build();
+      try {
+        Database db = Database.getInstance();
+        String insertData = "INSERT INTO plant_sensor_data VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        PreparedStatement insertStmt = db.connection.prepareStatement(insertData);
+  
+        List<PlantData> dataList = request.getDataList();
+        for (PlantData data : dataList) {
+          insertStmt.setLong(1, data.getPlantId());
+          insertStmt.setFloat(2, data.getMoisture().getMoistureLevel());
+          insertStmt.setFloat(3, data.getLight().getLumens());
+          insertStmt.setFloat(4, data.getHumidity());
+          insertStmt.setFloat(5, data.getTemp());
+
+          int affectedRows = insertStmt.executeUpdate();
+          if (affectedRows == 1) {
+            logger.finest("Sensor data for Plant ID " + data.getPlantId() + " inserted successfully.");
+          } else {
+            throw new SQLException("Expected 1 affected row after inserting sensor data, but rows affected were: " + affectedRows);
+          }
+        }
+        insertStmt.close();
+      } catch (SQLException | PlantTrackerException e) {
+        res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();
+        logger.warning("Failed to send save sensor data with: " + e);
+      } finally {
+        logger.finest("Sensor report response sent.");
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+      }
     }
 
     @Override

@@ -10,13 +10,13 @@
         "vscjava.vscode-java-pack",
         "eamodio.gitlens",
         "vscjava.vscode-gradle",
-        "mutantdino.resourcemonitor"
+        "mutantdino.resourcemonitor",
+        "zxh404.vscode-proto3"
       ]
     }
   },
   "forwardPorts": [5050, 5051, 5432],
   "postStartCommand": "service postgresql start",
-
   "mounts": [
     "source=planttracker_db,target=/var/lib/postgresql,type=volume"
   ]

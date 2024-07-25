@@ -40,6 +40,7 @@ protobuf {
         grpc { artifact = 'io.grpc:protoc-gen-grpc-java:1.60.0' // CURRENT_GRPC_VERSION
         }
     }
+    sourceSets.main.proto.srcDir("../../../idl")
 
     generateProtoTasks {
         all().each { task ->
