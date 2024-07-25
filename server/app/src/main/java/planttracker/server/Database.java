@@ -44,7 +44,7 @@ public class Database {
         CREATE TABLE IF NOT EXISTS plants (
         id SERIAL PRIMARY KEY,
         name VARCHAR(20) NOT NULL,
-        img_path VARCHAR(50),
+        img_url VARCHAR(50),
         moisture_sensor_device_id INT,
         moisture_sensor_port INT,
         light_level INT, -- checked value 0, 1, 2? enum?

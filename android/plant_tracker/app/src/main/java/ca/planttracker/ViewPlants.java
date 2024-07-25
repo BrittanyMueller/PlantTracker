@@ -20,13 +20,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ViewPlants extends AppCompatActivity {
+
+    private Client client;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.plants_listview_layout);
 
-        List<Plant> plantList = getPlantData();
+        // TODO testing grpc client
+        client = new Client("10.0.2.2", 5050);
+        planttracker.server.Plant plant = client.getPlant(34, false);
+        Log.i("INFO", plant.getName());
 
+        List<Plant> plantList = getPlantData();
         PlantListAdapter plantAdapter = new PlantListAdapter(this, plantList);
         ListView listView = findViewById(R.id.plants_listview);
         listView.setAdapter(plantAdapter);

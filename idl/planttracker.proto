@@ -24,8 +24,9 @@ service PlantTracker {
   rpc DeletePlant(PlantId) returns (Result);
   rpc UpdatePlant(Plant) returns (Result);
 
-  rpc GetPlants(GetPlantsRequest) returns (PlantList);
-  rpc GetPlantData(GetPlantDataRequest) returns (PlantDataList);
+  rpc GetPlants(GetPlantsRequest) returns (GetPlantsResponse);
+
+  rpc GetPlantSensorData(GetPlantDataRequest) returns (PlantDataList);
   
 }
 
@@ -35,11 +36,16 @@ message GetPlantDataRequest {
   optional uint64 end_date = 3; 
 }
 
+enum GetPlantsRequestType {
+  GET_PLANT = 0;
+  GET_ALL_PLANTS = 1;
+  GET_PLANTS_BY_PI = 2;
+}
+
 message GetPlantsRequest {
-  // Can either be pid, plant_id, or neither to get all plants.
-  optional uint64 pid = 1;
-  optional uint64 plant_id = 2;
-  bool fetch_images = 3;  // Whether images should be fetched with request.
+  GetPlantsRequestType type = 1;
+  optional uint64 id = 2;   // Optional, id of Pi or Plant to retrieve.
+  bool fetch_images = 3;    // Whether images should be fetched with request.
 }
 
 // GPRC doesn't allow for primative types in rpc calls so use this as a wrapper when deleting plants.
@@ -47,8 +53,9 @@ message PlantId {
   uint64 id = 1;
 }
 
-message PlantList {
-  repeated Plant plants = 1;
+message GetPlantsResponse {
+  Result res = 1;
+  repeated Plant plants = 2;
 }
 
 message Plant {
@@ -60,7 +67,8 @@ message Plant {
   uint32 min_moisture = 6;
   uint32 min_humidity = 7;
   uint64 pid = 8;
-  optional bytes img = 9;
+  optional string img_url = 9;
+  optional bytes img = 10;
 }
 
 enum LightLevel {
@@ -119,11 +127,11 @@ message MoistureDevice {
   string name = 1;
   uint32 num_sensors = 2;
 }
-
+// TODO rename to PlantSensorDataList
 message PlantDataList {
   repeated PlantData data = 1;
 }
-
+// TODO rename to PlantSensorData 
 message PlantData {
   int64 plant_id = 1;
   MoistureSensorData moisture = 2;

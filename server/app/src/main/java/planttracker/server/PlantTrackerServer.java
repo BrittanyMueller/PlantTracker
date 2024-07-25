@@ -6,6 +6,10 @@ import io.grpc.Server;
 import planttracker.server.exceptions.PlantTrackerException;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import java.util.logging.*;
@@ -65,9 +69,106 @@ public class PlantTrackerServer {
       logger.severe("updatePlant Not Implemented");
     }
 
-    public void getPlants(GetPlantsRequest request, io.grpc.stub.StreamObserver<PlantList> responseObserver) {
-      logger.severe("getPlants Not Implemented");
+    
+
+
+    public void getPlants(GetPlantsRequest request, io.grpc.stub.StreamObserver<GetPlantsResponse> responseObserver) {
+      GetPlantsResponse response = null;
+      ArrayList<Plant> plantList = null;
+      try {
+        switch(request.getType()) {
+          case GET_PLANT:
+            if (!request.hasId()) {
+              throw new PlantTrackerException("Request type " + GetPlantsRequestType.GET_PLANT.toString() + " requires an ID.");
+            }
+            logger.info("Request to GET_PLANT with ID " + request.getId() + " received.");
+            // TODO other functions will return their own built lists? 
+            plantList = new ArrayList<Plant>();
+            plantList.add(getPlant(request.getId(), request.getFetchImages()));
+            break;
+          case GET_PLANTS_BY_PI:
+            if (!request.hasId()) {
+              throw new PlantTrackerException("Request type " + GetPlantsRequestType.GET_PLANTS_BY_PI.toString() + " requires an ID.");
+            }
+            logger.severe("getPlantsByPi Not Implemented");
+            break;
+          case GET_ALL_PLANTS:
+            logger.severe("getAllPlants Not Implemented");
+            break;
+          default:
+            throw new PlantTrackerException("Invalid request type.");
+        }
+        Result res = Result.newBuilder().setError("").setReturnCode(0).build();
+        response = GetPlantsResponse.newBuilder().setRes(res).addAllPlants(plantList).build();
+      } catch (PlantTrackerException e) {
+        System.out.println(e.getMessage());
+        Result res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();
+        response = GetPlantsResponse.newBuilder().setRes(res).build();
+      } finally {
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+      }
     }
+
+    private Plant getPlant(long id, boolean fetchImage) throws PlantTrackerException {
+
+      Plant plant = null;
+      Database db = Database.getInstance();
+      String sql = "SELECT * FROM plants WHERE id = ?";
+
+      try {
+        PreparedStatement selectStmt = db.connection.prepareStatement(sql);      
+        selectStmt.setLong(1, id);
+
+        ResultSet res = selectStmt.executeQuery();
+        if (res.next()) {
+          plant = buildPlant(res, fetchImage);
+        }
+        selectStmt.close();
+        res.close();
+      } catch (SQLException e) {
+        // TODO logging or better error message idk
+        System.out.println(e.getMessage());
+        throw new PlantTrackerException(e);
+      }
+      return plant;
+    }
+
+    /**
+      message Plant {
+        uint64 id = 1;
+        string name = 2;
+        uint64 moisture_device_id = 3;
+        uint32 sensor_port = 4;
+        LightLevel light_level = 5;
+        uint32 min_moisture = 6;
+        uint32 min_humidity = 7;
+        uint64 pid = 8;
+        optional string img_url = 9;
+        optional bytes img = 10;
+      }
+     */
+    private Plant buildPlant(ResultSet res, boolean fetchImage) throws SQLException {
+      Plant.Builder plant = Plant.newBuilder().setId(res.getLong("id"))
+                                      .setName(res.getString("name"))
+                                      .setMoistureDeviceId(res.getLong("moisture_sensor_device_id"))
+                                      .setSensorPort(res.getInt("moisture_sensor_port"))
+                                      .setLightLevelValue(res.getInt("light_level"))
+                                      .setMinMoisture(res.getInt("min_moisture"))
+                                      .setMinHumidity(res.getInt("min_humidity"))
+                                      .setPid(res.getLong("pid"));
+      if (fetchImage) {
+        // TODO image as byte string
+        plant.setImg(null);
+      } else {
+        plant.setImgUrl(res.getString("img_url"));
+      }
+      return plant.build();
+    }
+
+    // private ArrayList<Plant> getAllPlants() {}
+
+    // private ArrayList<Plant> getPlantsByPi(int pid) {}
 
     public void getPlantData(GetPlantDataRequest request, io.grpc.stub.StreamObserver<PlantDataList> responseObserver) {
       logger.severe("getPlantData Not Implemented");

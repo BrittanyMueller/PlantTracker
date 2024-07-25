@@ -2,7 +2,7 @@ BEGIN;
 
 -- Delete test plant
 DELETE FROM plants
-WHERE img_path = 'test';
+WHERE img_url = 'test';
 
 -- Delete test moisture device
 DELETE FROM moisture_devices

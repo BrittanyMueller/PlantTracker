@@ -104,7 +104,7 @@ public class PlantListenerServer {
           resultSet.close();
         }
 
-        ArrayList<PlantSensor> plantList = getPlants(pid);
+        ArrayList<PlantSensor> plantList = getPlantSensors(pid);
         Result res = Result.newBuilder().setReturnCode(0).build();
         response = InitializeResponse.newBuilder().setRes(res).addAllPlants(plantList).build();
       } catch (SQLException | PlantTrackerException e) {
@@ -122,7 +122,7 @@ public class PlantListenerServer {
      * @return ArrayList of protobuf PlantSensor type.
      * @throws PlantTrackerException
      */
-    private ArrayList<PlantSensor> getPlants(int pid) throws PlantTrackerException {
+    private ArrayList<PlantSensor> getPlantSensors(int pid) throws PlantTrackerException {
 
       ArrayList<PlantSensor> plantList = new ArrayList<PlantSensor>();
       Database db = Database.getInstance();
@@ -238,6 +238,7 @@ public class PlantListenerServer {
             throw new SQLException("Expected 1 affected row after inserting sensor data, but rows affected were: " + affectedRows);
           }
         }
+        insertStmt.close();
       } catch (SQLException | PlantTrackerException e) {
         res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();
         logger.warning("Failed to send save sensor data with: " + e);

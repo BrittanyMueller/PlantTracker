@@ -64,10 +64,15 @@ public class App {
             db = Database.getInstance();
             db.createTables();  // Create tables if not exists
             
-            PlantListenerServer server = new PlantListenerServer(config);
-            server.start();
-            server.blockUntilShutdown();
+            PlantListenerServer listener = new PlantListenerServer(config);
+            listener.start();
+            
+            PlantTrackerServer tracker = new PlantTrackerServer(config);
+            tracker.start();
 
+            tracker.blockUntilShutdown();
+            listener.blockUntilShutdown();
+            
         } catch (PlantTrackerException e) {
             logger.severe(e.getMessage());
             if (e.getCause() != null) {
