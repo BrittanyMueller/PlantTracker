@@ -1,5 +1,5 @@
 {
-  "image": "registry.larrycloud.ca/qawse3dr/plant-tracker:latest",
+  "build": { "dockerfile": "Dockerfile" },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -16,8 +16,9 @@
     }
   },
   "forwardPorts": [5050, 5051, 5432],
-  "postStartCommand": "service postgresql start",
+  "postStartCommand": "sudo service postgresql start",
   "mounts": [
-    "source=planttracker_db,target=/var/lib/postgresql,type=volume"
-  ]
+    "source=planttracker_db,target=/var/lib/postgresql,type=volume",
+    "source=planttracker_images,target=/images,type=volume"
+  ],
 }

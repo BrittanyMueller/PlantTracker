@@ -35,5 +35,3 @@ add_custom_target(plantlistener_coverage
     COMMAND mkdir -p coverage
     COMMAND gcovr -r "${CMAKE_SOURCE_DIR}"  --txt --print-summary --gcov-ignore-parse-errors --filter ".*plant_listener.*" --exclude ".*test.*" --cobertura coverage.xml --html-details coverage/index.html
     )
-
-

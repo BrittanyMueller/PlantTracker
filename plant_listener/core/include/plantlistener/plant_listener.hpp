@@ -11,6 +11,9 @@
  */
 #pragma once
 
+#include <grpcpp/grpcpp.h>
+#include <planttracker.grpc.pb.h>
+
 #include <condition_variable>
 #include <memory>
 #include <mutex>
@@ -20,6 +23,7 @@
 #include <plantlistener/plant/plant.hpp>
 #include <plantlistener/plant_listener_config.hpp>
 #include <plantlistener/sensor/sensor.hpp>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -36,8 +40,14 @@ class PlantListener {
  private:
   enum class State { NOT_INITALIZED, INITIALIZING, INITALIZED, STARTED, STOPPING };
 
+  using ClientType = planttracker::grpc::PlantListener::StubInterface;
+
+ private:
   PlantListenerConfig cfg_{};
   State state_{State::NOT_INITALIZED};
+  std::function<std::unique_ptr<ClientType>(const std::string&, uint16_t,
+                                            const std::shared_ptr<grpc::ChannelCredentials>&)>
+      makeClientFtn_ = PlantListener::defaultClientMaker;
 
   std::vector<std::unique_ptr<Sensor>> sensors_{};
   std::vector<std::shared_ptr<Plant>> plants_{};
@@ -48,6 +58,11 @@ class PlantListener {
 
   std::mutex mutex_{};
   std::condition_variable cv_{};
+
+  /// Thread responsible for listening to events from server.
+  std::thread event_listener_thread_{};
+
+  std::unique_ptr<ClientType> client_{};
 
  public:
   PlantListener(PlantListenerConfig&& cfg);
@@ -93,5 +108,11 @@ class PlantListener {
   friend class PlantListenerTester;
   Error addSensor(const SensorConfig& cfg);
   Error addPlant(const PlantConfig& cfg);
+  Error removePlant(int64_t id);
+
+  void plantEventWorkLoop(grpc::ClientContext& client_context);
+
+  static std::unique_ptr<ClientType> defaultClientMaker(const std::string&, uint16_t,
+                                                        const std::shared_ptr<grpc::ChannelCredentials>&);
 };
 }  // namespace plantlistener::core

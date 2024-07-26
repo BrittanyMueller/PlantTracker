@@ -32,6 +32,7 @@ class Sensor {
   // Holds the result of the constructor.
   Error ctr_error{};
 
+ protected:
   // Holds map of plant_id to plant.
   std::unordered_map<int64_t, std::shared_ptr<Plant>> plants_;
 
@@ -44,6 +45,7 @@ class Sensor {
 
   Error addPlant(const std::shared_ptr<Plant>& plant);
   Error removePlant(const int64_t plant_id);
+  inline bool hasPlant(const int64_t plant_id) { return plants_.find(plant_id) != plants_.end(); };
 
   /**
    * Updates all of the plants with the data from the sensors

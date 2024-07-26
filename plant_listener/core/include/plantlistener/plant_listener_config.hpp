@@ -38,6 +38,7 @@ class PlantListenerConfig {
  public:
   std::string name{};
   std::string config_path{};
+  std::string mac{};
 
   spdlog::level::level_enum log_level = spdlog::level::warn;
   std::string address = "127.0.0.1";
