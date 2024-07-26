@@ -20,9 +20,9 @@ package planttracker.grpc;
  * App to server requests.
  */
 service PlantTracker {
-  rpc addPlant(Plant) returns (Result);
+  rpc addPlant(PlantInfo) returns (Result);
   rpc deletePlant(PlantId) returns (Result);
-  rpc updatePlant(Plant) returns (Result);
+  rpc updatePlant(PlantInfo) returns (Result);
 
   rpc getPlants(GetPlantsRequest) returns (GetPlantsResponse);
 
@@ -55,20 +55,20 @@ message PlantId {
 // TODO change res-> result
 message GetPlantsResponse {
   Result res = 1;
-  repeated Plant plants = 2;
+  repeated PlantInfo plants = 2;
 }
 
-message Plant {
+// TODO consider adding current sensor data
+// eg. moisture, light, humidity etc.
+message PlantInfo {
   uint64 id = 1;
   string name = 2;
-  uint64 moisture_device_id = 3;
-  uint32 sensor_port = 4;
-  LightLevel light_level = 5;
-  uint32 min_moisture = 6;
-  uint32 min_humidity = 7;
-  uint64 pid = 8;
-  optional string img_url = 9;
-  optional bytes img = 10;
+  LightLevel light_level = 3;
+  uint32 min_moisture = 4;
+  uint32 min_humidity = 5;
+  uint64 pid = 6;
+  optional string image_url = 7;
+  optional bytes image = 8;
 }
 
 enum LightLevel {

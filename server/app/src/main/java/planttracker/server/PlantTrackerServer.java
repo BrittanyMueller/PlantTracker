@@ -56,7 +56,7 @@ public class PlantTrackerServer {
 
   static class PlantTrackerImpl extends PlantTrackerGrpc.PlantTrackerImplBase {
 
-    public void addPlant(Plant request, io.grpc.stub.StreamObserver<Result> responseObserver) {
+    public void addPlant(PlantInfo request, io.grpc.stub.StreamObserver<Result> responseObserver) {
       logger.severe("addPlant Not Implemented");
     }
 
@@ -64,13 +64,13 @@ public class PlantTrackerServer {
       logger.severe("deletePlant Not Implemented");
     }
 
-    public void updatePlant(Plant request, io.grpc.stub.StreamObserver<Result> responseObserver) {
+    public void updatePlant(PlantInfo request, io.grpc.stub.StreamObserver<Result> responseObserver) {
       logger.severe("updatePlant Not Implemented");
     }
 
     public void getPlants(GetPlantsRequest request, io.grpc.stub.StreamObserver<GetPlantsResponse> responseObserver) {
       GetPlantsResponse response = null;
-      ArrayList<Plant> plantList = null;
+      ArrayList<PlantInfo> plantList = null;
       String sql = "SELECT * FROM plants";
       
       try {
@@ -109,16 +109,16 @@ public class PlantTrackerServer {
     }
 
     /**
-     * Executes the provided select statement to get Plants from DB.
+     * Executes the provided select statement to get PlantInfo from DB.
      * @param sql Select query to plants table, optional where clause.
      * @param id  Optional ID to be set as where condition.
      * @param fetchImage  Flag indicating if images should be...
-     * @return  Array of Protobuf Plants selected from DB.
+     * @return  Array of PlantInfo selected from DB.
      * @throws PlantTrackerException
      */
-    private ArrayList<Plant> selectPlants(String sql, long id, boolean fetchImage) throws PlantTrackerException {
+    private ArrayList<PlantInfo> selectPlants(String sql, long id, boolean fetchImage) throws PlantTrackerException {
 
-      ArrayList<Plant> plantList = new ArrayList<Plant>();
+      ArrayList<PlantInfo> plantList = new ArrayList<PlantInfo>();
       Database db = Database.getInstance();
 
       try {
@@ -142,26 +142,24 @@ public class PlantTrackerServer {
     }
 
     /**
-     * Builds a new Protobuf Plant from a JDBC ResultSet.
+     * Builds a new Protobuf PlantInfo from a JDBC ResultSet.
      * @param res ResultSet obtained after selecting a Plant from the DB. 
      * @param fetchImage Flag indicating if images should be...
-     * @return Protobuf Plant built using the ResultSet data.
+     * @return PlantInfo built using the ResultSet data.
      * @throws SQLException
      */
-    private Plant buildPlant(ResultSet res, boolean fetchImage) throws SQLException {
-      Plant.Builder plant = Plant.newBuilder().setId(res.getLong("id"))
+    private PlantInfo buildPlant(ResultSet res, boolean fetchImage) throws SQLException {
+      PlantInfo.Builder plant = PlantInfo.newBuilder().setId(res.getLong("id"))
                                       .setName(res.getString("name"))
-                                      .setMoistureDeviceId(res.getLong("moisture_sensor_device_id"))
-                                      .setSensorPort(res.getInt("moisture_sensor_port"))
                                       .setLightLevelValue(res.getInt("light_level"))
                                       .setMinMoisture(res.getInt("min_moisture"))
                                       .setMinHumidity(res.getInt("min_humidity"))
                                       .setPid(res.getLong("pid"));
       if (fetchImage) {
         // TODO image as byte string
-        plant.setImg(null);
+        plant.setImage(null);
       } else {
-        plant.setImgUrl(res.getString("img_url"));
+        plant.setImageUrl(res.getString("image_url"));
       }
       return plant.build();
     }

@@ -110,6 +110,7 @@ public class PlantListenerServer {
 
           if (resultSet.next() && resultSet.getInt(1) == 0) {
             // Moisture device does not exist, insert new device
+            // TODO initialize sensor ports with NULL plants
             insertStmt.setString(1, device.getName());
             insertStmt.setInt(2, device.getNumSensors());
             insertStmt.setInt(3, pid);
@@ -142,8 +143,8 @@ public class PlantListenerServer {
     }
 
     /**
-     * Retrieves all Plants for a pi ID from the database.
-     * @param pid Database ID of the pi
+     * Retrieves all Plant Sensors by pi ID from the database.
+     * @param pid Database ID of the Pi.
      * @return ArrayList of protobuf PlantSensor type.
      * @throws PlantTrackerException
      */
@@ -152,9 +153,10 @@ public class PlantListenerServer {
       ArrayList<PlantSensor> plantList = new ArrayList<PlantSensor>();
       Database db = Database.getInstance();
 
-      String plantQuery = "SELECT plants.id AS plant_id, moisture_devices.name AS device_name, moisture_sensor_port"
-                        + " FROM plants JOIN moisture_devices ON moisture_sensor_device_id = moisture_devices.id"
-                        + " WHERE plants.pid = ?";
+      String plantQuery = "SELECT moisture_devices.name AS device_name, sensor_port, plant_id"
+                          + " FROM sensors JOIN moisture_devices"
+                          + " ON sensors.moisture_device_id = moisture_devices.id"
+                          + " WHERE moisture_devices.pid = ? AND plant_id IS NOT NULL";
       
       try {
         PreparedStatement plantStmt = db.connection.prepareStatement(plantQuery);
@@ -164,14 +166,14 @@ public class PlantListenerServer {
   
         while (res.next()) {
           PlantSensor plant = PlantSensor.newBuilder().setDeviceName(res.getString("device_name"))
-                                          .setDevicePort(res.getInt("moisture_sensor_port"))
+                                          .setDevicePort(res.getInt("sensor_port"))
                                           .setPlantId(res.getInt("plant_id")).build();
           plantList.add(plant);
         }
         plantStmt.close();
         res.close();
       } catch (SQLException e) {
-        throw new PlantTrackerException("Failed to retrieve plants for Pi with pid: " + pid, e);
+        throw new PlantTrackerException("Failed to retrieve plant sensors for Pi with pid: " + pid, e);
       }
       return plantList;
     }
