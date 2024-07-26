@@ -12,5 +12,3 @@
 
 add_library(test_common STATIC src/temp_dir.cpp)
 target_include_directories(test_common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-

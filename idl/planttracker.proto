@@ -20,20 +20,19 @@ package planttracker.grpc;
  * App to server requests.
  */
 service PlantTracker {
-  rpc AddPlant(Plant) returns (Result);
-  rpc DeletePlant(PlantId) returns (Result);
-  rpc UpdatePlant(Plant) returns (Result);
+  rpc addPlant(Plant) returns (Result);
+  rpc deletePlant(PlantId) returns (Result);
+  rpc updatePlant(Plant) returns (Result);
 
-  rpc GetPlants(GetPlantsRequest) returns (GetPlantsResponse);
+  rpc getPlants(GetPlantsRequest) returns (GetPlantsResponse);
 
-  rpc GetPlantSensorData(GetPlantDataRequest) returns (PlantDataList);
-  
+  rpc getPlantSensorData(GetPlantDataRequest) returns (PlantSensorDataList);
 }
 
 message GetPlantDataRequest {
   uint64 plant_id = 1;
   uint64 start_date = 2;
-  optional uint64 end_date = 3; 
+  optional uint64 end_date = 3;
 }
 
 enum GetPlantsRequestType {
@@ -44,15 +43,16 @@ enum GetPlantsRequestType {
 
 message GetPlantsRequest {
   GetPlantsRequestType type = 1;
-  optional uint64 id = 2;   // Optional, id of Pi or Plant to retrieve.
-  bool fetch_images = 3;    // Whether images should be fetched with request.
+  optional uint64 id = 2;  // Optional, id of Pi or Plant to retrieve.
+  bool fetch_images = 3;   // Whether images should be fetched with request.
 }
 
-// GPRC doesn't allow for primative types in rpc calls so use this as a wrapper when deleting plants.
+// GPRC doesn't allow for primitive types in rpc calls so use this as a wrapper when deleting plants.
 message PlantId {
   uint64 id = 1;
 }
 
+// TODO change res-> result
 message GetPlantsResponse {
   Result res = 1;
   repeated Plant plants = 2;
@@ -88,13 +88,12 @@ enum LightLevel {
  *  3: setting baselines for plant light and moisture level.
  */
 service PlantListener {
-  rpc Initialize(PlantListenerConfig) returns (InitializeResponse);
+  rpc initialize(PlantListenerConfig) returns (InitializeResponse);
 
-  rpc ReportSensor(PlantDataList) returns (Result);
+  rpc reportSensor(PlantSensorDataList) returns (Result);
 
-  // Duplex which will be passed back and forth with ListenerRequest holding the result of the last operation.
-  // On First operation it will always be return_code 0.
-  rpc PollRequest(stream ListenerResponse) returns (stream ListenerResponse);
+  // Communication allowing for server to talk to client.
+  rpc poll(PollRequest) returns (stream ListenerRequest);
 }
 
 /*
@@ -107,11 +106,16 @@ message PlantListenerConfig {
   repeated MoistureDevice devices = 3;
 }
 
+message PollRequest {
+  string mac = 1;
+}
+
 message Result {
   int64 return_code = 1;
   optional string error = 2;
 }
 
+// TODO change res -> result
 message InitializeResponse {
   Result res = 1;
   repeated PlantSensor plants = 2;
@@ -127,44 +131,39 @@ message MoistureDevice {
   string name = 1;
   uint32 num_sensors = 2;
 }
-// TODO rename to PlantSensorDataList
-message PlantDataList {
-  repeated PlantData data = 1;
+message PlantSensorDataList {
+  repeated PlantSensorData data = 1;
 }
-// TODO rename to PlantSensorData 
-message PlantData {
+message PlantSensorData {
   int64 plant_id = 1;
   MoistureSensorData moisture = 2;
   LightSensorData light = 3;
   float humidity = 4;
   float temp = 5;
-  optional uint64 epoch_ts = 6; // Epoch timestamp in seconds.
+  optional uint64 epoch_ts = 6;  // Epoch timestamp in seconds.
 }
 
 message MoistureSensorData {
-  float moisture_level = 1;  // Percent 
-  int32 sensor_value = 2;     // Actual sensor value 0-SENSOR_MAX
+  float moisture_level = 1;  // Percent
+  int32 sensor_value = 2;    // Actual sensor value 0-SENSOR_MAX
 }
 
 message LightSensorData {
-  float lumens = 1;       // Best guess a lumens
+  float lumens = 1;        // Best guess a lumens
   int32 sensor_value = 2;  // Actual sensor value 0-SENSOR_MAX
 }
 
 enum ListenerRequestType {
-  NewPlant = 0;
-  DeletePlant = 1;
-  UpdatePlant = 2;
+  NEW_PLANT = 0;
+  DELETE_PLANT = 1;
+  UPDATE_PLANT = 2;
+  SHUTDOWN = 3;  // Sent when the server is about to shutdown.
 }
 
 message ListenerRequest {
   ListenerRequestType type = 1;
-  PlantSensor plant = 2;  // Plant to be added, removed, or updated based on request type.
-}
-
-message ListenerResponse {
-  Result res = 1;  // The Result of the last request.
-
-  // The last request. optional in cases where we don't want to spend bandwidth sending the request back.
-  optional ListenerRequest res_data = 2;
+  oneof data {
+    PlantSensor plant = 3;  // Used for Adding and updating plant
+    uint64 plant_id = 4;    // used for removing plant
+  }
 }

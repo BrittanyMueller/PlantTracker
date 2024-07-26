@@ -45,12 +45,13 @@ TEST(LiveTests, start_stop_test) {
   PlantListenerConfig cfg;
   cfg.address = "127.0.0.1";
   cfg.port = 5051;
-  cfg.poll_rate = std::chrono::seconds(1);  // poll every 1 seconds so we should get a good amount of events.
+  // poll every 500ms so we should get a good amount of events.
+  cfg.poll_rate = std::chrono::seconds(1);
 
   // Define default sensor for light and humidity.
   SensorConfig light_sensor_cfg;
   light_sensor_cfg.device_name = "mock_dev_adc";
-  light_sensor_cfg.device_port = 1;
+  light_sensor_cfg.device_port = 7;
   light_sensor_cfg.type = SensorType::LIGHT;
   cfg.sensors.emplace_back(std::move(light_sensor_cfg));
 
@@ -97,7 +98,51 @@ TEST(LiveTests, start_stop_test) {
     EXPECT_FALSE(res.isError()) << res.toStr();
   });
 
-  std::this_thread::sleep_for(std::chrono::seconds(10));
+  std::this_thread::sleep_for(std::chrono::seconds(5));
+
+  // Check that at least 5 data points were sent for 5 second of runtime with
+  // 1 second timeout on reads.
+  ASSERT_GE(server.data.size(), 5);
+  for (const auto& data : server.data) {
+    ASSERT_EQ(data.plant_id(), 1);
+  }
+
+  // Check the device was added
+  ASSERT_EQ(server.devices.size(), 1);  // Only the ADC should be sent over
+  ASSERT_EQ(server.devices[0].name(), "mock_dev_adc");
+  ASSERT_EQ(server.devices[0].num_sensors(), 7);
+
+  // Check to make sure the plants are added
+  ASSERT_EQ(tester.getPlants().size(), 1);
+  ASSERT_EQ(tester.getPlants()[0]->getId(), 1);
+
+  // Now for poll_requests try and add a plant
+  planttracker::grpc::ListenerRequest req;
+  req.set_type(planttracker::grpc::ListenerRequestType::NEW_PLANT);
+  auto* plant = new planttracker::grpc::PlantSensor();
+  plant->set_plant_id(2);
+  plant->set_device_name("mock_dev_adc");
+  plant->set_device_port(2);
+  req.set_allocated_plant(plant);
+  server.request_queue.putRequest(std::move(req));
+
+  // Sleep for 1s so the request can be processed
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  // Check to make sure the new plant was added
+  ASSERT_EQ(tester.getPlants().size(), 2);
+  ASSERT_EQ(tester.getPlants()[1]->getId(), 2);
+
+  req.set_type(planttracker::grpc::ListenerRequestType::DELETE_PLANT);
+  req.set_plant_id(2);
+  server.request_queue.putRequest(std::move(req));
+
+  // Wait 1s to ensure there is time, to remove the plant.
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  ASSERT_EQ(tester.getPlants().size(), 1);
+
+  req.set_type(planttracker::grpc::ListenerRequestType::SHUTDOWN);
+  server.request_queue.putRequest(std::move(req));
 
   // Stop the listener.
   res = tester.listener.stop();
@@ -107,21 +152,4 @@ TEST(LiveTests, start_stop_test) {
   // Stop the server
   res = server.stop();
   EXPECT_FALSE(res.isError()) << res.toStr();
-
-  // Check that at least 10 data points were sent for 10 second of runtime with
-  // 1 second timeout on reads.
-  ASSERT_GE(server.data.size(), 10);
-  for (const auto& data : server.data) {
-    ASSERT_EQ(data.plant_id(), 1);
-  }
-
-  // Check the device was added
-  ASSERT_EQ(server.devices.size(), 1);  // Only the ADC should be sent over
-  ASSERT_EQ(server.devices[0].name(), "mock_dev_adc");
-  ASSERT_EQ(server.devices[0].num_sensors(),
-            8);  // TODO(lmilne) This should be 7 because one is used for light.
-
-  // Check to make sure the plants are added
-  ASSERT_EQ(tester.getPlants().size(), 1);
-  ASSERT_EQ(tester.getPlants()[0]->getId(), 1);
 }

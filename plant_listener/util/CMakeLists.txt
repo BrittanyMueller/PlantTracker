@@ -15,4 +15,3 @@ add_library(plantlistener-util_objlib OBJECT
 )
 target_include_directories(plantlistener-util_objlib PUBLIC include)
 target_link_libraries(plantlistener-util_objlib PUBLIC spdlog::spdlog fmt::fmt json)
-

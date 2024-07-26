@@ -49,4 +49,3 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "test")
     include(GoogleTest)
     add_subdirectory(test)
 endif()
-

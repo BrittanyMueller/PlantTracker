@@ -16,67 +16,73 @@
 
 #include <plantlistener/test/test_plant_server.hpp>
 #include <sstream>
+#include <thread>
 
 using plantlistener::Error;
+using plantlistener::test::RequestQueue;
 using plantlistener::test::TestPlantServer;
 
 class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener::Service {
  private:
   size_t max_data_records = 100;  // max data records to save memory.
   std::vector<planttracker::grpc::MoistureDevice>& devices_;
-  std::vector<planttracker::grpc::PlantData>& data_;
+  std::vector<planttracker::grpc::PlantSensorData>& data_;
+  std::string dev_name_;
+  RequestQueue& request_queue_;
 
  public:
   PlantListenerServiceImpl(std::vector<planttracker::grpc::MoistureDevice>& devices,
-                           std::vector<planttracker::grpc::PlantData>& data)
-      : devices_(devices), data_(data) {}
+                           std::vector<planttracker::grpc::PlantSensorData>& data, RequestQueue& request_queue)
+      : devices_(devices), data_(data), request_queue_(request_queue) {}
 
  private:
-  grpc::Status Initialize(grpc::ServerContext* context, const planttracker::grpc::PlantListenerConfig* cfg,
+  grpc::Status initialize(grpc::ServerContext* context, const planttracker::grpc::PlantListenerConfig* cfg,
                           planttracker::grpc::InitializeResponse* response) override {
-    std::string dev_name = "foobar";
-    spdlog::info("Initialzed called for \"{}\". START", cfg->name());
+    spdlog::info("initialzed called for \"{}\". START", cfg->name());
     for (const auto& dev : cfg->devices()) {
       spdlog::info("Devices (name: {}, num_sensors: {})", dev.name(), dev.num_sensors());
-      dev_name = dev.name();  // Grab the last dev name so we can use it for a
-                              // fake plant.
+      dev_name_ = dev.name();  // Grab the last dev name so we can use it for a fake plant.
       devices_.push_back(dev);
     }
-    spdlog::info("Initialzed called for \"{}\". END", cfg->name());
+    spdlog::info("initialzed called for \"{}\". END", cfg->name());
 
     // Returns fake plants
     auto* plant = response->add_plants();
-    plant->set_device_name(dev_name);
+    plant->set_device_name(dev_name_);
     plant->set_device_port(1);
     plant->set_plant_id(1);
 
     return grpc::Status::OK;
   }
-  grpc::Status ReportSensor(grpc::ServerContext* context, const planttracker::grpc::PlantDataList* request,
+  grpc::Status reportSensor(grpc::ServerContext* context, const planttracker::grpc::PlantSensorDataList* request,
                             planttracker::grpc::Result* response) override {
     std::stringstream report;
-    report << "\n--------ReportSensor Start----------\n";
+    report << "\n--------reportSensor Start----------\n";
     for (const auto& plant_data : request->data()) {
       report << "plant_id: " << plant_data.plant_id() << " Moisture: " << plant_data.moisture().sensor_value()
              << " Light: " << plant_data.light().sensor_value() << " Humidity: " << plant_data.humidity()
              << " Temp: " << plant_data.temp() << std::endl;
       if (data_.size() < max_data_records) data_.push_back(plant_data);
     }
-    report << "--------ReportSensor End----------\n";
+    report << "--------reportSensor End----------\n";
     spdlog::info(report.str());
 
     response->set_return_code(static_cast<int>(Error::Code::OK));
     return grpc::Status::OK;
   }
-  grpc::Status PollRequest(
-      grpc::ServerContext* context,
-      grpc::ServerReaderWriter<planttracker::grpc::ListenerResponse, planttracker::grpc::ListenerResponse>* stream) override {
-    spdlog::info("PollRequest Started.");
+  grpc::Status poll(grpc::ServerContext* context, const planttracker::grpc::PollRequest* req,
+                    grpc::ServerWriter<planttracker::grpc::ListenerRequest>* stream) override {
+    spdlog::info("poll() called");
 
-    // TODO(lmilne) we might need a queue for the test server and maybe a cli to
-    // control it for testing.
+    while (true) {
+      auto request = request_queue_.getRequest();
+      planttracker::grpc::Result res;
+      stream->Write(request);
 
-    return grpc::Status::OK;
+      if (request.type() == planttracker::grpc::ListenerRequestType::SHUTDOWN) {
+        return grpc::Status::OK;
+      }
+    }
   }
 };
 
@@ -92,11 +98,11 @@ Error TestPlantServer::start() {
   state_ = State::INITIALIZING;
   std::string address = "127.0.0.1:5051";
 
-  service = std::make_unique<PlantListenerServiceImpl>(devices, data);
+  service_ = std::make_unique<PlantListenerServiceImpl>(devices, data, request_queue);
   grpc::ServerBuilder builder;
   builder.AddListeningPort(address, grpc::InsecureServerCredentials());
-  builder.RegisterService(service.get());
-  server = builder.BuildAndStart();
+  builder.RegisterService(service_.get());
+  server_ = builder.BuildAndStart();
 
   spdlog::info("Starting server on {}", address);
   state_ = State::STARTED;
@@ -109,11 +115,11 @@ Error TestPlantServer::stop() {
     return {Error::Code::ERROR_NOT_INIT, "PlantSever not started."};
   }
   state_ = State::STOPPING;
-  server->Shutdown();
+  server_->Shutdown();
   return {};
 };
 
 Error TestPlantServer::wait() {
-  server->Wait();
+  server_->Wait();
   return {};
 }

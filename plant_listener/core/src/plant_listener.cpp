@@ -9,10 +9,11 @@
  * @author: qawse3dr a.k.a Larry Milne
  * @author: BrittanyMueller
  */
-#include <grpcpp/grpcpp.h>
-#include <planttracker.grpc.pb.h>
 
 #include <memory>
+#include <cstdlib>
+#include <ctime>
+
 #include <plantlistener/plant_listener.hpp>
 #include <plantlistener/sensor/humidity_sensor.hpp>
 #include <plantlistener/sensor/light_sensor.hpp>
@@ -27,8 +28,8 @@ using plantlistener::core::Sensor;
 
 using planttracker::grpc::LightSensorData;
 using planttracker::grpc::MoistureSensorData;
-using planttracker::grpc::PlantData;
-using planttracker::grpc::PlantDataList;
+using planttracker::grpc::PlantSensorData;
+using planttracker::grpc::PlantSensorDataList;
 
 PlantListener::PlantListener(PlantListenerConfig&& cfg) : cfg_(std::move(cfg)) {}
 
@@ -114,6 +115,38 @@ Error PlantListener::addPlant(const PlantConfig& cfg) {
   return sensors_.back()->addPlant(plants_.back());
 }
 
+Error PlantListener::removePlant(int64_t id) {
+  auto plantIt =
+      std::find_if(plants_.begin(), plants_.end(), [&id](const auto& plant) -> bool { return plant->getId() == id; });
+
+  if (plantIt == plants_.end()) {
+    return Error(Error::Code::ERROR_NOT_FOUND, "Plant couldn't be removed.");
+  }
+
+  // remove the plant from the sensor
+  std::vector<std::unique_ptr<plantlistener::core::Sensor>>::iterator moistureSensor = sensors_.end();
+  for (auto sensorIt = sensors_.begin(); sensorIt < sensors_.end(); ++sensorIt) {
+    if ((*sensorIt)->hasPlant(id)) {
+      if ((*sensorIt)->getType() == SensorType::MOISTURE) {
+        moistureSensor = sensorIt;
+      } else {
+        auto res = (*sensorIt)->removePlant(id);
+        if (res.isError()) {
+          return res;
+        }
+      }
+    }
+  }
+
+  if (moistureSensor == sensors_.end()) {
+    spdlog::warn("removed plant but couldn't find MoistureSensor");
+  } else {
+    sensors_.erase(moistureSensor);
+  }
+  plants_.erase(plantIt);
+  return {};
+}
+
 Error PlantListener::init() {
   std::lock_guard<std::mutex> lck(mutex_);
 
@@ -159,10 +192,7 @@ Error PlantListener::start() {
   // Start GRPC client.
   spdlog::info("Connecting too {}:{}", cfg_.address, cfg_.port);
 
-  std::shared_ptr<grpc::Channel> channel =
-      grpc::CreateChannel(fmt::format("{}:{}", cfg_.address, cfg_.port), grpc::InsecureChannelCredentials());
-  std::unique_ptr<planttracker::grpc::PlantListener::Stub> client(planttracker::grpc::PlantListener::NewStub(channel));
-
+  client_ = std::move(makeClientFtn_(cfg_.address, cfg_.port, grpc::InsecureChannelCredentials()));
   // Init the data with the server
   {
     grpc::ClientContext client_context;
@@ -170,7 +200,11 @@ Error PlantListener::start() {
     planttracker::grpc::InitializeResponse res;
 
     cfg.set_name(cfg_.name);
-    cfg.set_mac("85:b6:e8:7e:45:d2");
+    cfg.set_mac(std::to_string(std::rand()));
+    std::srand(std::time(nullptr));
+
+    // TODO the client code should set this.
+    cfg_.mac = cfg.mac();
 
     for (const auto& [name, dev] : devices_) {
       if (dev->getType() != plantlistener::device::DeviceType::ADC) {
@@ -179,10 +213,17 @@ Error PlantListener::start() {
 
       auto* new_dev = cfg.add_devices();
       new_dev->set_name(name);
-      new_dev->set_num_sensors(dev->getPortCount());  // TODO(qawse3dr) account for water sensor using a port.
+
+      auto port_count = dev->getPortCount();
+      for (auto& sensor : sensors_) {
+        if (sensor->getType() == SensorType::LIGHT) {
+          port_count--;  // All lights must be at the end.
+        }
+      }
+      new_dev->set_num_sensors(port_count);
     }
 
-    auto status = client->Initialize(&client_context, cfg, &res);
+    auto status = client_->initialize(&client_context, cfg, &res);
     if (!status.ok()) {
       return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", status.error_message())};
     } else if (res.res().return_code() != 0) {
@@ -203,6 +244,9 @@ Error PlantListener::start() {
     }
   }
 
+  grpc::ClientContext event_thread_client_context;
+  std::thread plant_event_thread(&PlantListener::plantEventWorkLoop, this, std::ref(event_thread_client_context));
+
   spdlog::info("PlantListener started!");
   state_ = State::STARTED;
 
@@ -221,14 +265,14 @@ Error PlantListener::start() {
     }
 
     // send update to grpc
-    PlantDataList plant_data_list;
+    PlantSensorDataList plant_data_list;
     plant_data_list.Clear();
     planttracker::grpc::Result report_res;
     for (const auto& plant : plants_) {
       const auto& data = plant->getPlantData();
       auto* plant_data = plant_data_list.add_data();
 
-      plant_data->set_plant_id(plant->getId()); 
+      plant_data->set_plant_id(plant->getId());
       plant_data->set_humidity(data.humidity_data);
       plant_data->set_temp(data.temp_data);
 
@@ -246,7 +290,7 @@ Error PlantListener::start() {
 
     {
       grpc::ClientContext client_context;
-      auto status = client->ReportSensor(&client_context, plant_data_list, &report_res);
+      auto status = client_->reportSensor(&client_context, plant_data_list, &report_res);
       if (!status.ok()) {
         res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to report sensor with: {}", status.error_message())};
         break;
@@ -256,7 +300,12 @@ Error PlantListener::start() {
     cv_.wait_until(lck, next_poll);
   }
 
-  // Shut down GRPC client.
+  // Shut down GRPC client, but the work loop must be joined before we shut down the client.
+  lck.unlock();
+  event_thread_client_context.TryCancel();
+  plant_event_thread.join();
+  client_.reset();
+  lck.lock();
 
   // We are no longer running so notify whoever is stopping us we are finished.
   state_ = State::INITALIZED;
@@ -278,4 +327,82 @@ Error PlantListener::stop() {
   cv_.wait(lck, [&] { return state_ == State::INITALIZED; });
   spdlog::info("Stopped PlantListener!");
   return {};
+}
+
+std::unique_ptr<PlantListener::ClientType> PlantListener::defaultClientMaker(
+    const std::string& address, uint16_t port, const std::shared_ptr<grpc::ChannelCredentials>& cred) {
+  std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(fmt::format("{}:{}", address, port), cred);
+  return planttracker::grpc::PlantListener::NewStub(channel);
+}
+
+void PlantListener::plantEventWorkLoop(grpc::ClientContext& client_context) {
+  std::unique_lock<std::mutex> lck(mutex_);
+  spdlog::info("starting poll requests...");
+
+  lck.unlock();
+  planttracker::grpc::PollRequest req;
+  req.set_mac(cfg_.mac);
+  auto duplex = client_->poll(&client_context, req);
+  spdlog::info("poll request started...");
+
+  lck.lock();
+
+  planttracker::grpc::ListenerRequest request;
+  planttracker::grpc::Result res;
+
+  bool done_reading = false;
+  while (state_ == State::STARTED && !done_reading) {
+    Error err;
+    // First we need to get the request don't lock as this is a long poll
+    lck.unlock();
+    done_reading = !duplex->Read(&request);
+    lck.lock();
+
+    // Break out if we are done reading;
+    if (done_reading) continue;
+
+    // Now we need to do whatever the request wants.
+    spdlog::info("Got request with type: {}, for plant: id={} dev_name={} dev_port={}",
+                 planttracker::grpc::ListenerRequestType_Name(request.type()), request.plant().plant_id(),
+                 request.plant().device_name(), request.plant().device_port());
+    switch (request.type()) {
+      case planttracker::grpc::ListenerRequestType::NEW_PLANT: {
+        auto plant = request.plant();
+        PlantConfig plant_cfg;
+        plant_cfg.id = plant.plant_id();
+        plant_cfg.moisture_device_name = plant.device_name();
+        plant_cfg.moisture_device_port = plant.device_port();
+        err = addPlant(plant_cfg);
+        break;
+      }
+      case planttracker::grpc::ListenerRequestType::UPDATE_PLANT: {
+        // An update is just a remove and readd with the new data because I am lazy.
+        auto plant = request.plant();
+        err = removePlant(plant.plant_id());
+        if (err.isError()) break;
+
+        PlantConfig plant_cfg;
+        plant_cfg.id = plant.plant_id();
+        plant_cfg.moisture_device_name = plant.device_name();
+        plant_cfg.moisture_device_port = plant.device_port();
+        err = addPlant(plant_cfg);
+        break;
+      }
+      case planttracker::grpc::ListenerRequestType::DELETE_PLANT:
+        err = removePlant(request.plant_id());
+        break;
+      case planttracker::grpc::ListenerRequestType::SHUTDOWN:
+        spdlog::info("Shutdown Requested");
+        done_reading = true;
+        break;
+      default:
+        err = {Error::Code::ERROR_INVALID_ARG, fmt::format("Invalid request {}", static_cast<int>(request.type()))};
+    }
+
+    if (err.isError()) {
+      spdlog::info("Request Failed with: {}", err.toStr());
+    } else {
+      spdlog::info("Request Success!");
+    }
+  }
 }

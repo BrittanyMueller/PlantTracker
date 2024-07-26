@@ -13,12 +13,44 @@
 #include <grpcpp/grpcpp.h>
 #include <planttracker.grpc.pb.h>
 
+#include <condition_variable>
+#include <mutex>
 #include <plantlistener/device/device.hpp>
 #include <plantlistener/error.hpp>
+#include <queue>
 
 class PlantListenerServiceImpl;
 
 namespace plantlistener::test {
+
+class RequestQueue {
+ private:
+  std::queue<planttracker::grpc::ListenerRequest> requests_;
+  std::condition_variable cv_{};
+  std::mutex mtx_{};
+
+ public:
+  RequestQueue() = default;
+
+  planttracker::grpc::ListenerRequest getRequest() {
+    std::unique_lock<std::mutex> lck(mtx_);
+    // If there are no events sleep until one shows up or stop is requested.
+    if (requests_.empty()) {
+      cv_.wait(lck, [&] { return !requests_.empty(); });
+    }
+
+    auto event = std::move(requests_.front());
+    requests_.pop();
+    return event;
+  }
+
+  void putRequest(planttracker::grpc::ListenerRequest request) {
+    std::lock_guard<std::mutex> lck(mtx_);
+
+    requests_.push(std::move(request));
+    cv_.notify_one();
+  }
+};
 
 class TestPlantServer {
  private:
@@ -26,8 +58,8 @@ class TestPlantServer {
 
   State state_{State::NOT_INITALIZED};
 
-  std::unique_ptr<grpc::Server> server{};
-  std::unique_ptr<PlantListenerServiceImpl> service{};
+  std::unique_ptr<grpc::Server> server_{};
+  std::unique_ptr<PlantListenerServiceImpl> service_{};
 
  public:
   TestPlantServer();
@@ -40,7 +72,8 @@ class TestPlantServer {
 
   // Saves the server data.
   std::vector<planttracker::grpc::MoistureDevice> devices;
-  std::vector<planttracker::grpc::PlantData> data;
+  std::vector<planttracker::grpc::PlantSensorData> data;
+  RequestQueue request_queue;
 
   /**
    * Starts running the application.
@@ -67,7 +100,6 @@ class TestPlantServer {
    */
   Error wait();
 
-  // TODO do I need an add/remove plant
 };
 
 }  // namespace plantlistener::test

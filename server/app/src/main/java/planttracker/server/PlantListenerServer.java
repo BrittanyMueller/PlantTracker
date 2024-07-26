@@ -1,24 +1,29 @@
 package planttracker.server;
 
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
 import io.grpc.stub.StreamObserver;
 import planttracker.server.exceptions.PlantTrackerException;
 
-import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import java.util.logging.*;
-
 public class PlantListenerServer {
   private final static Logger logger = Logger.getGlobal(); 
   private Server server;
+
+  
+  private Map<Integer, ConcurrentLinkedQueue<ListenerRequest>> requestQueueMap;
 
   /* The port on which the server should run */
   private int port;
@@ -26,13 +31,14 @@ public class PlantListenerServer {
   public PlantListenerServer(PlantTrackerConfig config) {
     server = null;
     port = config.listenerPort;
+    requestQueueMap = new HashMap<Integer, ConcurrentLinkedQueue<ListenerRequest>>();
   }
 
   public void start() throws PlantTrackerException {
     try {
       logger.finer("Starting plant listener server on port " + port);
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-                   .addService(new PlantListenerImpl())
+                   .addService(new PlantListenerImpl(requestQueueMap))
                    .build()
                    .start();
     } catch (IOException e) {
@@ -59,7 +65,23 @@ public class PlantListenerServer {
     }
   }
 
+  /**
+   * Adds a request to a given Pi This function is thread safe and can be called from multiple threads at one.
+   * 
+   * @param pid The pi the request should be given to.
+   * @param request The request to be executed.
+   */
+  public void addRequestForPi(int pid, ListenerRequest request) {
+    requestQueueMap.get(pid).add(request);
+  }
+
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
+
+    private Map<Integer, ConcurrentLinkedQueue<ListenerRequest>> requestQueueMap;
+
+    PlantListenerImpl(Map<Integer, ConcurrentLinkedQueue<ListenerRequest>> requestQueueMap) {
+      this.requestQueueMap = requestQueueMap;
+    }
     @Override
     public void initialize(PlantListenerConfig config, StreamObserver<InitializeResponse> responseObserver) {
       logger.info("Received init request from " + config.getName());
@@ -103,6 +125,9 @@ public class PlantListenerServer {
           insertStmt.close();
           resultSet.close();
         }
+
+        // Create a request queue for the pid
+        requestQueueMap.put(pid, new ConcurrentLinkedQueue<ListenerRequest>());
 
         ArrayList<PlantSensor> plantList = getPlantSensors(pid);
         Result res = Result.newBuilder().setReturnCode(0).build();
@@ -215,7 +240,7 @@ public class PlantListenerServer {
     }
 
     @Override
-    public void reportSensor(PlantDataList request, StreamObserver<Result> responseObserver) {
+    public void reportSensor(PlantSensorDataList request, StreamObserver<Result> responseObserver) {
       logger.finest("Sensor report request received.");
       Result res = Result.newBuilder().setError("").setReturnCode(0).build();
       try {
@@ -223,8 +248,8 @@ public class PlantListenerServer {
         String insertData = "INSERT INTO plant_sensor_data VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
         PreparedStatement insertStmt = db.connection.prepareStatement(insertData);
   
-        List<PlantData> dataList = request.getDataList();
-        for (PlantData data : dataList) {
+        List<PlantSensorData> dataList = request.getDataList();
+        for (PlantSensorData data : dataList) {
           insertStmt.setLong(1, data.getPlantId());
           insertStmt.setFloat(2, data.getMoisture().getMoistureLevel());
           insertStmt.setFloat(3, data.getLight().getLumens());
@@ -250,8 +275,24 @@ public class PlantListenerServer {
     }
 
     @Override
-    public StreamObserver<ListenerResponse> pollRequest(StreamObserver<ListenerResponse> responseObserver) {
-      return null;
+    public void poll(PollRequest request, StreamObserver<ListenerRequest> responseObserver) {
+      // We can assume the mac address exists at this point because it would have been created in initialize().
+
+      ConcurrentLinkedQueue<ListenerRequest> requestQueue = null;
+      
+      try {
+        requestQueue = requestQueueMap.get(retrievePid("ignore", request.getMac()));
+      } catch(PlantTrackerException | SQLException e) {
+        // This might cause a problem that we are returning a custom exception..... TODO(qawse3dr) look into this.
+        responseObserver.onError(e);
+        return;
+      }
+      
+      while(true) {
+        ListenerRequest req = requestQueue.poll();
+        responseObserver.onNext(req);
+      }
+
     }
   }
 }

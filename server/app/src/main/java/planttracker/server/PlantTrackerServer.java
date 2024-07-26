@@ -166,7 +166,7 @@ public class PlantTrackerServer {
       return plant.build();
     }
 
-    public void getPlantData(GetPlantDataRequest request, io.grpc.stub.StreamObserver<PlantDataList> responseObserver) {
+    public void getPlantData(GetPlantDataRequest request, io.grpc.stub.StreamObserver<PlantSensorDataList> responseObserver) {
       logger.severe("getPlantData Not Implemented");
     }
   }
