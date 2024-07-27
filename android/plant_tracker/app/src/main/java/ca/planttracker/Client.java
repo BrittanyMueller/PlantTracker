@@ -2,6 +2,7 @@ package ca.planttracker;
 
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.List;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -34,43 +35,54 @@ public class Client {
      *   optional string error = 2;
      * }
      */
-    public PlantInfo getPlant(long id, boolean fetchImage) {
+    public Plant getPlant(long id, boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_PLANT).setId(id).setFetchImages(fetchImage).build();
         GetPlantsResponse res = stub.getPlants(request);
 
-        if (res.getPlantsCount() > 0) {
-            Log.i("INFO", "Found plant on response");
-            // Expecting array of 1 plant
-            return res.getPlants(0);
+        Plant plant = null;
+        if (res.getPlantsCount() == 1 && res.getRes().getReturnCode() == 0) {
+            // Request for 1 plant was successful, parse response
+            Log.i("INFO", "Response found 1 plant");
+            plant = new Plant(res.getPlants(0));
         }
-        // TODO convert grpc server Plant to planttracker Plant type
-        // TODO handling for empty result
         // TODO error handling, check return code, error string
-        return null;
+        return plant;
     }
 
-    public List<PlantInfo> getPlantsByPi(long pid, boolean fetchImage) {
+    public List<Plant> getPlantsByPi(long pid, boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
-                .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setFetchImages(fetchImage).build();
+                .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setId(pid).setFetchImages(fetchImage).build();
         GetPlantsResponse res = stub.getPlants(request);
 
-        for (PlantInfo plant : res.getPlantsList()) {
-            Log.i("INFO", "Client: " + plant.getName());
+        ArrayList<Plant> plants = new ArrayList<>();
+        if (res.getRes().getReturnCode() == 0) {
+            // Request was successful, parse response
+            for (PlantInfo plant : res.getPlantsList()) {
+                // Convert grpc info to Plant
+                plants.add(new Plant(plant));
+            }
+            Log.i("INFO", "Successful response getPlantsByPi");
         }
-        /* TODO convert grpc server Plant to planttracker Plant type */
-        return res.getPlantsList();
+        // TODO else error handling?
+        return plants;
     }
 
-    public List<PlantInfo> getPlants(boolean fetchImage) {
+    public List<Plant> getPlants(boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_ALL_PLANTS).setFetchImages(fetchImage).build();
         GetPlantsResponse res = stub.getPlants(request);
 
-        for (PlantInfo plant : res.getPlantsList()) {
-            Log.i("INFO", "Client: " + plant.getName());
+        ArrayList<Plant> plants = new ArrayList<>();
+        if (res.getRes().getReturnCode() == 0) {
+            // Request was successful, parse response
+            for (PlantInfo plant : res.getPlantsList()) {
+                // Convert grpc info to Plant
+                plants.add(new Plant(plant));
+            }
+            Log.i("INFO", "Successful response getPlants");
         }
-        /* TODO convert grpc server Plant to planttracker Plant type */
-        return res.getPlantsList();
+        // TODO else error handling?
+        return plants;
     }
 }

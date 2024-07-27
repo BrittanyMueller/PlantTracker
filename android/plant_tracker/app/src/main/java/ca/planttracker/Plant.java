@@ -11,13 +11,16 @@ public class Plant {
     private LightLevel lightLevel;
     private int minMoisture;
     private int minHumidity;
-    private int pid;
+    private long pid;
 
     public Plant(PlantInfo plant) {
         this.id = plant.getId();
         this.name = plant.getName();
         this.imageUrl = plant.getImageUrl();
-
+        this.lightLevel = plant.getLightLevel();
+        this.minMoisture = plant.getMinMoisture();
+        this.minHumidity = plant.getMinHumidity();
+        this.pid = plant.getPid();
     }
     public Plant(int id, @NonNull String name, String imageUrl) {
         this.name = name;

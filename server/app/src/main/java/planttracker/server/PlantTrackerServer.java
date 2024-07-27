@@ -154,12 +154,11 @@ public class PlantTrackerServer {
                                       .setLightLevelValue(res.getInt("light_level"))
                                       .setMinMoisture(res.getInt("min_moisture"))
                                       .setMinHumidity(res.getInt("min_humidity"))
+                                      .setImageUrl(res.getString("image_url"))
                                       .setPid(res.getLong("pid"));
       if (fetchImage) {
-        // TODO image as byte string
+        // TODO image as byte blob
         plant.setImage(null);
-      } else {
-        plant.setImageUrl(res.getString("image_url"));
       }
       return plant.build();
     }

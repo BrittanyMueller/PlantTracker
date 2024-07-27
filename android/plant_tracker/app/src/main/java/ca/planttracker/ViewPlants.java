@@ -19,9 +19,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import planttracker.server.PlantInfo;
-
-
 public class ViewPlants extends AppCompatActivity {
 
     private Client client;
@@ -33,18 +30,15 @@ public class ViewPlants extends AppCompatActivity {
 
         // TODO testing grpc client
         client = new Client("10.0.2.2", 5050);
-        PlantInfo plant = client.getPlant(3, false);
+        List<Plant> plants = client.getPlants(false);
 
-        if (plant != null) {
-            Log.i("INFO", plant.getName());
+        if (!plants.isEmpty()) {
+            PlantListAdapter plantAdapter = new PlantListAdapter(this, plants);
+            ListView listView = findViewById(R.id.plants_listview);
+            listView.setAdapter(plantAdapter);
         } else {
-            Log.e("ERROR", "No plant found.");
+            // TODO display "No plants found" screen
         }
-
-        List<Plant> plantList = getPlantData();
-        PlantListAdapter plantAdapter = new PlantListAdapter(this, plantList);
-        ListView listView = findViewById(R.id.plants_listview);
-        listView.setAdapter(plantAdapter);
     }
 
     private List<Plant> getPlantData() {
