@@ -200,11 +200,7 @@ Error PlantListener::start() {
     planttracker::grpc::InitializeResponse res;
 
     cfg.set_name(cfg_.name);
-    cfg.set_mac(std::to_string(std::rand()));
-    std::srand(std::time(nullptr));
-
-    // TODO the client code should set this.
-    cfg_.mac = cfg.mac();
+    cfg.set_uuid(cfg_.uuid);
 
     for (const auto& [name, dev] : devices_) {
       if (dev->getType() != plantlistener::device::DeviceType::ADC) {
@@ -341,7 +337,7 @@ void PlantListener::plantEventWorkLoop(grpc::ClientContext& client_context) {
 
   lck.unlock();
   planttracker::grpc::PollRequest req;
-  req.set_mac(cfg_.mac);
+  req.set_uuid(cfg_.uuid);
   auto duplex = client_->poll(&client_context, req);
   spdlog::info("poll request started...");
 

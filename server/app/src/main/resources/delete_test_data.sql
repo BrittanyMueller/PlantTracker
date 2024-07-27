@@ -9,6 +9,6 @@ DELETE FROM moisture_devices
 WHERE name = 'DEVTEST';
 
 DELETE FROM pi
-WHERE mac = '85:b6:e8:7e:45:d2';
+WHERE uuid = 'e9a17b41-a512-489a-a958-a609fc43e0b1';
 
 COMMIT;

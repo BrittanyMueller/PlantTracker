@@ -22,6 +22,7 @@
 #include <plantlistener/sensor/sensor_config.hpp>
 #include <string>
 #include <vector>
+#include <uuid/uuid.h>
 
 namespace plantlistener::core {
 
@@ -38,7 +39,7 @@ class PlantListenerConfig {
  public:
   std::string name{};
   std::string config_path{};
-  std::string mac{};
+  std::string uuid{};
 
   spdlog::level::level_enum log_level = spdlog::level::warn;
   std::string address = "127.0.0.1";
@@ -50,12 +51,14 @@ class PlantListenerConfig {
   std::vector<plantlistener::device::DeviceConfig> devices = {};
   std::vector<SensorConfig> sensors = {};
 
-  PlantListenerConfig() {}
+  PlantListenerConfig() = default;
 
   /**
    * Loads config using config_path.
    */
   Error load();
+
+  Error setUUID(uuid_t uuid);
 
  private:
   friend class PlantListenerConfigTester;
@@ -63,9 +66,10 @@ class PlantListenerConfig {
   static SensorConfig parseSensor(const nlohmann::json& j);
 
   template <typename T>
-  static void parseValue(const nlohmann::json& j, const std::string& key, T& value) {
+  static void parseValue(const nlohmann::json& j, const std::string& key, T& value, bool optional = false) {
     auto it = j.find(key);
     if (it == j.end()) {
+      if (optional) return; // optional ignore missing.
       throw ParseException(Error::Code::ERROR_NOT_FOUND, fmt::format("Missing key {}", key));
     }
 
