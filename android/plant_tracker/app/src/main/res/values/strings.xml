@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">PlantTracker</string>
+    <string name="no_plants_found">No Plants Found</string>
+    <string name="menu">Menu</string>
+    <string name="go_back">Go Back</string>
+    <string name="more_options">More Options</string>
 </resources>

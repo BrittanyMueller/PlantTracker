@@ -1,9 +1,5 @@
 package planttracker.server;
 
-import java.io.IOException;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +7,13 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.logging.*;
+
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
@@ -99,11 +102,11 @@ public class PlantListenerServer {
         PreparedStatement checkStmt = db.connection.prepareStatement(checkDeviceQuery);
 
         // Prepared statement to insert a new device 
-        String insertDeviceQuery = "INSERT INTO moisture_devices (name, num_sensors, pid) VALUES (?, ?, ?)";
+        String insertDeviceQuery = "INSERT INTO moisture_devices (name, num_sensors, pid) VALUES (?, ?, ?) RETURNING id";
         PreparedStatement insertStmt = db.connection.prepareStatement(insertDeviceQuery);
 
         for (MoistureDevice device : devices) {
-          // Check if in database, insert if doesn't exist
+          // Check if device exists in database, insert device and sensors if not
           checkStmt.setString(1, device.getName());
           ResultSet resultSet = checkStmt.executeQuery();
 
@@ -112,12 +115,31 @@ public class PlantListenerServer {
             insertStmt.setString(1, device.getName());
             insertStmt.setInt(2, device.getNumSensors());
             insertStmt.setInt(3, pid);
-
-            int affectedRows = insertStmt.executeUpdate();
-            if (affectedRows == 1) {
+            resultSet.close();
+            
+            resultSet = insertStmt.executeQuery();
+            if (resultSet.next()) {
+              int deviceId = resultSet.getInt("id");
               logger.info("Moisture device " + device.getName() + " inserted successfully.");
+              // Once inserted, initialize available sensors for device
+              String insertSensorQuery = "INSERT INTO sensors VALUES (?, ?, ?)";
+              PreparedStatement sensorStmt = db.connection.prepareStatement(insertSensorQuery);
+              for (int i = 1; i <= device.getNumSensors(); i++) {
+                sensorStmt.setInt(1, deviceId);
+                sensorStmt.setInt(2, i);  // Sensor port number
+                sensorStmt.setNull(3, Types.INTEGER); // No plant associated yet, initialize as NULL
+                sensorStmt.addBatch();
+              }
+              int affectedRows[] = sensorStmt.executeBatch();
+              for (int i = 0; i < affectedRows.length; i++) {
+                if (affectedRows[i] != 1) {
+                  logger.severe("Failed to initialize sensor port " + (i + 1));
+                  // TODO should this throw an exception?
+                }
+              }
+              sensorStmt.close();
             } else {
-              throw new SQLException("Expected 1 affected row after Device insert, but rows affected were: " + affectedRows);
+              throw new SQLException("Failed to insert new Moisture Device with name '" + device.getName() + "'");
             }
           }
           checkStmt.close();
@@ -141,8 +163,8 @@ public class PlantListenerServer {
     }
 
     /**
-     * Retrieves all Plants for a pi ID from the database.
-     * @param pid Database ID of the pi
+     * Retrieves all Plant Sensors by pi ID from the database.
+     * @param pid Database ID of the Pi.
      * @return ArrayList of protobuf PlantSensor type.
      * @throws PlantTrackerException
      */
@@ -151,9 +173,10 @@ public class PlantListenerServer {
       ArrayList<PlantSensor> plantList = new ArrayList<PlantSensor>();
       Database db = Database.getInstance();
 
-      String plantQuery = "SELECT plants.id AS plant_id, moisture_devices.name AS device_name, moisture_sensor_port"
-                        + " FROM plants JOIN moisture_devices ON moisture_sensor_device_id = moisture_devices.id"
-                        + " WHERE plants.pid = ?";
+      String plantQuery = "SELECT moisture_devices.name AS device_name, sensor_port, plant_id"
+                          + " FROM sensors JOIN moisture_devices"
+                          + " ON sensors.moisture_device_id = moisture_devices.id"
+                          + " WHERE moisture_devices.pid = ? AND plant_id IS NOT NULL";
       
       try {
         PreparedStatement plantStmt = db.connection.prepareStatement(plantQuery);
@@ -163,14 +186,14 @@ public class PlantListenerServer {
   
         while (res.next()) {
           PlantSensor plant = PlantSensor.newBuilder().setDeviceName(res.getString("device_name"))
-                                          .setDevicePort(res.getInt("moisture_sensor_port"))
+                                          .setDevicePort(res.getInt("sensor_port"))
                                           .setPlantId(res.getInt("plant_id")).build();
           plantList.add(plant);
         }
         plantStmt.close();
         res.close();
       } catch (SQLException e) {
-        throw new PlantTrackerException("Failed to retrieve plants for Pi with pid: " + pid, e);
+        throw new PlantTrackerException("Failed to retrieve plant sensors for Pi with pid: " + pid, e);
       }
       return plantList;
     }
@@ -193,7 +216,6 @@ public class PlantListenerServer {
       PreparedStatement selectStmt = db.connection.prepareStatement(selectPiQuery);      
       selectStmt.setString(1, uuid);
       ResultSet resultSet = selectStmt.executeQuery();
-
       if (resultSet.next()) {
         // Pi already exists, retrieve pid
         pid = resultSet.getInt("id");
@@ -259,13 +281,14 @@ public class PlantListenerServer {
           if (affectedRows == 1) {
             logger.finest("Sensor data for Plant ID " + data.getPlantId() + " inserted successfully.");
           } else {
+            // TODO i dont find this message that useful, better logging or error msg ideas?
             throw new SQLException("Expected 1 affected row after inserting sensor data, but rows affected were: " + affectedRows);
           }
         }
         insertStmt.close();
       } catch (SQLException | PlantTrackerException e) {
         res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();
-        logger.warning("Failed to send save sensor data with: " + e);
+        logger.warning("Failed to insert sensor data with: " + e);
       } finally {
         logger.finest("Sensor report response sent.");
         responseObserver.onNext(res);

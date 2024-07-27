@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS pi (
     id SERIAL PRIMARY KEY,
     uuid VARCHAR(40) NOT NULL UNIQUE,
-    location VARCHAR(32)
+    name VARCHAR(32)
 );
 
 CREATE TABLE IF NOT EXISTS moisture_devices (
@@ -15,15 +15,21 @@ CREATE TABLE IF NOT EXISTS moisture_devices (
 CREATE TABLE IF NOT EXISTS plants (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
-    img_url VARCHAR(50),
-    moisture_sensor_device_id INT,
-    moisture_sensor_port INT,
+    image_url VARCHAR(128),
     light_level INT, -- checked value 0, 1, 2? enum?
     min_moisture INT, -- checked value 1-10
     min_humidity INT, -- checked value 0-100
     pid INT,
-    FOREIGN KEY (moisture_sensor_device_id) REFERENCES moisture_devices(id),
     FOREIGN KEY (pid) REFERENCES pi(id)
+);
+
+CREATE TABLE IF NOT EXISTS sensors (
+    moisture_device_id INT,
+    sensor_port INT,
+    plant_id INT NULL,
+    FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id),
+    FOREIGN KEY (plant_id) REFERENCES plants(id),
+    PRIMARY KEY (moisture_device_id, sensor_port)
 );
 
 CREATE TABLE IF NOT EXISTS plant_sensor_data (

@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -22,6 +23,7 @@ import java.util.List;
 public class ViewPlants extends AppCompatActivity {
 
     private Client client;
+    private List<Plant> plants;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,13 +32,16 @@ public class ViewPlants extends AppCompatActivity {
 
         // TODO testing grpc client
         client = new Client("10.0.2.2", 5050);
-        planttracker.server.Plant plant = client.getPlant(34, false);
-        Log.i("INFO", plant.getName());
+        plants = client.getPlantsByPi(2, false);
 
-        List<Plant> plantList = getPlantData();
-        PlantListAdapter plantAdapter = new PlantListAdapter(this, plantList);
+        // Create list view with plant data
+        PlantListAdapter plantAdapter = new PlantListAdapter(this, plants);
         ListView listView = findViewById(R.id.plants_listview);
         listView.setAdapter(plantAdapter);
+
+        // Automatically displays message when plant list is empty
+        TextView emptyView = findViewById(R.id.plants_empty_message);
+        listView.setEmptyView(emptyView);
     }
 
     private List<Plant> getPlantData() {
