@@ -80,3 +80,4 @@ uint8_t ADS7830::read(uint8_t pin) const {
   i2cWriteByte(handle_, base_cmd | (selection_mapping[pin] << 4));
   return i2cReadByte(handle_);
 }
+

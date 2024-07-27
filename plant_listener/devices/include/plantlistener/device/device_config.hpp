@@ -2,7 +2,7 @@
  * (C) Copyright 2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
  *
  * This code is distributed on "AS IS" BASIS,
- * WITHOUT WARRANTINES OR CONDITIONS OF ANY KIND.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
@@ -21,10 +21,10 @@ enum class DeviceType { ADC, TEMP_AND_HUMIDITY, PH_LEVEL };
 
 // since only ADC support multiple ports instead hardcode
 // port configuration for other device types.
-#define TEMP_PORT 0;
-#define HUMIDITY_PORT 1;
+#define TEMP_PORT 0
+#define HUMIDITY_PORT 1
 
-#define PH_PORT 0;
+#define PH_PORT 0
 
 struct DeviceConfig {
   std::string name;
