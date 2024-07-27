@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS moisture_devices (
 CREATE TABLE IF NOT EXISTS plants (
     id SERIAL PRIMARY KEY,
     name VARCHAR(20) NOT NULL,
-    image_url VARCHAR(50),
+    image_url VARCHAR(128),
     light_level INT, -- checked value 0, 1, 2? enum?
     min_moisture INT, -- checked value 1-10
     min_humidity INT, -- checked value 0-100
