@@ -82,6 +82,7 @@ Error PlantListenerConfig::load() {
       throw ParseException(Error::Code::ERROR_NOT_FOUND, "Missing key server");
     }
     parseValue<std::string>(*server_it, "address", address);
+    parseValue<std::string>(*server_it, "uuid", uuid, true);
     parseValue<uint16_t>(*server_it, "port", port);
     parseValue<int32_t>(*server_it, "retry_count", retry_count);
 
@@ -151,6 +152,40 @@ Error PlantListenerConfig::load() {
     }
   } catch (const ParseException& e) {
     return e.getError();
+  }
+
+  return {};
+}
+
+Error PlantListenerConfig::setUUID(uuid_t uu) {
+  uuid.resize(UUID_STR_LEN-1); // minus 1 as c++ strings will account for the null term
+  uuid_unparse(uu, uuid.data());
+  spdlog::info("Generated UUID: {}", uuid);
+  
+  // Now save it to the config.
+  nlohmann::ordered_json cfg;
+
+  {
+    auto config_fp = std::ifstream(config_path);
+    if (!config_fp.is_open()) {
+      return {Error::Code::ERROR_NOT_FOUND, fmt::format("Failed to open config {}", config_path)};
+    }
+
+    try {
+      cfg = nlohmann::ordered_json::parse(config_fp);
+    } catch (const json::parse_error& err) {
+      return {Error::Code::ERROR_IO, fmt::format("Failed to parse config with: {}", err.what())};
+    }
+  }
+
+  {
+    // Set the uuid and write it back to the file
+    cfg.at("server")["uuid"] = uuid;
+    auto config_fp = std::ofstream(config_path);
+    if (!config_fp.is_open()) {
+      return {Error::Code::ERROR_NOT_FOUND, fmt::format("Failed to open config {}", config_path)};
+    }
+    config_fp << cfg.dump(4) << std::endl;
   }
 
   return {};

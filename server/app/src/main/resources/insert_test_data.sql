@@ -4,8 +4,8 @@ DECLARE
     moisture_id INTEGER;
 BEGIN
     -- Insert test pi, generating serial id
-    INSERT INTO pi (mac, name) 
-    VALUES ('85:b6:e8:7e:45:d2', 'Dev Pi')
+    INSERT INTO pi (uuid, name) 
+    VALUES ('a6817b8d-e833-419c-a055-c72e85527cb8', 'Dev Pi')
     RETURNING id INTO pid;
 
     -- Insert test moisture device for test pi
