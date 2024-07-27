@@ -30,7 +30,7 @@ public class Database {
         """
         CREATE TABLE IF NOT EXISTS pi (
         id SERIAL PRIMARY KEY,
-        mac VARCHAR(20) NOT NULL UNIQUE,
+        uuid VARCHAR(40) NOT NULL UNIQUE,
         name VARCHAR(32)
         );""",
         """

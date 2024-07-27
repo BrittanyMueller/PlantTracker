@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 #include <getopt.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <uuid/uuid.h>
 
 #include <optional>
 
@@ -32,7 +33,7 @@ void plantlistener::client::helpMenu(std::ostream& out) {
       << "  -p, --tracker-port <port>      Override PlantTracker server port in config.\n"
       << "  -l, --log-level    <level>     Log level must be one of (ERR, WARN, STAT, INFO, DBG).\n"
       << "  -f, --log-file     <file>      Logging file. If it already exists it will\n"
-      << "                                 be appendend to the existing log.\n"
+      << "                                 be appended to the existing log.\n"
       << "  -q, --quiet                    Won't log anything to the console and only the log file\n"
       << "                                 if provided." << std::endl;
 }
@@ -152,6 +153,16 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
       case '?':
         plantlistener::client::helpMenu();
         return {Error::Code::ERROR_INVALID_ARG, fmt::format("Error on {}", argv[opterr])};
+    }
+  }
+
+  // If uuid wasn't discovered by this point generate one and save it to config.
+  if (cfg.uuid.empty()) {
+    uuid_t uuid;
+    uuid_generate(uuid);
+    auto res = cfg.setUUID(uuid);
+    if (res.isError()) {
+      return res;
     }
   }
 
