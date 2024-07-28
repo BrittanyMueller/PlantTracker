@@ -1,5 +1,5 @@
 #
-# (C) Copyright 2023 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
+# (C) Copyright 2023-2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
 #
 # This code is distributed on "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
@@ -33,11 +33,18 @@ add_library(plant_tracker_idl planttracker.proto)
 target_link_libraries(plant_tracker_idl PUBLIC gRPC::grpc++ protobuf::libprotobuf ${absl_libs} ${utf8_range_libs})
 target_include_directories(plant_tracker_idl PUBLIC ${CMAKE_BINARY_DIR}/idl)
 
+if (EXISTS $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+    set(grpc_plugin $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+else()
+    # The cross compiler is ahving some trouble picking up the grpc_cpp_plugin so instead just do it by path.
+    set(grpc_plugin /usr/local/bin/grpc_cpp_plugin)
+endif()
+
 protobuf_generate(TARGET plant_tracker_idl)
 protobuf_generate(
     TARGET plant_tracker_idl
     LANGUAGE grpc
-    PLUGIN protoc-gen-grpc=$<TARGET_FILE:gRPC::grpc_cpp_plugin>
+    PLUGIN protoc-gen-grpc=${grpc_plugin}
     PLUGIN_OPTIONS generate_mock_code=true
     GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
 )

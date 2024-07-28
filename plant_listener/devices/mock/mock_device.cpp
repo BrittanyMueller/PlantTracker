@@ -22,7 +22,7 @@ using plantlistener::device::MockDevice;
 MockDevice::MockDevice(const std::string& name, const DeviceType type, const uint8_t ports)
     : Device(name, type, ports) {}
 
-uint64_t MockDevice::readPort(const uint8_t port) {
+double MockDevice::readPort(const uint8_t port) {
   if (port < 0 || port >= ports_) return -1;
 
   if (use_rand_value_) {

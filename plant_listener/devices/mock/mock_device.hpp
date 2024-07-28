@@ -21,6 +21,6 @@ class MockDevice : public Device {
   uint64_t fake_value_ = 128;
 
   MockDevice(const std::string& name = "mock_device", const DeviceType type = DeviceType::ADC, const uint8_t ports = 8);
-  uint64_t readPort(const uint8_t port) override;
+  double readPort(const uint8_t port) override;
 };
 }  // namespace plantlistener::device

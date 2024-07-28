@@ -278,7 +278,7 @@ Error PlantListener::start() {
 
       MoistureSensorData* moistureData = new MoistureSensorData;
       moistureData->set_sensor_value(data.moisture_data);
-      moistureData->set_moisture_level(data.moisture_data / 255.0);
+      moistureData->set_moisture_level(1 - (data.moisture_data / 255.0));
 
       plant_data->set_allocated_light(lightData);
       plant_data->set_allocated_moisture(moistureData);

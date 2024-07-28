@@ -3,7 +3,7 @@
   "server": {
       "address": "10.0.0.150",
       "port": 5051,
-      "log_level": "INFO",
+      "log_level": "DBG",
       "retry_count": -1,
       "retry_timeout": 5,
       "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
@@ -41,8 +41,8 @@
               "type": "TEMP_AND_HUMIDITY",
               "lib": "dht22",
               "ports": 2,
-              "port": 4,
               "cfg": {
+                  "pin": 4,
                   "min": 0,
                   "max": 100
               }
@@ -55,7 +55,7 @@
           },
           {
             "name": "dht22",
-            "lib_path": "lib/libplantlistener-device-dh11-temp-dev.so"
+            "lib_path": "lib/libplantlistener-device-dht22-temp-dev.so"
           }
       ]
   }

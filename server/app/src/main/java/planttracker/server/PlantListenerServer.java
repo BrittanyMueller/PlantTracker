@@ -274,8 +274,8 @@ public class PlantListenerServer {
           insertStmt.setLong(1, data.getPlantId());
           insertStmt.setFloat(2, data.getMoisture().getMoistureLevel());
           insertStmt.setFloat(3, data.getLight().getLumens());
-          insertStmt.setFloat(4, data.getHumidity());
-          insertStmt.setFloat(5, data.getTemp());
+          insertStmt.setFloat(4, data.getTemp());
+          insertStmt.setFloat(5, data.getHumidity());
 
           int affectedRows = insertStmt.executeUpdate();
           if (affectedRows == 1) {

@@ -45,13 +45,23 @@ Test Plant Tracker Server:
     - chmod +x gradlew
     - ./gradlew test
 
-# TODO will need to make my own build container to support building for RPI
-# Build Plant Listener:
-#   image: gcc 
-#   extends: .base_job
-#   stage: build
-#   script:
-#     - echo "TODO"
+Build Plant Listener:
+  image: registry.larrycloud.ca/qawse3dr/plant-tracker-rpi-zero:latest  
+  extends: .base_job
+  stage: build
+  script:
+    - mkdir build
+    - cd build
+    - cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf.toolchain.cmake ..
+    - make -j4
+    - mkdir -p ../out/plant_listener
+    - mv ./bin ../out/plant_listener
+    - mv ./lib ../out/plant_listener
+    - mv ../plant_listener/data/config.json ../out/plant_listener
+  artifacts:
+    paths:
+      - out/plant_listener
+    expire_in: 1 week
 
 
 #########################################

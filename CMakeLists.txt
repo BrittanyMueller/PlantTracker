@@ -9,9 +9,9 @@
 # @author: qawse3dr a.k.a Larry Milne
 # @author: BrittanyMueller
 #
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.13)
 
-set(CMAKE_CXX_COMPILER "g++")
+# set(CMAKE_CXX_COMPILER "g++")
 Project("Plant Tracker")
 
 set(CMAKE_CONFIGURATION_TYPES

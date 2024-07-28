@@ -33,6 +33,6 @@ class DeviceADS7830 : public Device {
    * @param port The port to be read.
    * @returns value of sensor between [min_value, max_value], or -1 on error.
    */
-  uint64_t readPort(const uint8_t port) override;
+  double readPort(const uint8_t port) override;
 };
 }  // namespace plantlistener::device

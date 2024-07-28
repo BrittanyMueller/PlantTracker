@@ -19,8 +19,7 @@ using plantlistener::device::DeviceType;
 DeviceDHT22::DeviceDHT22(const nlohmann::json& j, const std::string& name, const DeviceType type,
                              const uint8_t ports)
     : Device(name, type, ports) {
-
-      
+      // TODO add check that this exists
       dev_ = init_dht22(j["pin"].get<int>());
     }
 
@@ -29,16 +28,17 @@ DeviceDHT22::~DeviceDHT22() {
 }
 
 
-uint64_t DeviceDHT22::readPort(const uint8_t port) {
+double DeviceDHT22::readPort(const uint8_t port) {
   DHT22Data data = read_dht22(&dev_);
-  if (data.err) {
-    return -1;
+  if (data.err == 0) {
+    humidity = static_cast<double>(data.humidity);
+    temp = static_cast<double>(data.temp);
   }
 
   if (port == HUMIDITY_PORT) {
-    return data.humidity;
+    return humidity;
   } else if (port == TEMP_PORT) {
-    return data.temp;
+    return temp;
   } else {
     return -1;
   }

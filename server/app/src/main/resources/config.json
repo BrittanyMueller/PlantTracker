@@ -1,6 +1,6 @@
 {
     "planttracker": {
-        "host": "127.0.0.1",
+        "host": "0.0.0.0",
         "tracker-port": 5050,
         "listener-port": 5051,
         "db-host": "jdbc:postgresql://127.0.0.1/",

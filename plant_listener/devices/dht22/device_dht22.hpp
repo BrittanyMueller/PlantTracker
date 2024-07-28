@@ -13,14 +13,20 @@
 
 #include <plantlistener/device/device.hpp>
 
+extern "C" {
 #include "dht22.h"
+}
 
 namespace plantlistener::device {
 
 class DeviceDHT22 : public Device {
  private:
   int handle_ = 0;
-  struct DHT22 dev_{};
+  struct DHT22 dev_ {};
+
+  // This sensor is very unreliable save the last result to report when it fails.
+  double humidity = 0;
+  double temp = 0;
 
  public:
   DeviceDHT22(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
@@ -33,6 +39,6 @@ class DeviceDHT22 : public Device {
    * @param port The port to be read.
    * @returns value of sensor between [min_value, max_value], or -1 on error.
    */
-  uint64_t readPort(const uint8_t port) override;
+  double readPort(const uint8_t port) override;
 };
 }  // namespace plantlistener::device

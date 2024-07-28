@@ -85,7 +85,7 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
                            {.name = "help", .has_arg = no_argument, .flag = 0, .val = 'h'},
                            {.name = nullptr, .has_arg = 0, .flag = nullptr, .val = 0}};
 
-  char c;
+  int c;
   int option_index = 0;
 
   // First find the config and log level so we can load that in before the command line
@@ -112,7 +112,7 @@ Expected<PlantListenerConfig> plantlistener::client::parseArguments(int argc, ch
 
   optind = 1;
   option_index = 0;
-  while ((c = getopt_long(argc, argv, short_args, long_options, &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, short_args, long_options, &option_index)) != EOF) {
     switch (c) {
       case 'a':
         cfg.address = optarg;
