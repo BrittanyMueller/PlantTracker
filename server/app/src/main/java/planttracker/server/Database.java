@@ -50,7 +50,6 @@ public class Database {
         min_moisture INT, -- checked value 1-10
         min_humidity INT, -- checked value 0-100
         pid INT,
-        FOREIGN KEY (moisture_sensor_device_id) REFERENCES moisture_devices(id) ON DELETE CASCADE,
         FOREIGN KEY (pid) REFERENCES pi(id) ON DELETE CASCADE
         );""",
         """
@@ -58,8 +57,8 @@ public class Database {
         moisture_device_id INT,
         sensor_port INT,
         plant_id INT NULL,
-        FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id),
-        FOREIGN KEY (plant_id) REFERENCES plants(id),
+        FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id) ON DELETE CASCADE,
+        FOREIGN KEY (plant_id) REFERENCES plants(id) ON DELETE CASCADE,
         PRIMARY KEY (moisture_device_id, sensor_port)
         );""",
         """

@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS moisture_devices (
     name VARCHAR(20) NOT NULL,
     num_sensors INT NOT NULL,
     pid INT,
-    FOREIGN KEY (pid) REFERENCES pi(id)
+    FOREIGN KEY (pid) REFERENCES pi(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS plants (
@@ -20,15 +20,15 @@ CREATE TABLE IF NOT EXISTS plants (
     min_moisture INT, -- checked value 1-10
     min_humidity INT, -- checked value 0-100
     pid INT,
-    FOREIGN KEY (pid) REFERENCES pi(id)
+    FOREIGN KEY (pid) REFERENCES pi(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS sensors (
     moisture_device_id INT,
     sensor_port INT,
     plant_id INT NULL,
-    FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id),
-    FOREIGN KEY (plant_id) REFERENCES plants(id),
+    FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id) ON DELETE CASCADE,
+    FOREIGN KEY (plant_id) REFERENCES plants(id) ON DELETE CASCADE,
     PRIMARY KEY (moisture_device_id, sensor_port)
 );
 

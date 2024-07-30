@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.logging.*;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -312,7 +311,7 @@ public class PlantListenerServer {
       
       try {
         while(true) {
-          ListenerRequest req = requestQueue.take();;
+          ListenerRequest req = requestQueue.take();
           responseObserver.onNext(req);
         }
       } catch (InterruptedException e) {
