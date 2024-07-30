@@ -14,3 +14,13 @@ add_subdirectory(lib)
 
 add_executable(dht22_tester dht22-main.c)
 target_link_libraries(dht22_tester dht22)
+
+
+add_library(plantlistener-device-dht22-temp-dev SHARED device_dht22.cpp)
+
+target_link_libraries(plantlistener-device-dht22-temp-dev
+  PRIVATE 
+  plantlistener-device_objlib
+  json
+  dht22
+)

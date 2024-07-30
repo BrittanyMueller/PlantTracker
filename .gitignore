@@ -1,6 +1,6 @@
 # Gradle files
 .gradle/
-build/
+build*/
 server/app/build
 bin/
 

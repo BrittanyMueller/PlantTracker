@@ -13,7 +13,7 @@ BEGIN
 
     -- Insert test moisture device for test pi
     INSERT INTO moisture_devices (name, num_sensors, pid)
-    VALUES ('DEVTEST', 8, pid)
+    VALUES ('DEVTEST', 7, pid)
     RETURNING id INTO device_id;
 
     -- Insert test plants using generated pi and moisture device ids, storing ids

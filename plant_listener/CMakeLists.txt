@@ -2,7 +2,7 @@
 # (C) Copyright 2023 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
 #
 # This code is distributed on "AS IS" BASIS,
-# WITHOUT WARRANTINES OR CONDITIONS OF ANY KIND.
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
@@ -13,7 +13,7 @@ Project("Plant Listener")
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CXX_STANDARD 20)
+set(CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Grab nlohmann JSON
@@ -38,6 +38,7 @@ elseif("${CMAKE_BUILD_TYPE}" STREQUAL "debug")
     add_compile_options(-g -Wall)
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "release")
     add_compile_options(-Wall -Werror -O3)
+    add_link_options(-static-libstdc++) # Need to static link for rpi
 endif()
 
 add_subdirectory(devices)

@@ -1,56 +1,62 @@
 {
-    "name": "Living Room",
-    "server": {
-        "address": "127.0.0.1",
-        "port": 5051,
-        "log_level": "DBG",
-        "retry_count": -1,
-        "retry_timeout": 5,
-        "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
-    },
-    "sensors": [
-        {
-            "type": "light",
-            "device": "DEVTEST",
-            "port": 7
-        },
-        {
-            "type": "temp",
-            "device": "temp_and_hum_dev"
-        },
-        {
-            "type": "humidity",
-            "device": "temp_and_hum_dev"
-        }
-    ],
-    "devices": {
-        "instances": [
-            {
-                "name": "DEVTEST",
-                "type": "ADC",
-                "lib": "mock_dev",
-                "ports": 8,
-                "cfg": {
-                    "min": 0,
-                    "max": 255
-                }
-            },
-            {
-                "name": "temp_and_hum_dev",
-                "type": "TEMP_AND_HUMIDITY",
-                "lib": "mock_dev",
-                "ports": 2,
-                "cfg": {
-                    "min": 0,
-                    "max": 100
-                }
-            }
-        ],
-        "libs": [
-            {
-                "name": "mock_dev",
-                "lib_path": "/workspaces/PlantTracker/build/lib/libplantlistener-device-mock-dev.so"
-            }
-        ]
-    }
+  "name": "Living Room",
+  "server": {
+      "address": "10.0.0.150",
+      "port": 5051,
+      "log_level": "DBG",
+      "retry_count": -1,
+      "retry_timeout": 5,
+      "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
+  },
+  "sensors": [
+      {
+          "type": "light",
+          "device": "DEVTEST",
+          "port": 7
+      },
+      {
+          "type": "temp",
+          "device": "temp_and_hum_dev"
+      },
+      {
+          "type": "humidity",
+          "device": "temp_and_hum_dev"
+      }
+  ],
+
+  "devices": {
+      "instances": [
+          {
+              "name": "DEVTEST",
+              "type": "ADC",
+              "lib": "ads7830",
+              "ports" : 8,
+              "cfg": {
+                  "min": 0,
+                  "max": 255
+              }
+          },
+          {
+              "name": "temp_and_hum_dev",
+              "type": "TEMP_AND_HUMIDITY",
+              "lib": "dht22",
+              "ports": 2,
+              "cfg": {
+                  "pin": 4,
+                  "min": 0,
+                  "max": 100
+              }
+          }
+      ],
+      "libs": [
+          {
+              "name": "ads7830",
+              "lib_path": "lib/libplantlistener-device-ads7830-adc-dev.so"
+          },
+          {
+            "name": "dht22",
+            "lib_path": "lib/libplantlistener-device-dht22-temp-dev.so"
+          }
+      ]
+  }
 }

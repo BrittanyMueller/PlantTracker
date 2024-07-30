@@ -1,0 +1,56 @@
+{
+    "name": "Living Room",
+    "server": {
+        "address": "127.0.0.1",
+        "port": 5051,
+        "log_level": "DBG",
+        "retry_count": -1,
+        "retry_timeout": 5
+    },
+    "sensors": [
+        {
+            "type": "light",
+            "device": "DEVTEST",
+            "port": 7
+        },
+        {
+            "type": "temp",
+            "device": "temp_and_hum_dev"
+        },
+        {
+            "type": "humidity",
+            "device": "temp_and_hum_dev"
+        }
+    ],
+
+    "devices": {
+        "instances": [
+            {
+                "name": "DEVTEST",
+                "type": "ADC",
+                "lib": "mock_dev",
+                "ports" : 8,
+                "cfg": {
+                    "min": 0,
+                    "max": 255
+                }
+            },
+            {
+                "name": "temp_and_hum_dev",
+                "type": "TEMP_AND_HUMIDITY",
+                "lib": "mock_dev",
+                "ports": 2,
+                "cfg": {
+                    "min": 0,
+                    "max": 100
+                }
+            }
+        ],
+        "libs": [
+            {
+                "name": "mock_dev",
+                "lib_path": "/workspaces/PlantTracker/build/lib/libplantlistener-device-mock-dev.so"
+            }
+        ]
+    }
+}
