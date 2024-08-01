@@ -84,12 +84,74 @@ public class PlantTrackerServer {
      */
     public void addPlant(PlantInfo request, io.grpc.stub.StreamObserver<Result> responseObserver) {
       // plant_id optional/not set since new plant
+      int plantId = -1;
 
-      // insert plant to plants table, return plant id
-      // update sensors table, NULL -> plant_id for (device_id, sensor_port)
-      // get device name with device id to build PlantSensor msg
-      // send listener request to pi via addRequestForPi(pid)
+      try {
+        plantId = insertPlant(request);
+
+        // get device name with device id to build PlantSensor msg
+
+        // send listener request to pi via addRequestForPi(pid)
+
+      } catch (PlantTrackerException e) {
+
+      } finally {
+
+      }
+      
       logger.severe("addPlant Not Implemented");
+    }
+
+    private int insertPlant(PlantInfo plant) throws PlantTrackerException {
+      int plantId = -1;
+
+      Database db = Database.getInstance();
+
+      String insertPlantSql = "INSERT INTO plants (name, image_url, light_level, min_moisture, min_humidity, pid)"
+                            + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+      String updateSensorSql = "UPDATE sensors SET plant_id = ? WHERE device_id = ? AND sensor_port = ?";
+
+      try (PreparedStatement insertStmt = db.connection.prepareStatement(insertPlantSql);
+           PreparedStatement updateStmt = db.connection.prepareStatement(updateSensorSql);) {
+        
+        db.connection.setAutoCommit(false);
+
+        insertStmt.setString(1, plant.getName());
+        insertStmt.setString(2, plant.getImageUrl());
+        insertStmt.setInt(3, plant.getLightLevelValue());
+        insertStmt.setInt(4, plant.getMinMoisture());
+        insertStmt.setInt(5, plant.getMinHumidity());
+        insertStmt.setLong(4, plant.getPid());
+        
+        try (ResultSet resultSet = insertStmt.executeQuery()) {
+          if (resultSet.next()) {
+            // Insert successful, retrieve generated plant
+            plantId = resultSet.getInt("id");
+  
+            // Update moisture sensor associated with plant id
+            updateStmt.setInt(1, plantId);
+            updateStmt.setLong(2, plant.getMoistureDeviceId());
+            updateStmt.setInt(3, plant.getSensorPort());
+
+            int affectedRows = updateStmt.executeUpdate();
+            if (affectedRows != 1) {
+              throw new SQLException("Expected to update 1 row, but updated " + affectedRows + " rows for sensor with device ID " + plant.getMoistureDeviceId());
+            }
+            // Full transaction successful, commit
+            db.connection.commit();
+          } else {
+            throw new SQLException("Failed to insert new Plant with name '" + plant.getName() + "'");
+          }
+        }
+      } catch (SQLException e) {
+        db.rollback();
+        // TODO logging or better error message idk
+        System.out.println(e.getMessage());
+        throw new PlantTrackerException(e);
+      } finally {
+        db.resetAutoCommit();
+      }
+      return plantId;
     }
 
     public void deletePlant(PlantId request, io.grpc.stub.StreamObserver<Result> responseObserver) {

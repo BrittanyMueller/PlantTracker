@@ -239,22 +239,19 @@ public class PlantListenerServer {
       int pid = -1;
       Database db = Database.getInstance();
 
-      String insertPiQuery = "INSERT INTO pi (name, uuid) VALUES (?, ?)";
-      PreparedStatement insertStmt = db.connection.prepareStatement(insertPiQuery, PreparedStatement.RETURN_GENERATED_KEYS);
+      String insertPiQuery = "INSERT INTO pi (name, uuid) VALUES (?, ?) RETURNING id";
+      PreparedStatement insertStmt = db.connection.prepareStatement(insertPiQuery);
       insertStmt.setString(1, name);
       insertStmt.setString(2, uuid);
       
-      int affectedRows = insertStmt.executeUpdate();
-      if (affectedRows == 1) {
+      ResultSet resultSet = insertStmt.executeQuery();
+      if (resultSet.next()) {
         // Insert successful, retrieve generated pid
-        ResultSet resultSet = insertStmt.getGeneratedKeys();
-        if (resultSet.next()) {
-          pid = resultSet.getInt(1);
-        } 
-        resultSet.close();
+          pid = resultSet.getInt("id");
       } else {
-        throw new SQLException("Expected 1 affected row after Pi insert, but rows affected were: " + affectedRows);
+        throw new SQLException("Failed to insert new Pi with name '" + name + "'");
       }
+      resultSet.close();
       insertStmt.close();
       return pid;
     }

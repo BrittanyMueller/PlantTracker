@@ -1,11 +1,12 @@
 {
-    "name": "Living Room",
+    "name": "Dev Pi",
     "server": {
         "address": "127.0.0.1",
         "port": 5051,
         "log_level": "DBG",
         "retry_count": -1,
-        "retry_timeout": 5
+        "retry_timeout": 5,
+        "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
     },
     "sensors": [
         {
@@ -22,14 +23,13 @@
             "device": "temp_and_hum_dev"
         }
     ],
-
     "devices": {
         "instances": [
             {
                 "name": "DEVTEST",
                 "type": "ADC",
                 "lib": "mock_dev",
-                "ports" : 8,
+                "ports": 8,
                 "cfg": {
                     "min": 0,
                     "max": 255

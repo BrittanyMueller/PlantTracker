@@ -85,9 +85,9 @@ public class Database {
             }
             instance = new Database();
             // User required to create database beforehand
-            logger.info("Starting connection to Postgres database " + config.dbHost + config.dbName);
+            logger.info("Connecting to Postgres database " + config.dbHost + config.dbName);
             instance.connection = DriverManager.getConnection(config.dbHost + config.dbName, config.dbUser, config.dbPass);
-            logger.info("Connected to Postgres database " + config.dbHost + config.dbName);
+            logger.info("Successfully connected to Postgres database " + config.dbHost + config.dbName);
         } catch (SQLException e) {
             throw new PlantTrackerException("Failed to connect to database.", e);
         } 
@@ -117,16 +117,6 @@ public class Database {
         }
     }
 
-    public Boolean fetchMoistureDevice() throws SQLException {
-        String deviceQuery = "SELECT COUNT(*) FROM moisture_devices WHERE name = ?";
-        PreparedStatement ps = connection.prepareStatement(deviceQuery);
-
-        ps.setString(0, deviceQuery);
-
-
-        return true;
-    }
-
     public void lockDatabase() {
         logger.finest("Database LOCK.");
         dbLock.lock();
@@ -137,9 +127,32 @@ public class Database {
         dbLock.unlock();
     }
 
+    public void resetAutoCommit() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                // Re-enable auto commits after transactions
+                connection.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            logger.warning("Failed to reset auto commit: " + e.getMessage());
+        }
+    }
+
+    public void rollback() {
+        try {
+            if (connection != null && !connection.isClosed()) {
+                connection.rollback();
+            }
+        } catch (SQLException e) {
+            logger.warning("Error during rollback transaction: " + e.getMessage());
+        }
+    } 
+
     public void close() {
         try {
-            connection.close();
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
         } catch (SQLException e) {
             logger.warning("Failed to close database connection: " + e.getMessage());
         }
