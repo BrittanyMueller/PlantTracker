@@ -42,6 +42,20 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/addPlantButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:contentDescription="@string/add_plant"
+            app:srcCompat="@drawable/baseline_add_48"
+            app:backgroundTint="@color/green"
+            app:tint="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:maxImageSize="32dp"
+            android:layout_margin="20dp" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

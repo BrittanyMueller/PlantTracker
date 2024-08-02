@@ -118,7 +118,7 @@ public class PlantTrackerServer {
 
       String insertPlantSql = "INSERT INTO plants (name, image_url, light_level, min_moisture, min_humidity, pid)"
                             + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
-      String updateSensorSql = "UPDATE sensors SET plant_id = ? WHERE device_id = ? AND sensor_port = ?";
+      String updateSensorSql = "UPDATE sensors SET plant_id = ? WHERE moisture_device_id = ? AND sensor_port = ?";
 
       try (PreparedStatement insertStmt = db.connection.prepareStatement(insertPlantSql);
            PreparedStatement updateStmt = db.connection.prepareStatement(updateSensorSql);) {
