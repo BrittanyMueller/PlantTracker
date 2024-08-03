@@ -5,13 +5,13 @@ import planttracker.server.LightLevel;
 import planttracker.server.PlantInfo;
 
 public class Plant {
-    private long id;
-    private String name;
-    private String imageUrl;
-    private LightLevel lightLevel;
-    private int minMoisture;
-    private int minHumidity;
-    private long pid;
+        private long id;
+        private String name;
+        private String imageUrl;
+        private LightLevel lightLevel;
+        private int minMoisture;
+        private int minHumidity;
+        private long pid;
 
     public Plant(PlantInfo plant) {
         this.id = plant.getId();

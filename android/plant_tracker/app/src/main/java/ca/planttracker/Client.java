@@ -1,6 +1,7 @@
 package ca.planttracker;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,16 +13,34 @@ import planttracker.server.GetPlantsResponse;
 import planttracker.server.PlantTrackerGrpc;
 
 import planttracker.server.PlantInfo;
+import planttracker.server.Result;
 
 public class Client {
 
-    private final ManagedChannel channel;
     private final PlantTrackerGrpc.PlantTrackerBlockingStub stub;
 
     // TODO refactor into singleton with initialization method
     public Client(String host, int port) {
-        channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         stub = PlantTrackerGrpc.newBlockingStub(channel);
+    }
+
+    public long addPlant() {
+
+        long returnCode = -1;
+        PlantInfo newPlant = PlantInfo.newBuilder()
+                                    .setName("Android Plant")
+                                    .setLightLevelValue(2)
+                                    .setMinMoisture(5)
+                                    .setMinHumidity(50)
+                                    .setPid(1)
+                                    .setMoistureDeviceId(1)
+                                    .setSensorPort(5).build();
+
+        Result res = stub.addPlant(newPlant);
+        returnCode = res.getReturnCode();
+
+        return returnCode;
     }
 
     /**

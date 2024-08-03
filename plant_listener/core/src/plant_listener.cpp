@@ -231,7 +231,7 @@ Error PlantListener::start() {
       PlantConfig plant_cfg;
       plant_cfg.id = plant.plant_id();
       plant_cfg.moisture_device_name = plant.device_name();
-      plant_cfg.moisture_device_port = plant.device_port();
+      plant_cfg.moisture_device_port = plant.sensor_port();
 
       auto res = addPlant(plant_cfg);
       if (res.isError()) {
@@ -360,14 +360,14 @@ void PlantListener::plantEventWorkLoop(grpc::ClientContext& client_context) {
     // Now we need to do whatever the request wants.
     spdlog::info("Got request with type: {}, for plant: id={} dev_name={} dev_port={}",
                  planttracker::grpc::ListenerRequestType_Name(request.type()), request.plant().plant_id(),
-                 request.plant().device_name(), request.plant().device_port());
+                 request.plant().device_name(), request.plant().sensor_port());
     switch (request.type()) {
       case planttracker::grpc::ListenerRequestType::NEW_PLANT: {
         auto plant = request.plant();
         PlantConfig plant_cfg;
         plant_cfg.id = plant.plant_id();
         plant_cfg.moisture_device_name = plant.device_name();
-        plant_cfg.moisture_device_port = plant.device_port();
+        plant_cfg.moisture_device_port = plant.sensor_port();
         err = addPlant(plant_cfg);
         break;
       }
@@ -380,7 +380,7 @@ void PlantListener::plantEventWorkLoop(grpc::ClientContext& client_context) {
         PlantConfig plant_cfg;
         plant_cfg.id = plant.plant_id();
         plant_cfg.moisture_device_name = plant.device_name();
-        plant_cfg.moisture_device_port = plant.device_port();
+        plant_cfg.moisture_device_port = plant.sensor_port();
         err = addPlant(plant_cfg);
         break;
       }

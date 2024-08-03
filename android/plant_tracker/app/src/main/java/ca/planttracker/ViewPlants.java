@@ -1,5 +1,6 @@
 package ca.planttracker;
 
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,6 +10,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,6 +45,15 @@ public class ViewPlants extends AppCompatActivity {
         // Automatically displays message when plant list is empty
         TextView emptyView = findViewById(R.id.plants_empty_message);
         listView.setEmptyView(emptyView);
+
+        FloatingActionButton fab = findViewById(R.id.addPlantButton);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ViewPlants.this, AddPlantActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private List<Plant> getPlantData() {

@@ -14,7 +14,7 @@
 
         <!-- Default start inset offsets layout, set to zero -->
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/top_toolbar"
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/green"

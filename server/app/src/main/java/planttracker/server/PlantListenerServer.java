@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import java.util.logging.*;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -25,7 +24,7 @@ public class PlantListenerServer {
   private final static Logger logger = Logger.getGlobal(); 
   private Server server;
 
-  private Map<Integer, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+  private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
 
   /* The port on which the server should run */
   private int port;
@@ -33,7 +32,7 @@ public class PlantListenerServer {
   public PlantListenerServer(PlantTrackerConfig config) {
     server = null;
     port = config.listenerPort;
-    requestQueueMap = new HashMap<Integer, LinkedBlockingQueue<ListenerRequest>>();
+    requestQueueMap = new HashMap<Long, LinkedBlockingQueue<ListenerRequest>>();
   }
 
   public void start() throws PlantTrackerException {
@@ -68,20 +67,21 @@ public class PlantListenerServer {
   }
 
   /**
-   * Adds a request to a given Pi This function is thread safe and can be called from multiple threads at one.
+   * Adds a request to a given Pi.
+   * This function is thread safe and can be called from multiple threads at once.
    * 
    * @param pid The pi the request should be given to.
    * @param request The request to be executed.
    */
-  public synchronized void addRequestForPi(int pid, ListenerRequest request) {
+  public synchronized void addRequestForPi(long pid, ListenerRequest request) {
     requestQueueMap.get(pid).add(request);
   }
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
 
-    private Map<Integer, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+    private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
 
-    PlantListenerImpl(Map<Integer, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) {
+    PlantListenerImpl(Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) {
       this.requestQueueMap = requestQueueMap;
     }
     @Override
@@ -94,7 +94,7 @@ public class PlantListenerServer {
 
       try {
         // Retrieve or insert pi and db pid
-        int pid = retrievePid(piName, uuid);
+        long pid = retrievePid(piName, uuid);
         
         Database db = Database.getInstance();
         // Prepared statement to check if device exists by name
@@ -114,7 +114,7 @@ public class PlantListenerServer {
             // Moisture device does not exist, insert new device
             insertStmt.setString(1, device.getName());
             insertStmt.setInt(2, device.getNumSensors());
-            insertStmt.setInt(3, pid);
+            insertStmt.setLong(3, pid);
             resultSet.close();
             
             resultSet = insertStmt.executeQuery();
@@ -168,7 +168,7 @@ public class PlantListenerServer {
      * @return ArrayList of protobuf PlantSensor type.
      * @throws PlantTrackerException
      */
-    private ArrayList<PlantSensor> getPlantSensors(int pid) throws PlantTrackerException {
+    private ArrayList<PlantSensor> getPlantSensors(long pid) throws PlantTrackerException {
 
       ArrayList<PlantSensor> plantList = new ArrayList<PlantSensor>();
       Database db = Database.getInstance();
@@ -180,13 +180,13 @@ public class PlantListenerServer {
       
       try {
         PreparedStatement plantStmt = db.connection.prepareStatement(plantQuery);
-        plantStmt.setInt(1, pid);
+        plantStmt.setLong(1, pid);
   
         ResultSet res = plantStmt.executeQuery();
   
         while (res.next()) {
           PlantSensor plant = PlantSensor.newBuilder().setDeviceName(res.getString("device_name"))
-                                          .setDevicePort(res.getInt("sensor_port"))
+                                          .setSensorPort(res.getInt("sensor_port"))
                                           .setPlantId(res.getInt("plant_id")).build();
           plantList.add(plant);
         }
@@ -240,22 +240,19 @@ public class PlantListenerServer {
       int pid = -1;
       Database db = Database.getInstance();
 
-      String insertPiQuery = "INSERT INTO pi (name, uuid) VALUES (?, ?)";
-      PreparedStatement insertStmt = db.connection.prepareStatement(insertPiQuery, PreparedStatement.RETURN_GENERATED_KEYS);
+      String insertPiQuery = "INSERT INTO pi (name, uuid) VALUES (?, ?) RETURNING id";
+      PreparedStatement insertStmt = db.connection.prepareStatement(insertPiQuery);
       insertStmt.setString(1, name);
       insertStmt.setString(2, uuid);
       
-      int affectedRows = insertStmt.executeUpdate();
-      if (affectedRows == 1) {
+      ResultSet resultSet = insertStmt.executeQuery();
+      if (resultSet.next()) {
         // Insert successful, retrieve generated pid
-        ResultSet resultSet = insertStmt.getGeneratedKeys();
-        if (resultSet.next()) {
-          pid = resultSet.getInt(1);
-        } 
-        resultSet.close();
+          pid = resultSet.getInt("id");
       } else {
-        throw new SQLException("Expected 1 affected row after Pi insert, but rows affected were: " + affectedRows);
+        throw new SQLException("Failed to insert new Pi with name '" + name + "'");
       }
+      resultSet.close();
       insertStmt.close();
       return pid;
     }
@@ -312,7 +309,7 @@ public class PlantListenerServer {
       
       try {
         while(true) {
-          ListenerRequest req = requestQueue.take();;
+          ListenerRequest req = requestQueue.take();
           responseObserver.onNext(req);
         }
       } catch (InterruptedException e) {
