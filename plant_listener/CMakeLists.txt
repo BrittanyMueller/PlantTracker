@@ -38,7 +38,6 @@ elseif("${CMAKE_BUILD_TYPE}" STREQUAL "debug")
     add_compile_options(-g -Wall)
 elseif("${CMAKE_BUILD_TYPE}" STREQUAL "release")
     add_compile_options(-Wall -Werror -O3)
-    add_link_options(-static-libstdc++) # Need to static link for rpi
 endif()
 
 add_subdirectory(devices)

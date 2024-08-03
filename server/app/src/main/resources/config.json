@@ -7,6 +7,6 @@
         "db-user": "postgres",
         "db-pass": "planttracker",
         "db-name": "planttracker",
-        "log-level": "INFO"
+        "log-level": "DEBUG"
     }
 }

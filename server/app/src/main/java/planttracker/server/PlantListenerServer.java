@@ -15,8 +15,10 @@ import java.sql.SQLException;
 import java.sql.Types;
 
 import io.grpc.Grpc;
+import io.grpc.StatusException;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import planttracker.server.exceptions.PlantTrackerException;
 
@@ -42,6 +44,7 @@ public class PlantListenerServer {
                    .addService(new PlantListenerImpl(requestQueueMap))
                    .build()
                    .start();
+                   
     } catch (IOException e) {
       throw new PlantTrackerException("server start fail", e);
     }
@@ -50,6 +53,7 @@ public class PlantListenerServer {
   public void stop() throws InterruptedException {
     if (server != null) {
       server.shutdown().awaitTermination(30, TimeUnit.SECONDS);
+      server.getServices().get(0);
     }
   }
 
@@ -79,11 +83,18 @@ public class PlantListenerServer {
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
 
+<<<<<<< HEAD
     private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
 
     PlantListenerImpl(Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) {
+=======
+    private Map<Integer, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+  
+    PlantListenerImpl(Map<Integer, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) {
+>>>>>>> 8046fb1 (fix poll)
       this.requestQueueMap = requestQueueMap;
     }
+  
     @Override
     public void initialize(PlantListenerConfig config, StreamObserver<InitializeResponse> responseObserver) {
       logger.info("Received init request from " + config.getName());
@@ -148,7 +159,14 @@ public class PlantListenerServer {
         }
 
         // Create a request queue for the pid
-        requestQueueMap.put(pid, new LinkedBlockingQueue<ListenerRequest>());
+        if (requestQueueMap.containsKey(pid)) {
+          // Add shutdown to bork it out if listening.
+          logger.warning("uuid already exists for pi " + pid);
+          requestQueueMap.get(pid).add(ListenerRequest.newBuilder().setType(ListenerRequestType.SHUTDOWN).build()); 
+
+        } else {
+          requestQueueMap.put(pid, new LinkedBlockingQueue<ListenerRequest>());
+        }
 
         ArrayList<PlantSensor> plantList = getPlantSensors(pid);
         Result res = Result.newBuilder().setReturnCode(0).build();
@@ -306,14 +324,34 @@ public class PlantListenerServer {
         responseObserver.onError(e);
         return;
       }
+
+      // before going into the look see if the first element is null which might have gotten added during in.
+      // If so just pop it off because it was us who added it
+      if (!requestQueue.isEmpty() && requestQueue.peek().getType() == ListenerRequestType.SHUTDOWN) {
+        try {
+          requestQueue.take(); // Ignore request.
+        } catch (InterruptedException e) {
+          logger.warning("Failed to pop shutdown command for uuid " + request.getUuid() + " with exception: " + e);
+        }
+      }
       
       try {
         while(true) {
-          ListenerRequest req = requestQueue.take();
+          logger.finest(String.format("poll for uuid \"%s\" going into requestQueue::take()", request.getUuid()));
+          ListenerRequest req = requestQueue.take();;
+          logger.finest(String.format("poll for uuid \"%s\" got request", request.getUuid()));
+          if (req.getType() == ListenerRequestType.SHUTDOWN) {
+            logger.info(String.format("poll for uuid \"%s\" exit requested", request.getUuid()));
+            responseObserver.onError(new StatusException(Status.CANCELLED));
+            return;
+          }
+
           responseObserver.onNext(req);
         }
       } catch (InterruptedException e) {
         logger.warning("Request was interrupted with: " + e);
+        responseObserver.onError(new StatusException(Status.CANCELLED));
+        return;
       }
 
     }
