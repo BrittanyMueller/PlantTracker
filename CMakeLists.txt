@@ -52,12 +52,12 @@ string(PREPEND FORMAT_SUFFIXES_OUT " -name '*")
 string(APPEND FORMAT_SUFFIXES_OUT "'")
 
 add_custom_target(format
-    COMMAND bash -c "find ${CMAKE_SOURCE_DIR} \"\\(\" ${FORMAT_SUFFIXES_OUT} \"\\)\" -a -not -path '*build*' -exec clang-format -i {} \"+\""
+    COMMAND bash -c "find ${CMAKE_SOURCE_DIR} \"\\(\" ${FORMAT_SUFFIXES_OUT} \"\\)\" -exec clang-format -i {} \"+\""
     COMMAND echo "Format Done"
     )
 
 add_custom_target(test-format
-    COMMAND bash -c "find ${CMAKE_SOURCE_DIR} \"\\(\" ${FORMAT_SUFFIXES_OUT} \"\\)\" -a -not -path '*build*' -exec clang-format --dry-run -Werror {} \"+\""
+    COMMAND bash -c "find ${CMAKE_SOURCE_DIR} \"\\(\" ${FORMAT_SUFFIXES_OUT} \"\\)\" -exec clang-format --dry-run -Werror {} \"+\""
     COMMAND echo "Format Check Passed"
 )
 
