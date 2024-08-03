@@ -49,7 +49,7 @@ class PlantListenerServiceImpl final : public planttracker::grpc::PlantListener:
     // Returns fake plants
     auto* plant = response->add_plants();
     plant->set_device_name(dev_name_);
-    plant->set_device_port(1);
+    plant->set_sensor_port(1);
     plant->set_plant_id(1);
 
     return grpc::Status::OK;

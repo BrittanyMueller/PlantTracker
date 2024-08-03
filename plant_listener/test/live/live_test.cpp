@@ -122,7 +122,7 @@ TEST(LiveTests, start_stop_test) {
   auto* plant = new planttracker::grpc::PlantSensor();
   plant->set_plant_id(2);
   plant->set_device_name("mock_dev_adc");
-  plant->set_device_port(2);
+  plant->set_sensor_port(2);
   req.set_allocated_plant(plant);
   server.request_queue.putRequest(std::move(req));
 
