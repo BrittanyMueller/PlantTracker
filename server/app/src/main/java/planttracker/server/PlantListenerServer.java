@@ -83,15 +83,9 @@ public class PlantListenerServer {
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
 
-<<<<<<< HEAD
     private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
 
     PlantListenerImpl(Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) {
-=======
-    private Map<Integer, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
-  
-    PlantListenerImpl(Map<Integer, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) {
->>>>>>> 8046fb1 (fix poll)
       this.requestQueueMap = requestQueueMap;
     }
   
@@ -318,7 +312,7 @@ public class PlantListenerServer {
 
       try {
         // We can assume the uuid exists at this point because it would have been created in initialize().
-        requestQueue = requestQueueMap.get(retrievePid("ignore", request.getUuid()));
+        requestQueue = requestQueueMap.get(Long.valueOf(retrievePid("ignore", request.getUuid())));
       } catch(PlantTrackerException | SQLException e) {
         // This might cause a problem that we are returning a custom exception..... TODO(qawse3dr) look into this.
         responseObserver.onError(e);
