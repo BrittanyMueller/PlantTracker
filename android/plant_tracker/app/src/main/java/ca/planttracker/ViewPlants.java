@@ -37,6 +37,8 @@ public class ViewPlants extends AppCompatActivity {
         client = new Client("10.0.2.2", 5050);
         plants = client.getPlantsByPi(2, false);
 
+
+
         // Create list view with plant data
         PlantListAdapter plantAdapter = new PlantListAdapter(this, plants);
         ListView listView = findViewById(R.id.plants_listview);
