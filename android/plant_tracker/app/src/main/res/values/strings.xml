@@ -6,4 +6,5 @@
     <string name="more_options">More Options</string>
     <string name="add_plant">Add Plant</string>
     <string name="plant_name_input_label">Plant Name</string>
+    <string name="plant_image_description">Image of the plant.</string>
 </resources>
