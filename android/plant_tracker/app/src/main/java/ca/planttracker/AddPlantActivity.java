@@ -18,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.IOException;
@@ -67,14 +68,33 @@ public class AddPlantActivity extends AppCompatActivity {
         plantImageView = findViewById(R.id.plant_image_view);
 
         selectImageBtn.setOnClickListener(view -> selectImage());
-
+        plantImageView.setOnClickListener(view -> selectImage());
 
         TextInputEditText plantNameField = findViewById(R.id.plant_name_field);
+
+        Slider lightSlider = findViewById(R.id.light_slider);
+        // Set readable labels on light slider
+        lightSlider.setLabelFormatter(value -> {
+            switch ((int) value) {
+                case 0:
+                    return "Low";
+                case 1:
+                    return "Medium";
+                case 2:
+                    return "High";
+                default:
+                    // Impossible base on UI ?
+                    return "";
+            }
+        });
+
 
         Button addPlantSubmit = findViewById(R.id.add_plant_submit);
         addPlantSubmit.setOnClickListener(view -> {
 
             String plantName = Objects.requireNonNull(plantNameField.getText()).toString();
+            int lightLevel = (int) lightSlider.getValue();
+
             Toast.makeText(AddPlantActivity.this, "Plant Name: " + plantName, Toast.LENGTH_LONG).show();
 
 //            Client client = new Client("10.0.2.2", 5050);
