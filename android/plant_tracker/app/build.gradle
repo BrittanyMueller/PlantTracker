@@ -1,6 +1,9 @@
-apply plugin: 'com.android.application'
-apply plugin: 'com.google.protobuf'
-apply plugin: 'com.google.gms.google-services'
+
+plugins {
+    id 'com.android.application'
+    id 'com.google.protobuf'
+    id 'com.google.gms.google-services'
+}
 
 android {
     namespace 'ca.planttracker'
@@ -12,7 +15,6 @@ android {
         targetSdk 34
         versionCode 1
         versionName "1.0"
-
     }
 
     buildTypes {
@@ -53,8 +55,10 @@ protobuf {
 dependencies {
     // For loading images from URLs
     implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation platform('com.google.firebase:firebase-bom:33.1.2')
+    implementation 'com.google.firebase:firebase-analytics'
 
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'io.grpc:grpc-okhttp:1.60.0' // CURRENT_GRPC_VERSION
@@ -63,4 +67,5 @@ dependencies {
     implementation 'org.apache.tomcat:annotations-api:6.0.53'
     implementation 'androidx.activity:activity:1.9.1'
     implementation 'com.google.firebase:firebase-storage:21.0.0'
+    implementation 'com.google.firebase:firebase-messaging:24.0.0'
 }

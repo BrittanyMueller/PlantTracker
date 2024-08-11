@@ -50,7 +50,7 @@ public class ViewPlants extends AppCompatActivity {
     private void askNotificationPermission() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==  PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                 // FCM SDK (and your app) can post notifications.
             } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
 
@@ -59,6 +59,10 @@ public class ViewPlants extends AppCompatActivity {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
             }
         }
+    }
+
+    private void connectToGrpc() {
+        client = new Client("192.168.1.88", 5050);
     }
 
     @Override
@@ -80,21 +84,19 @@ public class ViewPlants extends AppCompatActivity {
                 });
 
 
-        // TODO testing grpc client
-        client = new Client("10.0.0.150", 5050);
-        plants = client.getPlants( false);
+        new Thread(() -> {
+            // TODO testing grpc client
+            plants = client.getPlants(false);
 
+            // Create list view with plant data
+            PlantListAdapter plantAdapter = new PlantListAdapter(this, plants);
+            ListView listView = findViewById(R.id.plants_listview);
+            listView.setAdapter(plantAdapter);
 
-
-
-        // Create list view with plant data
-        PlantListAdapter plantAdapter = new PlantListAdapter(this, plants);
-        ListView listView = findViewById(R.id.plants_listview);
-        listView.setAdapter(plantAdapter);
-
-        // Automatically displays message when plant list is empty
-        TextView emptyView = findViewById(R.id.plants_empty_message);
-        listView.setEmptyView(emptyView);
+            // Automatically displays message when plant list is empty
+            TextView emptyView = findViewById(R.id.plants_empty_message);
+            listView.setEmptyView(emptyView);
+        }).start();
 
         FloatingActionButton fab = findViewById(R.id.addPlantButton);
         fab.setOnClickListener(new View.OnClickListener() {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
+ * (C) Copyright 2023-2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
  *
  * This code is distributed on "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
@@ -39,8 +39,10 @@ dependencies {
 
     // examples/advanced need this for JsonFormat
     implementation "com.google.protobuf:protobuf-java-util:${protobufVersion}"
-
     runtimeOnly "io.grpc:grpc-netty-shaded:${grpcVersion}"
+
+    // Needed for messaging
+    implementation 'com.google.firebase:firebase-admin:9.3.0'
 
     // Use JUnit test framework.
     testImplementation libs.junit
@@ -89,6 +91,7 @@ run {
 }
 
 jar {
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.MF'
     manifest {
         attributes 'Main-Class': 'planttracker.server.App'
     }
@@ -98,5 +101,5 @@ jar {
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.WARN
 }

@@ -7,6 +7,12 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.util.Calendar;
+
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -26,7 +32,23 @@ public class PlantListenerServer {
   private final static Logger logger = Logger.getGlobal(); 
   private Server server;
 
-  private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+  public record PlantSensorNotificationInfo (
+      PlantSensor plant,           // Plant notification is based around.
+      Calendar lastNotification,   // The timestamp of the last notification, depending on the config 
+                                   // notifications will not be given for the same  plant within a period of time
+      int minMoisture,             // Minimum moisture before a notification is sent.
+      int lastMoisture,            // The last given moisture notification will only 
+                                   // be sent if this was over the minMoisture.
+      int minHumidity,             // Minimum humidity before notification is sent.
+      int lastHumidity             // The last given humidity, notifications will only
+                                   // be sent if this was over the minHumidity.
+  ) {}
+
+  public record PiInfo (
+      LinkedBlockingQueue<ListenerRequest> requestQueue,
+      Map<Long, PlantSensorNotificationInfo> plantNotificationMap) {}
+
+  private Map<Long, PiInfo> piInfoMap;
 
   /* The port on which the server should run */
   private int port;
@@ -34,14 +56,14 @@ public class PlantListenerServer {
   public PlantListenerServer(PlantTrackerConfig config) {
     server = null;
     port = config.listenerPort;
-    requestQueueMap = new HashMap<Long, LinkedBlockingQueue<ListenerRequest>>();
+    piInfoMap = new HashMap<Long, PiInfo>();
   }
 
   public void start() throws PlantTrackerException {
     try {
       logger.finer("Starting plant listener server on port " + port);
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-                   .addService(new PlantListenerImpl(requestQueueMap))
+                   .addService(new PlantListenerImpl(piInfoMap))
                    .build()
                    .start();
                    
@@ -78,15 +100,15 @@ public class PlantListenerServer {
    * @param request The request to be executed.
    */
   public synchronized void addRequestForPi(long pid, ListenerRequest request) {
-    requestQueueMap.get(pid).add(request);
+    piInfoMap.get(pid).requestQueue.add(request);
   }
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
 
-    private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+    private Map<Long, PiInfo> piInfoMap;
 
-    PlantListenerImpl(Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) {
-      this.requestQueueMap = requestQueueMap;
+    PlantListenerImpl(Map<Long, PiInfo> piInfoMap) {
+      this.piInfoMap = piInfoMap;
     }
   
     @Override
@@ -96,6 +118,12 @@ public class PlantListenerServer {
       String piName = config.getName();
       String uuid = config.getUuid();
       List<MoistureDevice> devices = config.getDevicesList();
+
+      try {
+          FirebaseMessaging.getInstance().send(Message.builder().setTopic("plant-id-1").setNotification(Notification.builder().setTitle("Test notification").setBody("Water your plants plz").build()).build());
+      } catch(FirebaseMessagingException e) {
+          logger.warning("failed to send message with: " + e);
+      }
 
       try {
         // Retrieve or insert pi and db pid
@@ -151,18 +179,25 @@ public class PlantListenerServer {
           insertStmt.close();
           resultSet.close();
         }
-
+        ArrayList<PlantSensor> plantList = getPlantSensors(pid);
+        
         // Create a request queue for the pid
-        if (requestQueueMap.containsKey(pid)) {
+        if (piInfoMap.containsKey(pid)) {
           // Add shutdown to bork it out if listening.
           logger.warning("uuid already exists for pi " + pid);
-          requestQueueMap.get(pid).add(ListenerRequest.newBuilder().setType(ListenerRequestType.SHUTDOWN).build()); 
+          piInfoMap.get(pid).requestQueue.add(ListenerRequest.newBuilder().setType(ListenerRequestType.SHUTDOWN).build()); 
 
         } else {
-          requestQueueMap.put(pid, new LinkedBlockingQueue<ListenerRequest>());
+          Map<Long, PlantSensorNotificationInfo> plantNotificationMap = new HashMap<Long, PlantSensorNotificationInfo>()
+          for (PlantSensor sensor: plantList) {
+            // TODO fetch min moisture and min humidity (should this just go in PlantSensor??)
+            PlantSensorNotificationInfo info = new PlantSensorNotificationInfo(sensor, null, 0, 0, 0, 0);
+            plantNotificationMap.put(sensor.getPlantId(), info);
+          }
+          
+          piInfoMap.put(pid, new PiInfo(new LinkedBlockingQueue<ListenerRequest>(), plantNotificationMap));
         }
 
-        ArrayList<PlantSensor> plantList = getPlantSensors(pid);
         Result res = Result.newBuilder().setReturnCode(0).build();
         response = InitializeResponse.newBuilder().setRes(res).addAllPlants(plantList).build();
       } catch (SQLException | PlantTrackerException e) {
@@ -269,6 +304,10 @@ public class PlantListenerServer {
       return pid;
     }
 
+    private void handleNotification(PlantSensorData data) {
+      FirebaseMessaging
+    }
+
     @Override
     public void reportSensor(PlantSensorDataList request, StreamObserver<Result> responseObserver) {
       logger.finest("Sensor report request received.");
@@ -293,6 +332,8 @@ public class PlantListenerServer {
             // TODO i dont find this message that useful, better logging or error msg ideas?
             throw new SQLException("Expected 1 affected row after inserting sensor data, but rows affected were: " + affectedRows);
           }
+
+          handleNotification(data);
         }
         insertStmt.close();
       } catch (SQLException | PlantTrackerException e) {

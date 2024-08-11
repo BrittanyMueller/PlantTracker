@@ -116,6 +116,7 @@ Build Android Plant Tracker Debug:
     BUILD_PLANT_LISTENER: 0
   script:
     - mkdir -p build
+    - echo "${GOOGLE_SERVICES_JSON}" > ./android/plant_tracker/app/google-services.json
     - cd build
     - cmake ..
     - make PlantTracker

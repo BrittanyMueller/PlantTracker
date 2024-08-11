@@ -7,6 +7,9 @@
         "db-user": "postgres",
         "db-pass": "planttracker",
         "db-name": "planttracker",
-        "log-level": "DEBUG"
+        "log-level": "DEBUG",
+        "log-file": "log.txt",
+        "firebase-credentials_container" : "/workspaces/PlantTracker/firebase-credentials.json",
+	"firebase-credentials" : "/home/larry/Programming/raspberrypi/PlantTracker/firebase-credentials.json"
     }
 }
