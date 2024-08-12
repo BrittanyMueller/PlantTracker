@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="10dp"
-        android:text="Select Image"
+        android:text="@string/select_image"
         app:backgroundTint="@color/green" />
 
     <com.google.android.material.textfield.TextInputLayout
@@ -151,16 +151,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="12dp"
+                android:textSize="12sp"
                 android:text="Low"
-                android:gravity="left"/>
+                android:gravity="start"/>
 
             <TextView
                 android:id="@+id/label_medium"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="12dp"
+                android:textSize="12sp"
                 android:text="Medium"
                 android:gravity="center"/>
 
@@ -169,7 +169,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="12dp"
+                android:textSize="12sp"
                 android:text="High"
                 android:gravity="end"/>
 
@@ -184,7 +184,6 @@
                 android:stepSize="1"
                 app:labelBehavior="gone"
                 app:thumbColor="@color/green"
-                app:thumbElevation="3dp"
                 app:thumbRadius="10dp"
                 app:thumbHeight="20dp"
                 app:thumbWidth="20dp"
@@ -197,13 +196,12 @@
 
     <Button
         android:id="@+id/add_plant_submit"
-        android:layout_width="150dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:backgroundTint="@color/light_green"
         android:elevation="10dp"
         android:gravity="center"
-        android:padding="10dp"
         android:text="@string/add_plant"
         android:textAllCaps="false"
         android:textColor="@color/black"

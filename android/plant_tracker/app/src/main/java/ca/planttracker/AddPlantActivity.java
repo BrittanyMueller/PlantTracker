@@ -6,29 +6,35 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.PickVisualMediaRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 public class AddPlantActivity extends AppCompatActivity {
 
     Button selectImageBtn;
     ImageView plantImageView;
 
+    StorageReference storageReference;
     Uri imageUri;
 
     private final ActivityResultLauncher<Intent> selectImageLauncher = registerForActivityResult(
@@ -42,9 +48,6 @@ public class AddPlantActivity extends AppCompatActivity {
                         Toast.makeText(AddPlantActivity.this, "Error selecting image.", Toast.LENGTH_SHORT).show();
                         Log.e("PhotoPicker", Objects.requireNonNull(e.getMessage()));
                     }
-                } else {
-                    // No image selected
-                    Toast.makeText(AddPlantActivity.this, "No image selected.", Toast.LENGTH_SHORT).show();
                 }
             });
 
@@ -52,6 +55,10 @@ public class AddPlantActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_plant);
+
+        // TODO initialize in non-UI thread?
+        FirebaseApp.initializeApp(AddPlantActivity.this);
+        storageReference = FirebaseStorage.getInstance().getReference();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -88,14 +95,26 @@ public class AddPlantActivity extends AppCompatActivity {
             }
         });
 
-
         Button addPlantSubmit = findViewById(R.id.add_plant_submit);
         addPlantSubmit.setOnClickListener(view -> {
 
-            String plantName = Objects.requireNonNull(plantNameField.getText()).toString();
-            int lightLevel = (int) lightSlider.getValue();
+            Thread thread = new Thread() {
+                @Override
+                public void run() {
+                    String plantName = Objects.requireNonNull(plantNameField.getText()).toString();
+                    int lightLevel = (int) lightSlider.getValue();
 
-            Toast.makeText(AddPlantActivity.this, "Plant Name: " + plantName, Toast.LENGTH_LONG).show();
+
+                    if (imageUri != null) {
+                        Log.i("IMG", Objects.requireNonNull(imageUri.getLastPathSegment()));
+                        String path = uploadImageFirebase(imageUri);
+                    }
+
+                    Toast.makeText(AddPlantActivity.this, "Plant Name: " + plantName, Toast.LENGTH_LONG).show();
+                }
+            };
+
+            thread.start();
 
 //            Client client = new Client("10.0.2.2", 5050);
 //            long returnCode = client.addPlant();
@@ -111,5 +130,27 @@ public class AddPlantActivity extends AppCompatActivity {
     private void selectImage() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         selectImageLauncher.launch(intent);
+    }
+
+    private String uploadImageFirebase(Uri imageUri) {
+        String path = "images/" + UUID.randomUUID();
+        StorageReference ref = storageReference.child(path);
+        UploadTask task = ref.putFile(imageUri);
+
+        try {
+
+            Tasks.await(task);
+
+        } catch (InterruptedException | ExecutionException e) {
+            Toast.makeText(AddPlantActivity.this, "Add plant failed :(", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+//        addOnSuccessListener(taskSnapshot -> {
+//            // Image successfully uploaded, so send addPlant request to server
+//
+//        }).addOnFailureListener(exception -> {
+//
+//        });
+        return path;
     }
 }
