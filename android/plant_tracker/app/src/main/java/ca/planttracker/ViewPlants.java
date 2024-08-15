@@ -1,5 +1,6 @@
 package ca.planttracker;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -17,10 +18,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONArray;
@@ -36,7 +39,7 @@ import java.util.List;
 public class ViewPlants extends AppCompatActivity {
 
     private Client client;
-    private List<Plant> plants;
+    private List<Plant> plants = new ArrayList<>();
 
     // TODO(qawse3dr) we probably want to move these and make it prettier
     // Declare the launcher at the top of your Activity/Fragment:
@@ -61,42 +64,17 @@ public class ViewPlants extends AppCompatActivity {
         }
     }
 
-    private void connectToGrpc() {
-        client = new Client("192.168.1.88", 5050);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.plants_listview_layout);
 
         askNotificationPermission();
-        FirebaseMessaging.getInstance().subscribeToTopic("plant-id-1")
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(Task<Void> task) {
-                        String msg = "Subscribed";
-                        if (!task.isSuccessful()) {
-                            msg = "Subscribe failed";
-                        }
-                        Toast.makeText(ViewPlants.this, msg, Toast.LENGTH_SHORT).show();
-                    }
-                });
 
+        SwipeRefreshLayout refresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+        refresh.setOnRefreshListener(this::refreshViewPlants);
 
-        new Thread(() -> {
-            // TODO testing grpc client
-            plants = client.getPlants(false);
-
-            // Create list view with plant data
-            PlantListAdapter plantAdapter = new PlantListAdapter(this, plants);
-            ListView listView = findViewById(R.id.plants_listview);
-            listView.setAdapter(plantAdapter);
-
-            // Automatically displays message when plant list is empty
-            TextView emptyView = findViewById(R.id.plants_empty_message);
-            listView.setEmptyView(emptyView);
-        }).start();
+        refreshViewPlants();
 
         FloatingActionButton fab = findViewById(R.id.addPlantButton);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -106,6 +84,60 @@ public class ViewPlants extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+    @SuppressLint("DefaultLocale")
+    private void refreshViewPlants() {
+        new Thread(() -> {
+            boolean error = false;
+            try {
+                if (client == null) client = new Client("10.0.0.150", 5050);
+                plants = client.getPlants(false);
+                for (Plant plant: plants) {
+                    // TODO(qawse3dr) Eventually this will come from settings.
+                    FirebaseMessaging.getInstance().subscribeToTopic(String.format("plant-id-%d", plant.getId()))
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(Task<Void> task) {
+                                    String msg = "Subscribed";
+                                    if (!task.isSuccessful()) {
+                                        msg = "Subscribe failed";
+                                    }
+                                    Toast.makeText(ViewPlants.this, msg, Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                }
+
+
+            } catch (Exception e) {
+                Log.i("TAG", "Failed to connect to server with" + e);
+                error = true;
+            } finally {
+                boolean finalError = error;
+                runOnUiThread(() -> {
+                    // Create list view with plant data
+                    PlantListAdapter plantAdapter = new PlantListAdapter(this, plants);
+                    ListView listView = findViewById(R.id.plants_listview);
+                    listView.setAdapter(plantAdapter);
+
+                    // Automatically displays message when plant list is empty
+                    TextView emptyView = findViewById(R.id.plants_empty_message);
+                    if (finalError) {
+                        plants.clear();
+                        emptyView.setText(R.string.connection_error);
+                    } else {
+                        emptyView.setText(R.string.no_plants_found);
+                    }
+
+                    listView.setEmptyView(emptyView);
+
+                    // in case we are refreshing finally set it to remove the refresh icon
+                    SwipeRefreshLayout refresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+                    refresh.setRefreshing(false);
+
+                });
+            }
+        }).start();
     }
 
     private List<Plant> getPlantData() {

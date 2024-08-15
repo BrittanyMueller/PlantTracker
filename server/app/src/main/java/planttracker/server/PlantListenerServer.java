@@ -32,23 +32,7 @@ public class PlantListenerServer {
   private final static Logger logger = Logger.getGlobal(); 
   private Server server;
 
-  public record PlantSensorNotificationInfo (
-      PlantSensor plant,           // Plant notification is based around.
-      Calendar lastNotification,   // The timestamp of the last notification, depending on the config 
-                                   // notifications will not be given for the same  plant within a period of time
-      int minMoisture,             // Minimum moisture before a notification is sent.
-      int lastMoisture,            // The last given moisture notification will only 
-                                   // be sent if this was over the minMoisture.
-      int minHumidity,             // Minimum humidity before notification is sent.
-      int lastHumidity             // The last given humidity, notifications will only
-                                   // be sent if this was over the minHumidity.
-  ) {}
-
-  public record PiInfo (
-      LinkedBlockingQueue<ListenerRequest> requestQueue,
-      Map<Long, PlantSensorNotificationInfo> plantNotificationMap) {}
-
-  private Map<Long, PiInfo> piInfoMap;
+  private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
 
   /* The port on which the server should run */
   private int port;
@@ -56,14 +40,14 @@ public class PlantListenerServer {
   public PlantListenerServer(PlantTrackerConfig config) {
     server = null;
     port = config.listenerPort;
-    piInfoMap = new HashMap<Long, PiInfo>();
+    requestQueueMap = new HashMap<Long, LinkedBlockingQueue<ListenerRequest>>();
   }
 
   public void start() throws PlantTrackerException {
     try {
       logger.finer("Starting plant listener server on port " + port);
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-                   .addService(new PlantListenerImpl(piInfoMap))
+                   .addService(new PlantListenerImpl(requestQueueMap))
                    .build()
                    .start();
                    
@@ -100,15 +84,64 @@ public class PlantListenerServer {
    * @param request The request to be executed.
    */
   public synchronized void addRequestForPi(long pid, ListenerRequest request) {
-    piInfoMap.get(pid).requestQueue.add(request);
+    requestQueueMap.get(pid).add(request);
   }
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
 
-    private Map<Long, PiInfo> piInfoMap;
+    class NotificationRecord {
+      // The timestamp of the last notification, depending on the config 
+      // notifications will not be given for the same plant within a period of time.
+      public Calendar lastNotification = new Calendar.Builder().setDate(0,0,0).build();  
+  
+      // Minimum value before notification is sent.
+      public int minValue; 
+      
+      // The last given value will only 
+      // notification will only be sent if this value was over minValue.
+      public int lastValue = Integer.MAX_VALUE;
+      
+      public NotificationRecord(int minValue) {
+        this.minValue = minValue;
+      }
+    }           
+  
+    class PlantSensorNotificationInfo {
+        long pid;
+        String name;
+        NotificationRecord moisture;
+        NotificationRecord humidity;
+        
+        public PlantSensorNotificationInfo(long pid, String name, NotificationRecord moisture, NotificationRecord humidity) {
+          this.pid = pid;
+          this.name = name;
+          this.moisture = moisture;
+          this.humidity = humidity;
+        }
+    }
 
-    PlantListenerImpl(Map<Long, PiInfo> piInfoMap) {
-      this.piInfoMap = piInfoMap;
+    // TODO might be able to delete and just create info directly.
+    record PlantRequirements (
+      long pid,
+      String name,
+      int minMoisture,
+      int minHumidity
+    ) {};
+
+    private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+    private Map<Long, PlantSensorNotificationInfo> plantNotificationMap = 
+      new HashMap<Long, PlantSensorNotificationInfo>();
+
+
+    PlantListenerImpl(Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) throws PlantTrackerException {
+      this.requestQueueMap = requestQueueMap;
+
+      ArrayList<PlantRequirements> reqs = getPlantRequirements();
+      for (PlantRequirements req: reqs) {
+        plantNotificationMap.put(req.pid, new PlantSensorNotificationInfo(req.pid, req.name,
+                                 new NotificationRecord(req.minMoisture), 
+                                 new NotificationRecord(req.minHumidity)));
+      }
     }
   
     @Override
@@ -118,12 +151,6 @@ public class PlantListenerServer {
       String piName = config.getName();
       String uuid = config.getUuid();
       List<MoistureDevice> devices = config.getDevicesList();
-
-      try {
-          FirebaseMessaging.getInstance().send(Message.builder().setTopic("plant-id-1").setNotification(Notification.builder().setTitle("Test notification").setBody("Water your plants plz").build()).build());
-      } catch(FirebaseMessagingException e) {
-          logger.warning("failed to send message with: " + e);
-      }
 
       try {
         // Retrieve or insert pi and db pid
@@ -179,23 +206,16 @@ public class PlantListenerServer {
           insertStmt.close();
           resultSet.close();
         }
+        
         ArrayList<PlantSensor> plantList = getPlantSensors(pid);
         
         // Create a request queue for the pid
-        if (piInfoMap.containsKey(pid)) {
+        if (requestQueueMap.containsKey(pid)) {
           // Add shutdown to bork it out if listening.
           logger.warning("uuid already exists for pi " + pid);
-          piInfoMap.get(pid).requestQueue.add(ListenerRequest.newBuilder().setType(ListenerRequestType.SHUTDOWN).build()); 
-
+          requestQueueMap.get(pid).add(ListenerRequest.newBuilder().setType(ListenerRequestType.SHUTDOWN).build()); 
         } else {
-          Map<Long, PlantSensorNotificationInfo> plantNotificationMap = new HashMap<Long, PlantSensorNotificationInfo>()
-          for (PlantSensor sensor: plantList) {
-            // TODO fetch min moisture and min humidity (should this just go in PlantSensor??)
-            PlantSensorNotificationInfo info = new PlantSensorNotificationInfo(sensor, null, 0, 0, 0, 0);
-            plantNotificationMap.put(sensor.getPlantId(), info);
-          }
-          
-          piInfoMap.put(pid, new PiInfo(new LinkedBlockingQueue<ListenerRequest>(), plantNotificationMap));
+          requestQueueMap.put(pid, new LinkedBlockingQueue<ListenerRequest>());
         }
 
         Result res = Result.newBuilder().setReturnCode(0).build();
@@ -240,9 +260,36 @@ public class PlantListenerServer {
         plantStmt.close();
         res.close();
       } catch (SQLException e) {
-        throw new PlantTrackerException("Failed to retrieve plant sensors for Pi with pid: " + pid, e);
+        throw new PlantTrackerException("Failed to retrieve plant sensors for Pi with pid: " + pid + e.getMessage(), e);
       }
       return plantList;
+    }
+
+    private ArrayList<PlantRequirements> getPlantRequirements() throws PlantTrackerException {
+      ArrayList<PlantRequirements> reqs = new ArrayList<PlantRequirements>();
+
+      Database db = Database.getInstance();
+
+      String plantQuery = "SELECT id, name, min_moisture, min_humidity FROM plants";
+      
+      try {
+        db.lockDatabase();
+        PreparedStatement plantStmt = db.connection.prepareStatement(plantQuery);
+  
+        ResultSet res = plantStmt.executeQuery();
+  
+        while (res.next()) {
+          reqs.add(new PlantRequirements(res.getLong("id"), res.getString("name"), res.getInt("min_moisture"), res.getInt("min_humidity")));
+        }
+        plantStmt.close();
+        res.close();
+      } catch (SQLException e) {
+        throw new PlantTrackerException("Failed to retrieve plant requirements: ", e);
+      } finally {
+        db.unlockDatabase();
+      }
+
+      return reqs; 
     }
 
     /**
@@ -305,7 +352,52 @@ public class PlantListenerServer {
     }
 
     private void handleNotification(PlantSensorData data) {
-      FirebaseMessaging
+      PlantSensorNotificationInfo notificationInfo = plantNotificationMap.get(data.getPlantId());
+
+      Calendar notificationTimeout = Calendar.getInstance();
+      notificationTimeout.add(Calendar.HOUR, -1);
+
+      // Multiple by 10 to cover [0-1.0] percent to [1..10] integer range.
+      int moistureValue = (int)(data.getMoisture().getMoistureLevel() * 10);
+      int humidityValue = (int)(data.getHumidity() * 100);
+
+      String topic = String.format("plant-id-%d", data.getPlantId());
+      // String notificationImage = "https://gitlab.larrycloud.ca/uploads/-/system/project/avatar/48/leaf-svgrepo-com__1_.png";
+      String notificationImage = null;
+      String title = notificationInfo.name + " needs your attention";
+
+      if (moistureValue <= notificationInfo.moisture.minValue && 
+          notificationInfo.moisture.lastValue > notificationInfo.moisture.minValue &&
+          notificationInfo.moisture.lastNotification.before(notificationTimeout)) {
+            Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Moisture level at %d%%", (int)(data.getMoisture().getMoistureLevel() * 100))).setImage(notificationImage).build()).setTopic(topic).build();
+            try {
+              logger.fine("Sending notification for plant-id-%d moisture");
+              FirebaseMessaging.getInstance().send(message);
+              notificationInfo.moisture.lastNotification = Calendar.getInstance();
+            } catch (FirebaseMessagingException e) {
+              // TODO(qawse3dr) RETHROW
+            }
+            
+          }
+
+      if (humidityValue <= notificationInfo.humidity.minValue && 
+      notificationInfo.humidity.lastValue > notificationInfo.humidity.minValue &&
+      notificationInfo.humidity.lastNotification.before(notificationTimeout)) {
+        Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Humidity level at %.2f%%", (int)(data.getHumidity() * 100))).setImage(notificationImage).build()).setTopic(topic).build();
+        try {
+          logger.fine("Sending notification for plant-id-%d humidity");
+					FirebaseMessaging.getInstance().send(message);
+          // Only set on valid notification
+          notificationInfo.moisture.lastNotification = Calendar.getInstance();
+				} catch (FirebaseMessagingException e) {
+          // TODO(qawse3dr) RETHROW
+				}
+
+      }
+
+      notificationInfo.moisture.lastValue = moistureValue;
+      notificationInfo.humidity.lastValue = humidityValue;
+
     }
 
     @Override
@@ -380,7 +472,8 @@ public class PlantListenerServer {
             responseObserver.onError(new StatusException(Status.CANCELLED));
             return;
           }
-
+          
+          // TODO need to update notificationMap for added plants.
           responseObserver.onNext(req);
         }
       } catch (InterruptedException e) {
