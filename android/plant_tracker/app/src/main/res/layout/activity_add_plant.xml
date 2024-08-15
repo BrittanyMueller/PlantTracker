@@ -21,7 +21,6 @@
         android:scaleType="centerCrop"
         android:cropToPadding="true"
         android:background="@color/light_green"
-        android:padding="2dp"
         android:contentDescription="@string/plant_image_description"
         android:src="@drawable/baseline_flower_24" />
 
