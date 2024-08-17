@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -13,22 +12,198 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
-    <Button
-        android:id="@+id/add_plant_submit"
-        android:layout_width="150dp"
+    <ImageView
+        android:id="@+id/plant_image_view"
+        android:layout_width="175dp"
+        android:layout_height="175dp"
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop"
+        android:cropToPadding="true"
+        android:background="@color/light_green"
+        android:contentDescription="@string/plant_image_description"
+        android:src="@drawable/baseline_flower_24" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/upload_image_button"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:backgroundTint="#a8ee90"
+        android:layout_margin="10dp"
+        android:text="@string/select_image"
+        app:backgroundTint="@color/green" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="10dp"
+        android:hint="@string/plant_name_input_label"
+        app:boxStrokeWidthFocused="2dp"
+        app:boxStrokeColor="@color/green"
+        app:cursorColor="@color/black"
+        app:endIconMode="clear_text"
+        app:hintTextColor="@color/green">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/plant_name_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLength="32"
+            android:textColor="@android:color/black" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/pi_dropdown"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="10dp"
+        android:hint="Select Pi"
+        app:endIconMode="dropdown_menu">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/selected_pi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/moisture_device_dropdown"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="10dp"
+        android:hint="Select Device"
+        app:endIconMode="dropdown_menu"
+        android:enabled="false">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/selected_moisture_device"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/sensor_port_dropdown"
+        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="15dp"
+        android:hint="Select Sensor Port"
+        app:endIconMode="dropdown_menu"
+        android:enabled="false">
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/selected_sensor_port"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginBottom="20dp"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="10dp"
+            android:text="Light Level"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="15dp"
+            android:layout_marginBottom="-5dp">
+
+            <TextView
+                android:id="@+id/label_low"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:text="Low"
+                android:gravity="start"/>
+
+            <TextView
+                android:id="@+id/label_medium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:text="Medium"
+                android:gravity="center"/>
+
+            <TextView
+                android:id="@+id/label_high"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp"
+                android:text="High"
+                android:gravity="end"/>
+
+        </LinearLayout>
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/light_slider"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:valueFrom="0"
+                android:valueTo="2"
+                android:stepSize="1"
+                app:labelBehavior="gone"
+                app:thumbColor="@color/green"
+                app:thumbRadius="10dp"
+                app:thumbHeight="20dp"
+                app:thumbWidth="20dp"
+                app:tickColor="@color/green"
+                app:tickRadiusActive="3dp"
+                app:tickRadiusInactive="3dp"
+                app:trackColor="@color/transparent_green" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/add_plant_submit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:backgroundTint="@color/light_green"
+        android:elevation="10dp"
         android:gravity="center"
         android:text="@string/add_plant"
         android:textAllCaps="false"
         android:textColor="@color/black"
-        android:textSize="18sp"
-        android:padding="10dp"
-        android:elevation="10dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="18sp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>
