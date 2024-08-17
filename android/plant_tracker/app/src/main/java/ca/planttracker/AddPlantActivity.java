@@ -64,12 +64,12 @@ public class AddPlantActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_plant);
 
-        // TODO initialize in non-UI thread?
         FirebaseApp.initializeApp(AddPlantActivity.this);
         storageReference = FirebaseStorage.getInstance().getReference();
 
         // Initialize threads for async tasks
-        executorService = Executors.newFixedThreadPool(2);
+//        executorService = Executors.newFixedThreadPool(2);
+        executorService = Executors.newSingleThreadExecutor();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -92,19 +92,19 @@ public class AddPlantActivity extends AppCompatActivity {
 
         lightSlider = findViewById(R.id.light_slider);
         // Set readable labels on light slider
-        lightSlider.setLabelFormatter(value -> {
-            switch ((int) value) {
-                case 0:
-                    return "Low";
-                case 1:
-                    return "Medium";
-                case 2:
-                    return "High";
-                default:
-                    // Impossible base on UI ?
-                    return "";
-            }
-        });
+//        lightSlider.setLabelFormatter(value -> {
+//            switch ((int) value) {
+//                case 0:
+//                    return "Low";
+//                case 1:
+//                    return "Medium";
+//                case 2:
+//                    return "High";
+//                default:
+//                    // Impossible, restricted by UI
+//                    return "";
+//            }
+//        });
 
         Button addPlantSubmit = findViewById(R.id.add_plant_submit);
         addPlantSubmit.setOnClickListener(view -> {
@@ -152,7 +152,7 @@ public class AddPlantActivity extends AppCompatActivity {
             UploadTask uploadTask = ref.putFile(imageUri);
             uploadTask.addOnSuccessListener(taskSnapshot -> {
                 // Upload successful, returns promised image path
-                Log.d("UploadImage", "Firebase img upload successful.");
+                Log.d("UploadImage", "Firebase image upload successful.");
                 future.complete(path);
                 runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Image uploaded successfully!", Toast.LENGTH_SHORT).show());
             }).addOnFailureListener(e -> {
@@ -169,11 +169,11 @@ public class AddPlantActivity extends AppCompatActivity {
             Log.d("CreatePlant", "Starting GRPC request with imageUrl: ." + imageUrl);
             try {
                 // TODO GRPC addPlant request
-                Thread.sleep(4000);
+                Thread.sleep(4000); // Time to stare at toast
                 runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Sending GRPC request.", Toast.LENGTH_LONG).show());
                 Thread.sleep(4000); // Time to stare at toast
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                Log.e("AddPlantRequest", "Failed to create new plant.", e);
             }
         }, executorService);
     }
