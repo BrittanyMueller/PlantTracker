@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PlantListAdapter extends ArrayAdapter<Plant> {
@@ -35,7 +34,7 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
         ViewHolder holder;
         if (convertView == null) {
             // Inflate new view if none available from recycling (scrolled out of view)
-            convertView = LayoutInflater.from(context).inflate(R.layout.plant_card, parent, false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.view_plants_card, parent, false);
             holder = new ViewHolder();  // Create new holder to reference view
             holder.plantImage = convertView.findViewById(R.id.plant_image);
             holder.plantName = convertView.findViewById(R.id.plant_title);

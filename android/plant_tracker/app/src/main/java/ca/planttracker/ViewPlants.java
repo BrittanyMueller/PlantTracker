@@ -1,29 +1,34 @@
 package ca.planttracker;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.Manifest;
-import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.preference.PreferenceManager;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONArray;
@@ -38,7 +43,7 @@ import java.util.List;
 
 public class ViewPlants extends AppCompatActivity {
 
-    private Client client;
+    private final Client client = Client.instance();
     private List<Plant> plants = new ArrayList<>();
 
     // TODO(qawse3dr) we probably want to move these and make it prettier
@@ -67,50 +72,83 @@ public class ViewPlants extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.plants_listview_layout);
-
+        setContentView(R.layout.view_plants_activity);
         askNotificationPermission();
 
         SwipeRefreshLayout refresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
         refresh.setOnRefreshListener(this::refreshViewPlants);
-
         refreshViewPlants();
 
         FloatingActionButton fab = findViewById(R.id.addPlantButton);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        fab.setOnClickListener((View v) -> {
                 Intent intent = new Intent(ViewPlants.this, AddPlantActivity.class);
                 startActivity(intent);
-            }
         });
+
+        ImageView hamburger = findViewById(R.id.hamburger_menu);
+        hamburger.setOnClickListener((View v) -> {
+            DrawerLayout drawer = findViewById(R.id.drawer_layout);
+            drawer.openDrawer(GravityCompat.START);
+        });
+
+        NavigationView navView = findViewById(R.id.navigation);
+        navView.setNavigationItemSelectedListener((MenuItem item) -> {
+            Intent intent = null;
+            switch(item.getItemId()) {
+                case R.id.home_menu:
+                    intent = new Intent(ViewPlants.this, ViewPlants.class);
+                    break;
+                case R.id.setting_menu:
+                    intent = new Intent(ViewPlants.this, Settings.class);
+            }
+            startActivity(intent);
+            return true; // TODO(qawse3dr) what does this return do
+        });
+
     }
 
-    @SuppressLint("DefaultLocale")
+
     private void refreshViewPlants() {
         new Thread(() -> {
             boolean error = false;
             try {
-                if (client == null) client = new Client("10.0.0.150", 5050);
-                plants = client.getPlants(false);
+                SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+                String serverAddress = pref.getString("server_ip", "10.0.0.2");
+                int serverPort = Integer.parseInt(pref.getString("server_port", "5050"));
+
+                if (serverAddress.equals("0.0.0.0")) {
+                    plants = getPlantData();
+                } else {
+                    client.connect(serverAddress, serverPort);
+                    plants = client.getPlants(false);
+                }
+
                 for (Plant plant: plants) {
                     // TODO(qawse3dr) Eventually this will come from settings.
-                    FirebaseMessaging.getInstance().subscribeToTopic(String.format("plant-id-%d", plant.getId()))
+
+                    // If the preference manager already has this no need to subscribe.
+                    if (pref.contains("plant-id-" + plant.getId())) {
+                        continue;
+                    }
+
+                    FirebaseMessaging.getInstance().subscribeToTopic("plant-id-" + plant.getId())
                             .addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
-                                public void onComplete(Task<Void> task) {
+                                public void onComplete(@NonNull Task<Void> task) {
                                     String msg = "Subscribed";
                                     if (!task.isSuccessful()) {
                                         msg = "Subscribe failed";
+                                    } else {
+                                        SharedPreferences.Editor editor = pref.edit();
+                                        editor.putBoolean("plant-id-" + plant.getId(), true);
+                                        editor.apply();
                                     }
                                     Toast.makeText(ViewPlants.this, msg, Toast.LENGTH_SHORT).show();
                                 }
                             });
                 }
-
-
             } catch (Exception e) {
-                Log.i("TAG", "Failed to connect to server with" + e);
+                Log.e("TAG", "Failed to connect to server with " + e);
                 error = true;
             } finally {
                 boolean finalError = error;
@@ -179,8 +217,4 @@ public class ViewPlants extends AppCompatActivity {
         }
     }
 
-    public void clickMe(View view) {
-        EditText input = findViewById(R.id.inputField);
-        Toast.makeText(this, input.getText().toString(), Toast.LENGTH_SHORT).show();
-    }
 }

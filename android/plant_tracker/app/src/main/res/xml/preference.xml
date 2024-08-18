@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="Networking"
+        app:iconSpaceReserved="false">
+
+        <EditTextPreference
+            android:defaultValue="10.0.2.2"
+            android:key="server_ip"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Server Address"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="true" />
+        <EditTextPreference
+            android:defaultValue="5050"
+            android:key="server_port"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+
+            android:title="Server Port"
+            app:iconSpaceReserved="false"
+            app:isPreferenceVisible="true"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="General"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="notification_enabled"
+            android:title="Notifications"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+</PreferenceScreen>

@@ -1,7 +1,10 @@
 package ca.planttracker;
 
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.preference.Preference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +20,26 @@ import planttracker.server.Result;
 
 public class Client {
 
-    private final PlantTrackerGrpc.PlantTrackerBlockingStub stub;
+    private static PlantTrackerGrpc.PlantTrackerBlockingStub stub;
+    private static ManagedChannel channel = null;
+    private static final Client client = new Client();
 
     // TODO refactor into singleton with initialization method
-    public Client(String host, int port) {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
+    private  Client() {
+    }
+
+    public synchronized  void connect(String host, int port) {
+        if (channel != null) {
+            channel.shutdown();
+        }
+        // get host and port from preferences
+        Log.i("TAG", "Connecting to " + host + ":" + String.valueOf(port));
+        channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         stub = PlantTrackerGrpc.newBlockingStub(channel);
+    }
+
+    public synchronized static  Client instance() {
+        return client;
     }
 
     public long addPlant() {

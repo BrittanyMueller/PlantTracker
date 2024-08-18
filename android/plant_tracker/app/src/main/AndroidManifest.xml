@@ -4,8 +4,7 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="true"
@@ -30,6 +29,9 @@
             android:resource="@color/green" />
         <activity
             android:name=".AddPlantActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".ViewPlants"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,9 +39,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ViewPlants"
-            android:exported="false">
-        </activity>
+            android:name=".Settings"
+            android:exported="true"/>
     </application>
 
 </manifest>

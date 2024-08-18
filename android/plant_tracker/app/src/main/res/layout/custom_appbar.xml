@@ -34,6 +34,7 @@
                     android:contentDescription="@string/go_back"
                     android:src="@drawable/back_arrow_24"
                     app:tint="@color/white"
+                    android:backgroundTint="#00FFFFFF"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"

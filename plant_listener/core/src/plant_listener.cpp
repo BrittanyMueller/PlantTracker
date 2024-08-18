@@ -179,6 +179,10 @@ Error PlantListener::init() {
   return {};
 }
 
+// Error PlantListener::doStart() {
+
+// }
+
 Error PlantListener::start() {
   std::unique_lock<std::mutex> lck(mutex_);
 
@@ -189,6 +193,8 @@ Error PlantListener::start() {
   }
   spdlog::info("Starting PlantListener please wait... ");
 
+  Error res;
+  std::thread plant_event_thread;
   do {
 
     // Start GRPC client.
@@ -223,9 +229,11 @@ Error PlantListener::start() {
 
     auto status = client_->initialize(&client_context, cfg, &response);
     if (!status.ok()) {
-      return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", status.error_message())};
+      res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", status.error_message())};
+      break;
     } else if (response.res().return_code() != 0) {
-      return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", response.res().error())};
+      res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", response.res().error())};
+      break;
     }
 
     // Adds all plants based on the return.
@@ -235,21 +243,22 @@ Error PlantListener::start() {
       plant_cfg.moisture_device_name = plant.device_name();
       plant_cfg.moisture_device_port = plant.sensor_port();
 
-      auto res = addPlant(plant_cfg);
+      res = addPlant(plant_cfg);
       if (res.isError()) {
-        return res;
+        break;
       }
     }
+
+    if (res.isError()) break;
     
 
     grpc::ClientContext event_thread_client_context;
-    std::thread plant_event_thread(&PlantListener::plantEventWorkLoop, this, std::ref(event_thread_client_context));
+    plant_event_thread = std::thread(&PlantListener::plantEventWorkLoop, this, std::ref(event_thread_client_context));
 
     spdlog::info("PlantListener started!");
     state_ = State::STARTED;
 
     // Poll until we are told to stop
-    Error res;
     while (state_ == State::STARTED) {
       auto next_poll = std::chrono::steady_clock::now() + cfg_.poll_rate;
       SPDLOG_DEBUG("POLLING SENSORS");
@@ -302,13 +311,14 @@ Error PlantListener::start() {
     lck.unlock();
     event_thread_client_context.TryCancel();
     plant_event_thread.join();
+    plant_event_thread = {};
     client_.reset();
     lck.lock();
 
     spdlog::warn("Connection error: {}", res.toStr());
 
     // Check if we should try and reconnect
-    if (cfg_.retry_count-- > 0) {
+    if (cfg_.retry_count-- > 0 && state_ == State::STARTED) {
       if (res.isError()) {
         spdlog::warn("Connection error: {}", res.toStr());
       } else {
@@ -318,13 +328,12 @@ Error PlantListener::start() {
       spdlog::info("Starting reconnection.");
       continue;
     }
+  } while(false);
 
-    // We are no longer running so notify whoever is stopping us we are finished.
-    state_ = State::INITALIZED;
-    cv_.notify_all();
-    return res;
-
-  } while(true);
+  // We are no longer running so notify whoever is stopping us we are finished.
+  state_ = State::INITALIZED;
+  cv_.notify_all();
+  return res;
 }
 
 Error PlantListener::stop() {
