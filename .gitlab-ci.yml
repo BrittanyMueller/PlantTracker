@@ -45,24 +45,6 @@ Test Plant Tracker Server:
     - chmod +x gradlew
     - ./gradlew test
 
-Build Plant Listener:
-  image: registry.larrycloud.ca/qawse3dr/plant-tracker-rpi-zero:latest  
-  extends: .base_job
-  stage: build
-  script:
-    - mkdir build
-    - cd build
-    - cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf.toolchain.cmake ..
-    - make -j4
-    - mkdir -p ../out/plant_listener
-    - mv ./bin ../out/plant_listener
-    - mv ./lib ../out/plant_listener
-    - mv ../plant_listener/data/config.json ../out/plant_listener
-  artifacts:
-    paths:
-      - out/plant_listener
-    expire_in: 1 week
-
 
 #########################################
 #                                       #
@@ -82,18 +64,23 @@ Build Plant Listener Tests:
     - cmake .. -DCMAKE_BUILD_TYPE=test
     - make -j4
 
-Build Plant Listener Release:
+Build Plant Listener:
+  image: registry.larrycloud.ca/qawse3dr/plant-tracker-rpi-zero:latest  
   extends: .base_job
   stage: build
-  artifacts:
-    paths:
-      - build
-    expire_in: 1 week
   script:
     - mkdir build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=release
+    - cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf.toolchain.cmake ..
     - make -j4
+    - mkdir -p ../out/plant_listener
+    - mv ./bin ../out/plant_listener
+    - mv ./lib ../out/plant_listener
+    - mv ../plant_listener/data/config.json ../out/plant_listener
+  artifacts:
+    paths:
+      - out/plant_listener
+    expire_in: 1 week
 
 
 Test Coverage Plant Listener:
@@ -129,6 +116,7 @@ Build Android Plant Tracker Debug:
     BUILD_PLANT_LISTENER: 0
   script:
     - mkdir -p build
+    - echo "${GOOGLE_SERVICES_JSON}" > ./android/plant_tracker/app/google-services.json
     - cd build
     - cmake ..
     - make PlantTracker

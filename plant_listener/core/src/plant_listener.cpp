@@ -179,25 +179,33 @@ Error PlantListener::init() {
   return {};
 }
 
+// Error PlantListener::doStart() {
+
+// }
+
 Error PlantListener::start() {
   std::unique_lock<std::mutex> lck(mutex_);
 
-  if (state_ == State::STARTED) {
+  if (state_ == State::STARTED || state_ == State::RECONNECTING) {
     return {plantlistener::Error::Code::ERROR_AGAIN, "PlantListener is already running."};
   } else if (state_ != State::INITALIZED) {
     return {plantlistener::Error::Code::ERROR_NOT_INIT, "PlantListener not initalized."};
   }
   spdlog::info("Starting PlantListener please wait... ");
 
-  // Start GRPC client.
-  spdlog::info("Connecting too {}:{}", cfg_.address, cfg_.port);
+  Error res;
+  std::thread plant_event_thread;
+  do {
 
-  client_ = std::move(makeClientFtn_(cfg_.address, cfg_.port, grpc::InsecureChannelCredentials()));
-  // Init the data with the server
-  {
+    // Start GRPC client.
+    spdlog::info("Connecting too {}:{}", cfg_.address, cfg_.port);
+
+    // Init the data with the server
+    client_ = std::move(makeClientFtn_(cfg_.address, cfg_.port, grpc::InsecureChannelCredentials()));
+    
     grpc::ClientContext client_context;
     planttracker::grpc::PlantListenerConfig cfg;
-    planttracker::grpc::InitializeResponse res;
+    planttracker::grpc::InitializeResponse response;
 
     cfg.set_name(cfg_.name);
     cfg.set_uuid(cfg_.uuid);
@@ -219,89 +227,108 @@ Error PlantListener::start() {
       new_dev->set_num_sensors(port_count);
     }
 
-    auto status = client_->initialize(&client_context, cfg, &res);
+    auto status = client_->initialize(&client_context, cfg, &response);
     if (!status.ok()) {
-      return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", status.error_message())};
-    } else if (res.res().return_code() != 0) {
-      return {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", res.res().error())};
+      res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", status.error_message())};
+      break;
+    } else if (response.res().return_code() != 0) {
+      res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to initialize with: {}", response.res().error())};
+      break;
     }
 
     // Adds all plants based on the return.
-    for (const auto& plant : res.plants()) {
+    for (const auto& plant : response.plants()) {
       PlantConfig plant_cfg;
       plant_cfg.id = plant.plant_id();
       plant_cfg.moisture_device_name = plant.device_name();
       plant_cfg.moisture_device_port = plant.sensor_port();
 
-      auto res = addPlant(plant_cfg);
+      res = addPlant(plant_cfg);
       if (res.isError()) {
-        return res;
-      }
-    }
-  }
-
-  grpc::ClientContext event_thread_client_context;
-  std::thread plant_event_thread(&PlantListener::plantEventWorkLoop, this, std::ref(event_thread_client_context));
-
-  spdlog::info("PlantListener started!");
-  state_ = State::STARTED;
-
-  // Poll until we are told to stop
-  Error res;
-  while (state_ == State::STARTED) {
-    auto next_poll = std::chrono::steady_clock::now() + cfg_.poll_rate;
-    SPDLOG_DEBUG("POLLING SENSORS");
-
-    for (const auto& sensor : sensors_) {
-      res = sensor->updatePlants();
-      if (res.isError()) {
-        spdlog::error("Encountered error when updating plants: {}", res.toStr());
         break;
       }
     }
 
-    // send update to grpc
-    PlantSensorDataList plant_data_list;
-    plant_data_list.Clear();
-    planttracker::grpc::Result report_res;
-    for (const auto& plant : plants_) {
-      const auto& data = plant->getPlantData();
-      auto* plant_data = plant_data_list.add_data();
+    if (res.isError()) break;
+    
 
-      plant_data->set_plant_id(plant->getId());
-      plant_data->set_humidity(data.humidity_data);
-      plant_data->set_temp(data.temp_data);
+    grpc::ClientContext event_thread_client_context;
+    plant_event_thread = std::thread(&PlantListener::plantEventWorkLoop, this, std::ref(event_thread_client_context));
 
-      LightSensorData* lightData = new LightSensorData;
-      lightData->set_sensor_value(data.light_data);
-      lightData->set_lumens(data.light_data * 1.023);  // TODO replace a with a real coefficient.
+    spdlog::info("PlantListener started!");
+    state_ = State::STARTED;
 
-      MoistureSensorData* moistureData = new MoistureSensorData;
-      moistureData->set_sensor_value(data.moisture_data);
-      moistureData->set_moisture_level(1 - (data.moisture_data / 255.0));
+    // Poll until we are told to stop
+    while (state_ == State::STARTED) {
+      auto next_poll = std::chrono::steady_clock::now() + cfg_.poll_rate;
+      SPDLOG_DEBUG("POLLING SENSORS");
 
-      plant_data->set_allocated_light(lightData);
-      plant_data->set_allocated_moisture(moistureData);
-    }
-
-    {
-      grpc::ClientContext client_context;
-      auto status = client_->reportSensor(&client_context, plant_data_list, &report_res);
-      if (!status.ok()) {
-        res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to report sensor with: {}", status.error_message())};
-        break;
+      for (const auto& sensor : sensors_) {
+        res = sensor->updatePlants();
+        if (res.isError()) {
+          spdlog::error("Encountered error when updating plants: {}", res.toStr());
+          break;
+        }
       }
+
+      // send update to grpc
+      PlantSensorDataList plant_data_list;
+      plant_data_list.Clear();
+      planttracker::grpc::Result report_res;
+      for (const auto& plant : plants_) {
+        const auto& data = plant->getPlantData();
+        auto* plant_data = plant_data_list.add_data();
+
+        plant_data->set_plant_id(plant->getId());
+        plant_data->set_humidity(data.humidity_data);
+        plant_data->set_temp(data.temp_data);
+
+        LightSensorData* lightData = new LightSensorData;
+        lightData->set_sensor_value(data.light_data);
+        lightData->set_lumens(data.light_data * 1.023);  // TODO replace a with a real coefficient.
+
+        MoistureSensorData* moistureData = new MoistureSensorData;
+        moistureData->set_sensor_value(data.moisture_data);
+        moistureData->set_moisture_level(1 - (data.moisture_data / 255.0));
+
+        plant_data->set_allocated_light(lightData);
+        plant_data->set_allocated_moisture(moistureData);
+      }
+
+      {
+        grpc::ClientContext client_context;
+        auto status = client_->reportSensor(&client_context, plant_data_list, &report_res);
+        if (!status.ok()) {
+          res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to report sensor with: {}", status.error_message())};
+          break;
+        }
+      }
+
+      cv_.wait_until(lck, next_poll);
     }
 
-    cv_.wait_until(lck, next_poll);
-  }
+    // Shut down GRPC client, but the work loop must be joined before we shut down the client.
+    lck.unlock();
+    event_thread_client_context.TryCancel();
+    plant_event_thread.join();
+    plant_event_thread = {};
+    client_.reset();
+    lck.lock();
 
-  // Shut down GRPC client, but the work loop must be joined before we shut down the client.
-  lck.unlock();
-  event_thread_client_context.TryCancel();
-  plant_event_thread.join();
-  client_.reset();
-  lck.lock();
+    spdlog::warn("Connection error: {}", res.toStr());
+
+    // Check if we should try and reconnect
+    if (cfg_.retry_count-- > 0 && state_ == State::STARTED) {
+      if (res.isError()) {
+        spdlog::warn("Connection error: {}", res.toStr());
+      } else {
+        spdlog::warn("Reconnect requested.");
+      }
+      std::this_thread::sleep_for(cfg_.retry_timeout);
+      spdlog::info("Starting reconnection.");
+      continue;
+    }
+  } while(false);
 
   // We are no longer running so notify whoever is stopping us we are finished.
   state_ = State::INITALIZED;
@@ -352,6 +379,7 @@ void PlantListener::plantEventWorkLoop(grpc::ClientContext& client_context) {
     // First we need to get the request don't lock as this is a long poll
     lck.unlock();
     done_reading = !duplex->Read(&request);
+    spdlog::debug("got request...");
     lck.lock();
 
     // Break out if we are done reading;
@@ -401,4 +429,9 @@ void PlantListener::plantEventWorkLoop(grpc::ClientContext& client_context) {
       spdlog::info("Request Success!");
     }
   }
+  spdlog::debug("Exiting poll");
+
+  // Change the state to reconnecting as our connection to the server is no longer valid.
+  state_ = State::RECONNECTING;
+  cv_.notify_all();
 }

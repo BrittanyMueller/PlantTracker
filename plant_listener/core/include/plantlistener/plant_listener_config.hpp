@@ -44,7 +44,7 @@ class PlantListenerConfig {
   spdlog::level::level_enum log_level = spdlog::level::warn;
   std::string address = "127.0.0.1";
   uint16_t port = 5051;
-  int32_t retry_count = -1;  // TODO(implement retry and time outs)
+  int32_t retry_count = 5;
   std::chrono::seconds retry_timeout = std::chrono::seconds(30);
   std::chrono::seconds poll_rate = std::chrono::seconds(10);
 
@@ -77,7 +77,7 @@ class PlantListenerConfig {
       value = it->get<T>();
     } catch (const nlohmann::json::type_error& e) {
       throw ParseException(Error::Code::ERROR_INVALID_TYPE,
-                           std::format("Failed to parse key {} with: {}", key, e.what()));
+                           fmt::format("Failed to parse key {} with: {}", key, e.what()));
     }
   }
 };

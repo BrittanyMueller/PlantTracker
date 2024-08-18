@@ -11,11 +11,14 @@ public class PlantTrackerConfig {
     public int trackerPort;
     public int listenerPort;
     public String logLevel;
+    public String logFile = ""; // If logFile is empty it won't be used.
 
     public String dbHost;
     public String dbUser;
     public String dbPass;
     public String dbName;
+
+    public String firebaseCredentialFile;
 
     public PlantTrackerConfig(JSONObject config) throws PlantTrackerException {
         try {
@@ -27,6 +30,10 @@ public class PlantTrackerConfig {
             dbPass = config.getString("db-pass");
             dbName = config.getString("db-name");
             logLevel = config.getString("log-level");
+            if (config.has("log-file")) {
+                logFile = config.getString("log-file");
+            }
+            firebaseCredentialFile = config.getString("firebase-credentials");
         } catch (JSONException e) {
             throw new PlantTrackerException("Missing expected config value.", e);
         }

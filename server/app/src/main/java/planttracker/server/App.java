@@ -22,6 +22,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.Notification;
+
 import java.util.logging.*;
 
 public class App {
@@ -40,6 +48,16 @@ public class App {
             handler.setLevel(Level.ALL);    // Allow handler to output any level of log
             logger.setUseParentHandlers(false);
             logger.addHandler(handler);
+
+            if (!config.logFile.isEmpty()) {
+                try {
+                    FileHandler fileHandler = new FileHandler(config.logFile);
+                    fileHandler.setLevel(Level.ALL);
+                    logger.addHandler(fileHandler);
+                } catch(Exception e) {
+                    throw new PlantTrackerException("Failed to open log file " + config.logFile, e);
+                }
+            }
 
             // Set global loggers level, map our log levels to Java's
             switch (config.logLevel) {
@@ -63,6 +81,18 @@ public class App {
             Database.init(config);
             db = Database.getInstance();
             db.createTables();  // Create tables if not exists
+
+
+            // Configure Firebase
+            FirebaseOptions options;
+            try {
+                FileInputStream credentialFile = new FileInputStream(config.firebaseCredentialFile);
+                options = FirebaseOptions.builder().setCredentials(GoogleCredentials.fromStream(credentialFile)).build();
+            } catch (IOException e) {
+                throw new PlantTrackerException("Failed to initialize firebase", e);
+            }
+            FirebaseApp.initializeApp(options);
+
             
             PlantListenerServer listener = new PlantListenerServer(config);
             listener.start();

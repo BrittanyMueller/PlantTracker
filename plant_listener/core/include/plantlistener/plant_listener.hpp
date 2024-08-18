@@ -38,7 +38,7 @@ namespace plantlistener::core {
  */
 class PlantListener {
  private:
-  enum class State { NOT_INITALIZED, INITIALIZING, INITALIZED, STARTED, STOPPING };
+  enum class State { NOT_INITALIZED, INITIALIZING, INITALIZED, STARTED, RECONNECTING, STOPPING };
 
   using ClientType = planttracker::grpc::PlantListener::StubInterface;
 

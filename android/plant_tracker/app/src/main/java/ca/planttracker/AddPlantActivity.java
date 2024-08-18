@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -15,11 +16,8 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.slider.Slider;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -29,8 +27,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -62,23 +58,24 @@ public class AddPlantActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_plant);
+        setContentView(R.layout.add_plant_activity);
 
         FirebaseApp.initializeApp(AddPlantActivity.this);
         storageReference = FirebaseStorage.getInstance().getReference();
 
         // Initialize threads for async tasks
-//        executorService = Executors.newFixedThreadPool(2);
+        // executorService = Executors.newFixedThreadPool(2);
         executorService = Executors.newSingleThreadExecutor();
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        ImageView hamburger = findViewById(R.id.hamburger_menu);
+        hamburger.setVisibility(View.GONE);
+        ImageView backButton = findViewById(R.id.back_arrow);
+        backButton.setVisibility(View.VISIBLE);
+        backButton.setOnClickListener((View v) -> {
+            finish(); // returns to previous activity
+        });
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeAsUpIndicator(R.drawable.back_arrow_24);
-            getSupportActionBar().setTitle("");
-        }
+
         TextView toolbarTitle = findViewById(R.id.toolbar_title);
         toolbarTitle.setText(getString(R.string.add_plant));
 
