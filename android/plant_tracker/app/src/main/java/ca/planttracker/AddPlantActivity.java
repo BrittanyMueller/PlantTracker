@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -64,7 +67,6 @@ public class AddPlantActivity extends AppCompatActivity {
         storageReference = FirebaseStorage.getInstance().getReference();
 
         // Initialize threads for async tasks
-        // executorService = Executors.newFixedThreadPool(2);
         executorService = Executors.newSingleThreadExecutor();
 
         ImageView hamburger = findViewById(R.id.hamburger_menu);
@@ -103,6 +105,20 @@ public class AddPlantActivity extends AppCompatActivity {
 //            }
 //        });
 
+        Pi[] piList = {};   // TODO get list of pi's from db
+        AutoCompleteTextView piDropdown = findViewById(R.id.pi_dropdown);
+        ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, piList);
+        piDropdown.setAdapter(piAdapter);
+
+        piDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+                // TODO save pid, fetch devices for next dropdown based on pid
+                Pi pi = (Pi) parentView.getItemAtPosition(pos);
+                long pid = pi.getId();
+            }
+        });
+
         Button addPlantSubmit = findViewById(R.id.add_plant_submit);
         addPlantSubmit.setOnClickListener(view -> {
             if (imageUri != null) {
@@ -134,6 +150,7 @@ public class AddPlantActivity extends AppCompatActivity {
 
     private void selectImage() {
         // Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        // TODO allow to upload from camera app directly
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
         selectImageLauncher.launch(intent);
     }
@@ -160,7 +177,7 @@ public class AddPlantActivity extends AppCompatActivity {
         }, executorService);
     }
 
-    // TODO what is the best way to pass form data here? Will be a lot of params...
+    // TODO create AddPlantFormData to capture form data in one object
     private CompletableFuture<Void> createPlant(String name, String imageUrl, int lightLevel) {
         return CompletableFuture.runAsync(() -> {
             Log.d("CreatePlant", "Starting GRPC request with imageUrl: ." + imageUrl);
