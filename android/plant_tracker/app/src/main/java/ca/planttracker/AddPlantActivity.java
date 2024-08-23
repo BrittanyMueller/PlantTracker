@@ -106,7 +106,7 @@ public class AddPlantActivity extends AppCompatActivity {
 //        });
 
         Pi[] piList = {};   // TODO get list of pi's from db
-        AutoCompleteTextView piDropdown = findViewById(R.id.pi_dropdown);
+        AutoCompleteTextView piDropdown = findViewById(R.id.select_pi_dropdown);
         ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, piList);
         piDropdown.setAdapter(piAdapter);
 
