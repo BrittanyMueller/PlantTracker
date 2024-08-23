@@ -38,3 +38,6 @@ firebase-credentials.json
 # VSCode
 *.vscode/*
 !.vscode/cmake-variants.yaml
+
+# PlantTracker logging
+log.txt

@@ -10,9 +10,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import java.util.logging.*;
+
+import com.google.protobuf.Empty;
 
 public class PlantTrackerServer {
 
@@ -270,6 +274,78 @@ public class PlantTrackerServer {
 
     public void getPlantData(GetPlantDataRequest request, io.grpc.stub.StreamObserver<PlantSensorDataList> responseObserver) {
       logger.severe("getPlantData Not Implemented");
+    }
+  
+    public void getAvailablePiSensors(Empty request, io.grpc.stub.StreamObserver<GetAvailablePiResponse> responseObserver) {
+      ArrayList<Pi> piList = null;
+      GetAvailablePiResponse res = null;
+
+      try {
+        // Query for Pi with available sensor ports
+        piList = selectAvailablePi();
+        res = GetAvailablePiResponse.newBuilder().addAllPiList(piList).build();
+      } catch (PlantTrackerException e) {
+        logger.severe("Failed to retrieve available Pi sensors: " + e);
+      } finally {
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+      }
+    }
+
+    private ArrayList<Pi> selectAvailablePi() throws PlantTrackerException {
+
+      ArrayList<Pi> piList = new ArrayList<Pi>();
+      Database db = Database.getInstance();
+
+      String sql = "SELECT pi.id AS pid, pi.name AS pi_name, moisture_devices.id AS mid, moisture_devices.name AS device_name, sensor_port " +
+                   "FROM pi JOIN moisture_devices ON pid = pi.id " +
+                   "JOIN sensors ON moisture_device_id = moisture_devices.id AND sensors.plant_id IS NULL;";
+
+      try (PreparedStatement stmt = db.connection.prepareStatement(sql);
+          ResultSet resultSet = stmt.executeQuery()) {
+
+        Map<Long, Pi.Builder> piMap = new HashMap<>();
+
+        while (resultSet.next()) {
+          // Available sensors found, build message for response
+          long pid = resultSet.getLong("pid");
+          String piName = resultSet.getString("pi_name");
+          long mid = resultSet.getLong("mid");
+          String deviceName = resultSet.getString("device_name");
+          int port = resultSet.getInt("sensor_port");
+
+          Pi.Builder pi = piMap.get(pid);
+          if (pi != null) {
+            // Pi exists already, add associated device if doesn't exist
+            AvailableMoistureDevice.Builder device = null;
+            for (AvailableMoistureDevice.Builder md : pi.getDeviceListBuilderList()) {
+              if (md.getId() == mid) {
+                device = md;  // Update sensor ports for existing device
+                md.addSensorPorts(port);
+                break;
+              }
+            }
+            if (device == null) {
+              // New device  found, initialize builder with data
+              AvailableMoistureDevice.Builder newDevice = AvailableMoistureDevice.newBuilder().setId(mid).setName(deviceName).addSensorPorts(port);
+              pi.addDeviceList(newDevice);
+            }
+          } else {
+            // New Pi record, 
+            AvailableMoistureDevice.Builder newDevice = AvailableMoistureDevice.newBuilder().setId(mid).setName(deviceName).addSensorPorts(port);
+            Pi.Builder newPi = Pi.newBuilder().setPid(pid).setName(piName).addDeviceList(newDevice);
+            piMap.put(pid, newPi);
+          }
+        }
+        // Finished parsing, convert builders into list
+        for (Pi.Builder piBuilder : piMap.values()) {
+          piList.add(piBuilder.build());
+        }
+      } catch (SQLException e) {
+        System.out.println(e.getMessage());
+        throw new PlantTrackerException(e);
+      }
+      return piList;
     }
   }
 
