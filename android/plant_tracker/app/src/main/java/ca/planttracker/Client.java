@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import planttracker.server.AvailableMoistureDevice;
 import planttracker.server.GetAvailablePiResponse;
 import planttracker.server.GetPlantsRequest;
@@ -41,6 +42,7 @@ public class Client {
             channel.shutdown();
         }
         // TODO get host and port from preferences?
+        // TODO error handling, stuck perma refreshing if this fails?
         Log.i("ClientConnect", "Connecting to " + host + ":" + port);
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         stub = PlantTrackerGrpc.newBlockingStub(channel);
@@ -97,17 +99,6 @@ public class Client {
         return piList;
     }
 
-    /**
-     * RESPONSE:
-     * message GetPlantsResponse {
-     *   Result res = 1;
-     *   repeated Plant plants = 2;
-     * }
-     * message Result {
-     *   int64 return_code = 1;
-     *   optional string error = 2;
-     * }
-     */
     public Plant getPlant(long id, boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_PLANT).setId(id).setFetchImages(fetchImage).build();
@@ -142,20 +133,34 @@ public class Client {
     }
 
     public List<Plant> getPlants(boolean fetchImage) {
-        GetPlantsRequest request = GetPlantsRequest.newBuilder()
-                .setType(GetPlantsRequestType.GET_ALL_PLANTS).setFetchImages(fetchImage).build();
-        GetPlantsResponse res = stub.getPlants(request);
 
         ArrayList<Plant> plants = new ArrayList<>();
-        if (res.getRes().getReturnCode() == 0) {
-            // Request was successful, parse response
-            for (PlantInfo plant : res.getPlantsList()) {
-                // Convert grpc info to Plant
-                plants.add(new Plant(plant));
+        GetPlantsRequest request = GetPlantsRequest.newBuilder()
+                .setType(GetPlantsRequestType.GET_ALL_PLANTS)
+                .setFetchImages(fetchImage)
+                .build();
+
+        try {
+            GetPlantsResponse res = stub.getPlants(request);
+            if (res.getRes().getReturnCode() == 0) {
+                // Request was successful, parse response
+                for (PlantInfo plant : res.getPlantsList()) {
+                    // Convert grpc info to Plant
+                    plants.add(new Plant(plant));
+                    Log.i("GetPlantsPLANT", plant.toString());
+                }
+                Log.i("GetPlants", "Successful response getPlants");
+            } else {
+                // Non-zero return code, error expected
+                Log.e("GetPlants", "Server error: " + res.getRes().getError());
             }
-            Log.i("GetPlants", "Successful response getPlants");
+        } catch (StatusRuntimeException e) {
+            // GRPC exception
+            Log.e("GetPlants", "GRPC call failed with: " + e.getStatus().getDescription(), e);
+        } catch (Exception e) {
+            Log.e("GetPlants", e.getMessage(), e);
         }
-        // TODO else error handling?
+
         return plants;
     }
 }

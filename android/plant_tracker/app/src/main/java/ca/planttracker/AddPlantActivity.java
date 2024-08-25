@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -109,36 +110,46 @@ public class AddPlantActivity extends AppCompatActivity {
 //        });
 
         AutoCompleteTextView piDropdown = findViewById(R.id.select_pi);
-        AutoCompleteTextView deviceDropdown = findViewById(R.id.select_moisture_device);
-        AutoCompleteTextView portDropdown = findViewById(R.id.select_sensor_port);
 
-        // TODO shits the bed if not in executor, but needs to be callable I think
-//        Client client = Client.getInstance();
-//        List<Pi> piList = client.getAvailablePiSensors();
-//        Log.i("GetPiRequestUI", piList.toString());
+        TextInputLayout deviceDropdown = findViewById(R.id.select_device_dropdown);
+        AutoCompleteTextView deviceSelection = findViewById(R.id.select_moisture_device);
 
-//        ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, piList);
-//        piDropdown.setAdapter(piAdapter);
-//
-//        piDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
-//                Pi pi = (Pi) parentView.getItemAtPosition(pos);
-//                // Populate device dropdown based on selected Pi
-//                ArrayAdapter<MoistureDevice> deviceAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, pi.getMoistureDevices());
-//                deviceDropdown.setAdapter(deviceAdapter);
-//            }
-//        });
-//
-//        deviceDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
-//                MoistureDevice device = (MoistureDevice) parentView.getItemAtPosition(pos);
-//                // Populate available sensor ports based on selected MoistureDevice
-//                ArrayAdapter<Integer> portAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, device.getAvailablePorts());
-//                portDropdown.setAdapter(portAdapter);
-//            }
-//        });
+        TextInputLayout portDropdown = findViewById(R.id.select_sensor_dropdown);
+        AutoCompleteTextView portSelection = findViewById(R.id.select_sensor_port);
+
+        // TODO pi request in executor, but needs to be callable I think
+        Client client = Client.getInstance();
+        List<Pi> piList = client.getAvailablePiSensors();
+        Log.i("GetPiRequestUI", piList.toString());
+
+        ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, piList);
+        piDropdown.setAdapter(piAdapter);
+
+        piDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+                Pi pi = (Pi) parentView.getItemAtPosition(pos);
+                // Populate device dropdown based on selected Pi
+                ArrayAdapter<MoistureDevice> deviceAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, pi.getMoistureDevices());
+
+                deviceSelection.setText("");    // Reset previous selection
+                deviceSelection.setAdapter(deviceAdapter);
+                deviceDropdown.setEnabled(true);
+            }
+        });
+
+        deviceSelection.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+                MoistureDevice device = (MoistureDevice) parentView.getItemAtPosition(pos);
+                // Populate available sensor ports based on selected MoistureDevice
+                ArrayAdapter<Integer> portAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, device.getAvailablePorts());
+
+                portSelection.setText("");    // Reset previous selection
+                portSelection.setAdapter(portAdapter);
+                portDropdown.setEnabled(true);
+            }
+        });
 
         Button addPlantSubmit = findViewById(R.id.add_plant_submit);
         addPlantSubmit.setOnClickListener(view -> {

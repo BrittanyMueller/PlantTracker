@@ -207,6 +207,7 @@ public class PlantTrackerServer {
         response = GetPlantsResponse.newBuilder().setRes(res).addAllPlants(plantList).build();
       } catch (PlantTrackerException e) {
         System.out.println(e.getMessage());
+        logger.severe("Failed to getPlants with: " + e.getMessage());
         Result res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();
         response = GetPlantsResponse.newBuilder().setRes(res).build();
       } finally {
@@ -236,6 +237,7 @@ public class PlantTrackerServer {
         }      
         ResultSet res = selectStmt.executeQuery();
         while (res.next()) {
+          logger.info(res.toString());
           plantList.add(buildPlantInfo(res, fetchImage));
         }
         selectStmt.close();
