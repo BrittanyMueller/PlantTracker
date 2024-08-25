@@ -68,14 +68,13 @@
         app:endIconMode="dropdown_menu">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/select_pi_dropdown"
+            android:id="@+id/select_pi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/moisture_device_dropdown"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -87,14 +86,13 @@
         android:enabled="false">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/selected_moisture_device"
+            android:id="@+id/select_moisture_device"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/sensor_port_dropdown"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -106,7 +104,7 @@
         android:enabled="false">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/selected_sensor_port"
+            android:id="@+id/select_sensor_port"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="none" />

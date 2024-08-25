@@ -43,7 +43,7 @@ import java.util.List;
 
 public class ViewPlants extends AppCompatActivity {
 
-    private final Client client = Client.instance();
+    private final Client client = Client.getInstance();
     private List<Plant> plants = new ArrayList<>();
 
     // TODO(qawse3dr) we probably want to move these and make it prettier

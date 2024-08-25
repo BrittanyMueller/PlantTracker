@@ -33,7 +33,8 @@ service PlantTracker {
 }
 
 message GetAvailablePiResponse {
-  repeated Pi piList = 1;
+  Result res = 1;
+  repeated Pi piList = 2;
 }
 message Pi {
   int64 pid = 1;

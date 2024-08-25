@@ -1,11 +1,14 @@
 package ca.planttracker;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Pi {
     private long id;
     private String name;
-    private MoistureDevice[] moistureDevices;
+    private List<MoistureDevice> moistureDevices;
 
-    public Pi(long id, String name, MoistureDevice[] moistureDevices) {
+    public Pi(long id, String name, List<MoistureDevice> moistureDevices) {
         this.id = id;
         this.name = name;
         this.moistureDevices = moistureDevices;
@@ -19,7 +22,7 @@ public class Pi {
         return name;
     }
 
-    public MoistureDevice[] getMoistureDevices() {
+    public List<MoistureDevice> getMoistureDevices() {
         return moistureDevices;
     }
 

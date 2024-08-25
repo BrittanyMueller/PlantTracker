@@ -6,10 +6,17 @@ import android.widget.Toast;
 
 import androidx.preference.Preference;
 
+import com.google.protobuf.Empty;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import planttracker.server.AvailableMoistureDevice;
+import planttracker.server.GetAvailablePiResponse;
 import planttracker.server.GetPlantsRequest;
 import planttracker.server.GetPlantsRequestType;
 import planttracker.server.GetPlantsResponse;
@@ -22,24 +29,28 @@ public class Client {
 
     private static PlantTrackerGrpc.PlantTrackerBlockingStub stub;
     private static ManagedChannel channel = null;
-    private static final Client client = new Client();
+    private static final Client instance = new Client();
 
-    // TODO refactor into singleton with initialization method
+    private ExecutorService executorService;
+
     private  Client() {
     }
 
-    public synchronized  void connect(String host, int port) {
+    public synchronized void connect(String host, int port) {
         if (channel != null) {
             channel.shutdown();
         }
-        // get host and port from preferences
-        Log.i("TAG", "Connecting to " + host + ":" + String.valueOf(port));
+        // TODO get host and port from preferences?
+        Log.i("ClientConnect", "Connecting to " + host + ":" + port);
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         stub = PlantTrackerGrpc.newBlockingStub(channel);
+
+        // TODO handle threading within singleton, wrap functions in executor
+        executorService = Executors.newFixedThreadPool(2);
     }
 
-    public synchronized static  Client instance() {
-        return client;
+    public synchronized static Client getInstance() {
+        return instance;
     }
 
     public long addPlant() {
@@ -58,6 +69,32 @@ public class Client {
         returnCode = res.getReturnCode();
 
         return returnCode;
+    }
+
+    public List<Pi> getAvailablePiSensors() {
+        // TODO run in diff thread, callable?
+        ArrayList<Pi> piList = new ArrayList<>();
+
+        try {
+            Empty emptyRequest = Empty.newBuilder().build();
+            GetAvailablePiResponse res = stub.getAvailablePiSensors(emptyRequest);
+            Log.i("GetPiRequest", "Response received: " + res.getPiListList().toString());
+
+            // Parse protobuf types into objects for dropdown
+            for (planttracker.server.Pi protoPi : res.getPiListList()) {
+
+                ArrayList<MoistureDevice> deviceList = new ArrayList<>();
+                for (AvailableMoistureDevice protoDevice : protoPi.getDeviceListList()) {
+                    MoistureDevice device = new MoistureDevice(protoDevice.getId(), protoDevice.getName(), protoDevice.getSensorPortsList());
+                    deviceList.add(device);
+                }
+                Pi pi = new Pi(protoPi.getPid(), protoPi.getName(), deviceList);
+                piList.add(pi);
+            }
+        } catch (Exception e) {
+            Log.e("GetPiRequest", "Failed to retrieve pi: " + e.getMessage());
+        }
+        return piList;
     }
 
     /**
@@ -79,7 +116,7 @@ public class Client {
         Plant plant = null;
         if (res.getPlantsCount() == 1 && res.getRes().getReturnCode() == 0) {
             // Request for 1 plant was successful, parse response
-            Log.i("INFO", "Response found 1 plant");
+            Log.i("GetPlant", "Response found 1 plant");
             plant = new Plant(res.getPlants(0));
         }
         // TODO error handling, check return code, error string
@@ -98,7 +135,7 @@ public class Client {
                 // Convert grpc info to Plant
                 plants.add(new Plant(plant));
             }
-            Log.i("INFO", "Successful response getPlantsByPi");
+            Log.i("GetPlantsByPi", "Successful response getPlantsByPi");
         }
         // TODO else error handling?
         return plants;
@@ -116,7 +153,7 @@ public class Client {
                 // Convert grpc info to Plant
                 plants.add(new Plant(plant));
             }
-            Log.i("INFO", "Successful response getPlants");
+            Log.i("GetPlants", "Successful response getPlants");
         }
         // TODO else error handling?
         return plants;

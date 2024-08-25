@@ -27,6 +27,9 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -105,19 +108,37 @@ public class AddPlantActivity extends AppCompatActivity {
 //            }
 //        });
 
-        Pi[] piList = {};   // TODO get list of pi's from db
-        AutoCompleteTextView piDropdown = findViewById(R.id.select_pi_dropdown);
-        ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, piList);
-        piDropdown.setAdapter(piAdapter);
+        AutoCompleteTextView piDropdown = findViewById(R.id.select_pi);
+        AutoCompleteTextView deviceDropdown = findViewById(R.id.select_moisture_device);
+        AutoCompleteTextView portDropdown = findViewById(R.id.select_sensor_port);
 
-        piDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
-                // TODO save pid, fetch devices for next dropdown based on pid
-                Pi pi = (Pi) parentView.getItemAtPosition(pos);
-                long pid = pi.getId();
-            }
-        });
+        // TODO shits the bed if not in executor, but needs to be callable I think
+//        Client client = Client.getInstance();
+//        List<Pi> piList = client.getAvailablePiSensors();
+//        Log.i("GetPiRequestUI", piList.toString());
+
+//        ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, piList);
+//        piDropdown.setAdapter(piAdapter);
+//
+//        piDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+//                Pi pi = (Pi) parentView.getItemAtPosition(pos);
+//                // Populate device dropdown based on selected Pi
+//                ArrayAdapter<MoistureDevice> deviceAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, pi.getMoistureDevices());
+//                deviceDropdown.setAdapter(deviceAdapter);
+//            }
+//        });
+//
+//        deviceDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+//                MoistureDevice device = (MoistureDevice) parentView.getItemAtPosition(pos);
+//                // Populate available sensor ports based on selected MoistureDevice
+//                ArrayAdapter<Integer> portAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, device.getAvailablePorts());
+//                portDropdown.setAdapter(portAdapter);
+//            }
+//        });
 
         Button addPlantSubmit = findViewById(R.id.add_plant_submit);
         addPlantSubmit.setOnClickListener(view -> {

@@ -1,11 +1,14 @@
 package ca.planttracker;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MoistureDevice {
     private long id;
     private String name;
-    private int availablePorts[];
+    private List<Integer> availablePorts;
 
-    public MoistureDevice(long id, String name, int[] availablePorts) {
+    public MoistureDevice(long id, String name, List<Integer> availablePorts) {
         this.id = id;
         this.name = name;
         this.availablePorts = availablePorts;
@@ -19,7 +22,7 @@ public class MoistureDevice {
         return name;
     }
 
-    public int[] getAvailablePorts() {
+    public List<Integer> getAvailablePorts() {
         return availablePorts;
     }
 

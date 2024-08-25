@@ -278,16 +278,21 @@ public class PlantTrackerServer {
   
     public void getAvailablePiSensors(Empty request, io.grpc.stub.StreamObserver<GetAvailablePiResponse> responseObserver) {
       ArrayList<Pi> piList = null;
-      GetAvailablePiResponse res = null;
+      GetAvailablePiResponse response = null;
+      Result.Builder res = Result.newBuilder();
 
       try {
         // Query for Pi with available sensor ports
         piList = selectAvailablePi();
-        res = GetAvailablePiResponse.newBuilder().addAllPiList(piList).build();
+        res.setReturnCode(0).build();
+        response = GetAvailablePiResponse.newBuilder().setRes(res).addAllPiList(piList).build();
       } catch (PlantTrackerException e) {
         logger.severe("Failed to retrieve available Pi sensors: " + e);
+        res.setReturnCode(1).setError(e.getMessage()).build();
+        response = GetAvailablePiResponse.newBuilder().setRes(res).build();
       } finally {
-        responseObserver.onNext(res);
+        logger.finest("Response sent for getAvailablePiSensors.");
+        responseObserver.onNext(response);
         responseObserver.onCompleted();
       }
     }
