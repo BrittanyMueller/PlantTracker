@@ -41,6 +41,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import planttracker.server.LightLevel;
+
 public class ViewPlants extends AppCompatActivity {
 
     private final Client client = Client.getInstance();
@@ -99,7 +101,7 @@ public class ViewPlants extends AppCompatActivity {
                     intent = new Intent(ViewPlants.this, ViewPlants.class);
                     break;
                 case R.id.setting_menu:
-                    intent = new Intent(ViewPlants.this, Settings.class);
+                    intent = new Intent(ViewPlants.this, SettingsActivity.class);
             }
             startActivity(intent);
             return true; // TODO(qawse3dr) what does this return do
@@ -121,7 +123,7 @@ public class ViewPlants extends AppCompatActivity {
                     plants = getPlantData();
                 } else {
                     Log.i("RefreshPlants", "Connecting to server at " + serverAddress);
-                    client.connect(serverAddress, serverPort);
+                    client.connect(getBaseContext(), serverAddress, serverPort);
                     plants = client.getPlants(false);
                 }
 
@@ -185,7 +187,7 @@ public class ViewPlants extends AppCompatActivity {
             if (objArray != null) {
                 for (int i = 0; i < objArray.length(); i++) {
                     JSONObject plantObj = objArray.getJSONObject(i);
-                    Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), plantObj.getString("imageUrl"));
+                    Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), plantObj.getString("imageUrl"), LightLevel.LOW);
                     plantList.add(plant);
                 }
             }

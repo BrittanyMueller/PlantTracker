@@ -1,0 +1,14 @@
+{
+  "planttracker": {
+      "host": "0.0.0.0",
+      "tracker-port": 5050,
+      "listener-port": 5051,
+      "db-host": "jdbc:postgresql://127.0.0.1/",
+      "db-user": "postgres",
+      "db-pass": "planttracker",
+      "db-name": "planttracker",
+      "log-level": "INFO",
+      "log-file": "/planttracker/secrets/log.txt",
+      "firebase-credentials" : "/planttracker/secrets/firebase-credentials.json"
+  }
+}

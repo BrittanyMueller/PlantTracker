@@ -1,0 +1,13 @@
+services:
+  planttracker:
+    image: "registry.larrycloud.ca/qawse3dr/plant-tracker-server:0.0.1"
+    ports:
+      - "5050:5050"
+      - "5051:5051"
+    volumes:
+      - ./secrets:/planttracker/secrets/
+      - planttracker-db:/var/lib/postgresql
+
+volumes:
+    planttracker-db:
+        external: false

@@ -42,7 +42,7 @@ import java.util.concurrent.Executors;
 
 import planttracker.server.PlantInfo;
 
-public class AddPlantActivity extends AppCompatActivity {
+public class AddPlantActivity extends AppBarActivity {
 
     private ExecutorService executorService;
     StorageReference storageReference;
@@ -93,23 +93,14 @@ public class AddPlantActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_plant_activity);
 
+        createAppBar(false, getString(R.string.add_plant));
+
         FirebaseApp.initializeApp(AddPlantActivity.this);
         storageReference = FirebaseStorage.getInstance().getReference();
 
         // Initialize threads for async tasks
         executorService = Executors.newSingleThreadExecutor();
 
-        // Set custom toolbar navigation & title
-        ImageView hamburger = findViewById(R.id.hamburger_menu);
-        hamburger.setVisibility(View.GONE);
-        ImageView backButton = findViewById(R.id.back_arrow);
-        backButton.setVisibility(View.VISIBLE);
-        backButton.setOnClickListener((View v) -> {
-            setResult(RESULT_CANCELED);
-            finish(); // returns to previous activity
-        });
-        TextView toolbarTitle = findViewById(R.id.toolbar_title);
-        toolbarTitle.setText(getString(R.string.add_plant));
 
         // Initialize ref to form elements
         selectImageBtn = findViewById(R.id.upload_image_button);

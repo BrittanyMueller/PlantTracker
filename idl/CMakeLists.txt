@@ -45,6 +45,5 @@ protobuf_generate(
     TARGET plant_tracker_idl
     LANGUAGE grpc
     PLUGIN protoc-gen-grpc=${grpc_plugin}
-    PLUGIN_OPTIONS generate_mock_code=true
     GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
 )

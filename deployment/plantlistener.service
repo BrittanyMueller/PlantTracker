@@ -1,0 +1,10 @@
+[Unit]
+Description=Plant Listener service
+After=network.target
+
+[Service]
+WorkingDirectory=/home/larryzero/plant_listener/
+ExecStart=/home/larryzero/plant_listener/bin/plant_listener -c ./config.json
+
+[Install]
+WantedBy=multi-user.target

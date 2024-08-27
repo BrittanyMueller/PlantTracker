@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="BarGraph">
+        <attr name="graph_title" format="string"/>
+        <attr name="graph_max" format="float"/>
+        <attr name="graph_min" format="float"/>
+    </declare-styleable>
+</resources>

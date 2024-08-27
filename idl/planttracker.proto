@@ -90,6 +90,7 @@ message PlantInfo {
   uint32 sensor_port = 8;
   optional string image_url = 9;
   optional bytes image = 10;
+  optional PlantSensorData last_report = 11;
 }
 
 enum LightLevel {

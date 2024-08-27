@@ -38,6 +38,7 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
             holder = new ViewHolder();  // Create new holder to reference view
             holder.plantImage = convertView.findViewById(R.id.plant_image);
             holder.plantName = convertView.findViewById(R.id.plant_title);
+            holder.plantStatus = convertView.findViewById(R.id.status);
             convertView.setTag(holder);
         } else {
             // Get the ViewHolder from the recycled view
@@ -47,6 +48,8 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
         // For every plant in list, inflate card view
         Plant plant = getItem(position);
         holder.plantName.setText(plant != null ? plant.getName() : null);
+
+
 
         if (plant.getImageUrl() == null) {
             // Default plant image placeholder
@@ -66,5 +69,6 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
     private static class ViewHolder {
         ImageView plantImage;
         TextView plantName;
+        ImageView plantStatus;
     }
 }

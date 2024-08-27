@@ -271,6 +271,11 @@ public class PlantTrackerServer {
         // TODO image as byte blob
         plant.setImage(null);
       }
+      PlantSensorData data = plantListener.getLastReport(plant.getId());
+      if (data != null) {
+        plant.setLastReport(data);
+      }
+
       return plant.build();
     }
 

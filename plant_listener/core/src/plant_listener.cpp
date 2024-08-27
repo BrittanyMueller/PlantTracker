@@ -179,10 +179,6 @@ Error PlantListener::init() {
   return {};
 }
 
-// Error PlantListener::doStart() {
-
-// }
-
 Error PlantListener::start() {
   std::unique_lock<std::mutex> lck(mutex_);
 
@@ -193,9 +189,34 @@ Error PlantListener::start() {
   }
   spdlog::info("Starting PlantListener please wait... ");
 
+  planttracker::grpc::PlantListenerConfig cfg;
+
+  cfg.set_name(cfg_.name);
+  cfg.set_uuid(cfg_.uuid);
+
+  for (const auto& [name, dev] : devices_) {
+    if (dev->getType() != plantlistener::device::DeviceType::ADC) {
+      continue;  // We only care about ADC's
+    }
+
+    auto* new_dev = cfg.add_devices();
+    new_dev->set_name(name);
+
+    auto port_count = dev->getPortCount();
+    for (auto& sensor : sensors_) {
+      if (sensor->getType() == SensorType::LIGHT) {
+        port_count--;  // All lights must be at the end.
+      }
+    }
+    new_dev->set_num_sensors(port_count);
+  }
+
   Error res;
   std::thread plant_event_thread;
   do {
+    res = {};
+
+    plants_.clear();
 
     // Start GRPC client.
     spdlog::info("Connecting too {}:{}", cfg_.address, cfg_.port);
@@ -204,28 +225,7 @@ Error PlantListener::start() {
     client_ = std::move(makeClientFtn_(cfg_.address, cfg_.port, grpc::InsecureChannelCredentials()));
     
     grpc::ClientContext client_context;
-    planttracker::grpc::PlantListenerConfig cfg;
     planttracker::grpc::InitializeResponse response;
-
-    cfg.set_name(cfg_.name);
-    cfg.set_uuid(cfg_.uuid);
-
-    for (const auto& [name, dev] : devices_) {
-      if (dev->getType() != plantlistener::device::DeviceType::ADC) {
-        continue;  // We only care about ADC's
-      }
-
-      auto* new_dev = cfg.add_devices();
-      new_dev->set_name(name);
-
-      auto port_count = dev->getPortCount();
-      for (auto& sensor : sensors_) {
-        if (sensor->getType() == SensorType::LIGHT) {
-          port_count--;  // All lights must be at the end.
-        }
-      }
-      new_dev->set_num_sensors(port_count);
-    }
 
     auto status = client_->initialize(&client_context, cfg, &response);
     if (!status.ok()) {
@@ -241,7 +241,7 @@ Error PlantListener::start() {
       PlantConfig plant_cfg;
       plant_cfg.id = plant.plant_id();
       plant_cfg.moisture_device_name = plant.device_name();
-      plant_cfg.moisture_device_port = plant.sensor_port();
+      plant_cfg.moisture_device_port = plant.sensor_port() - 1;  // Moisture sensors are offset by 1 in the db.
 
       res = addPlant(plant_cfg);
       if (res.isError()) {
@@ -273,7 +273,6 @@ Error PlantListener::start() {
 
       // send update to grpc
       PlantSensorDataList plant_data_list;
-      plant_data_list.Clear();
       planttracker::grpc::Result report_res;
       for (const auto& plant : plants_) {
         const auto& data = plant->getPlantData();
@@ -283,13 +282,17 @@ Error PlantListener::start() {
         plant_data->set_humidity(data.humidity_data);
         plant_data->set_temp(data.temp_data);
 
+        float lumens = data.light_data * 1.023f;  // TODO replace a with a real coefficient.
+        float moisture = 1 - (data.moisture_data / 255.0f);  // needs to be in a separate var due to rpi.
+    
         LightSensorData* lightData = new LightSensorData;
         lightData->set_sensor_value(data.light_data);
-        lightData->set_lumens(data.light_data * 1.023);  // TODO replace a with a real coefficient.
+        lightData->set_lumens(lumens);  
 
         MoistureSensorData* moistureData = new MoistureSensorData;
         moistureData->set_sensor_value(data.moisture_data);
-        moistureData->set_moisture_level(1 - (data.moisture_data / 255.0));
+        moistureData->set_moisture_level(moisture);
+        spdlog::info("Moisture {}  sensor_value: {}", moisture, moistureData->sensor_value());
 
         plant_data->set_allocated_light(lightData);
         plant_data->set_allocated_moisture(moistureData);
@@ -307,6 +310,10 @@ Error PlantListener::start() {
       cv_.wait_until(lck, next_poll);
     }
 
+    if (state_ == State::STARTED) {
+      spdlog::warn("Connection error: {}", res.toStr());
+    }
+
     // Shut down GRPC client, but the work loop must be joined before we shut down the client.
     lck.unlock();
     event_thread_client_context.TryCancel();
@@ -314,8 +321,6 @@ Error PlantListener::start() {
     plant_event_thread = {};
     client_.reset();
     lck.lock();
-
-    spdlog::warn("Connection error: {}", res.toStr());
 
     // Check if we should try and reconnect
     if (cfg_.retry_count-- > 0 && state_ == State::STARTED) {
