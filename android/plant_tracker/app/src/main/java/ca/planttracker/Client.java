@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -32,8 +33,6 @@ public class Client {
     private static ManagedChannel channel = null;
     private static final Client instance = new Client();
 
-    private ExecutorService executorService;
-
     private  Client() {
     }
 
@@ -41,14 +40,9 @@ public class Client {
         if (channel != null) {
             channel.shutdown();
         }
-        // TODO get host and port from preferences?
-        // TODO error handling, stuck perma refreshing if this fails?
         Log.i("ClientConnect", "Connecting to " + host + ":" + port);
         channel = ManagedChannelBuilder.forAddress(host, port).usePlaintext().build();
         stub = PlantTrackerGrpc.newBlockingStub(channel);
-
-        // TODO handle threading within singleton, wrap functions in executor
-        executorService = Executors.newFixedThreadPool(2);
     }
 
     public synchronized static Client getInstance() {
@@ -67,19 +61,18 @@ public class Client {
                                     .setMoistureDeviceId(1)
                                     .setSensorPort(5).build();
 
-        Result res = stub.addPlant(newPlant);
+        Result res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).addPlant(newPlant);
         returnCode = res.getReturnCode();
 
         return returnCode;
     }
 
     public List<Pi> getAvailablePiSensors() {
-        // TODO run in diff thread, callable?
         ArrayList<Pi> piList = new ArrayList<>();
 
         try {
             Empty emptyRequest = Empty.newBuilder().build();
-            GetAvailablePiResponse res = stub.getAvailablePiSensors(emptyRequest);
+            GetAvailablePiResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getAvailablePiSensors(emptyRequest);
             Log.i("GetPiRequest", "Response received: " + res.getPiListList().toString());
 
             // Parse protobuf types into objects for dropdown
@@ -102,7 +95,7 @@ public class Client {
     public Plant getPlant(long id, boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_PLANT).setId(id).setFetchImages(fetchImage).build();
-        GetPlantsResponse res = stub.getPlants(request);
+        GetPlantsResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getPlants(request);
 
         Plant plant = null;
         if (res.getPlantsCount() == 1 && res.getRes().getReturnCode() == 0) {
@@ -117,7 +110,7 @@ public class Client {
     public List<Plant> getPlantsByPi(long pid, boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setId(pid).setFetchImages(fetchImage).build();
-        GetPlantsResponse res = stub.getPlants(request);
+        GetPlantsResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getPlants(request);
 
         ArrayList<Plant> plants = new ArrayList<>();
         if (res.getRes().getReturnCode() == 0) {
@@ -141,7 +134,7 @@ public class Client {
                 .build();
 
         try {
-            GetPlantsResponse res = stub.getPlants(request);
+            GetPlantsResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getPlants(request);
             if (res.getRes().getReturnCode() == 0) {
                 // Request was successful, parse response
                 for (PlantInfo plant : res.getPlantsList()) {
@@ -155,10 +148,11 @@ public class Client {
                 Log.e("GetPlants", "Server error: " + res.getRes().getError());
             }
         } catch (StatusRuntimeException e) {
-            // GRPC exception
             Log.e("GetPlants", "GRPC call failed with: " + e.getStatus().getDescription(), e);
+            throw e;    // Rethrow GRPC exception
         } catch (Exception e) {
             Log.e("GetPlants", e.getMessage(), e);
+            throw e;
         }
 
         return plants;

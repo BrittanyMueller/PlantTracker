@@ -11,4 +11,8 @@
     <string name="connection_error">Connection Failed\nRefresh to try again.</string>
     <string name="select_pi_hint">Select Pi</string>
     <string name="select_device_hint">Select Device</string>
+    <string name="light_level_title">Light Level</string>
+    <string name="slider_label_low">Low</string>
+    <string name="slider_label_med">Medium</string>
+    <string name="slider_label_high">High</string>
 </resources>

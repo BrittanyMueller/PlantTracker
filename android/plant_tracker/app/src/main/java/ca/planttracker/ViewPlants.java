@@ -150,8 +150,7 @@ public class ViewPlants extends AppCompatActivity {
                             });
                 }
             } catch (Exception e) {
-                // TODO this should be handled in Client
-                Log.e("RefreshPlants", "Failed to connect to server with " + e);
+                Log.e("RefreshPlants", "Failed to connect to server with " + e, e);
                 error = true;
             } finally {
                 boolean finalError = error;

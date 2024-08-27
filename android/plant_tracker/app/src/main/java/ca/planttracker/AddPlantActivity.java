@@ -119,11 +119,15 @@ public class AddPlantActivity extends AppCompatActivity {
 
         // TODO pi request in executor, but needs to be callable I think
         Client client = Client.getInstance();
-        List<Pi> piList = client.getAvailablePiSensors();
-        Log.i("GetPiRequestUI", piList.toString());
 
-        ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(this, R.layout.dropdown_item, piList);
-        piDropdown.setAdapter(piAdapter);
+        executorService.execute(() -> {
+            List<Pi> piList = client.getAvailablePiSensors();
+            Log.i("GetPiRequestUI", piList.toString());
+            runOnUiThread(() -> {
+                ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, piList);
+                piDropdown.setAdapter(piAdapter);
+            });
+        });
 
         piDropdown.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -132,9 +136,11 @@ public class AddPlantActivity extends AppCompatActivity {
                 // Populate device dropdown based on selected Pi
                 ArrayAdapter<MoistureDevice> deviceAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, pi.getMoistureDevices());
 
+                portSelection.setText("");
                 deviceSelection.setText("");    // Reset previous selection
                 deviceSelection.setAdapter(deviceAdapter);
                 deviceDropdown.setEnabled(true);
+                portDropdown.setEnabled(false);
             }
         });
 
