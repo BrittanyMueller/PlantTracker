@@ -15,4 +15,5 @@
     <string name="slider_label_low">Low</string>
     <string name="slider_label_med">Medium</string>
     <string name="slider_label_high">High</string>
+    <string name="select_port_hint">Select Sensor Port</string>
 </resources>

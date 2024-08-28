@@ -59,6 +59,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/select_pi_dropdown"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -66,7 +67,12 @@
         android:layout_marginRight="30dp"
         android:layout_marginBottom="10dp"
         android:hint="@string/select_pi_hint"
-        app:endIconMode="dropdown_menu">
+        app:endIconMode="dropdown_menu"
+        app:endIconTint="@color/dark_grey"
+        app:boxStrokeWidthFocused="2dp"
+        app:boxStrokeColor="@color/green"
+        app:cursorColor="@color/black"
+        app:hintTextColor="@color/green">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/select_pi"
@@ -86,7 +92,13 @@
         android:layout_marginBottom="10dp"
         android:hint="@string/select_device_hint"
         app:endIconMode="dropdown_menu"
-        android:enabled="false">
+        app:endIconTint="@color/dark_grey"
+
+        android:enabled="false"
+        app:boxStrokeWidthFocused="2dp"
+        app:boxStrokeColor="@color/green"
+        app:cursorColor="@color/black"
+        app:hintTextColor="@color/green">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/select_moisture_device"
@@ -104,9 +116,14 @@
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
         android:layout_marginBottom="15dp"
-        android:hint="Select Sensor Port"
+        android:hint="@string/select_port_hint"
         app:endIconMode="dropdown_menu"
-        android:enabled="false">
+        app:endIconTint="@color/dark_grey"
+        android:enabled="false"
+        app:boxStrokeWidthFocused="2dp"
+        app:boxStrokeColor="@color/green"
+        app:cursorColor="@color/black"
+        app:hintTextColor="@color/green">
 
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/select_sensor_port"
@@ -340,13 +357,6 @@
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-
-
-
-
-
 
     <Button
         android:id="@+id/add_plant_submit"

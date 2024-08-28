@@ -1,17 +1,11 @@
 package ca.planttracker;
 
-import android.content.SharedPreferences;
 import android.util.Log;
-import android.widget.Toast;
-
-import androidx.preference.Preference;
 
 import com.google.protobuf.Empty;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.grpc.ManagedChannel;
@@ -49,22 +43,14 @@ public class Client {
         return instance;
     }
 
-    public long addPlant() {
+    public void addPlant(PlantInfo plantInfo) {
 
         long returnCode = -1;
-        PlantInfo newPlant = PlantInfo.newBuilder()
-                                    .setName("Android Plant")
-                                    .setLightLevelValue(2)
-                                    .setMinMoisture(5)
-                                    .setMinHumidity(50)
-                                    .setPid(1)
-                                    .setMoistureDeviceId(1)
-                                    .setSensorPort(5).build();
 
-        Result res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).addPlant(newPlant);
+        // TODO success/error handling, response
+        Result res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).addPlant(plantInfo);
         returnCode = res.getReturnCode();
 
-        return returnCode;
     }
 
     public List<Pi> getAvailablePiSensors() {

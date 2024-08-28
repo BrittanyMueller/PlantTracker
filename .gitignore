@@ -41,3 +41,4 @@ firebase-credentials.json
 
 # PlantTracker logging
 log.txt
+log.txt.lck
