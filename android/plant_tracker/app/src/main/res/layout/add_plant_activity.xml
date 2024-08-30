@@ -1,374 +1,395 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
     <!-- Include the custom app bar -->
     <include
+        android:id="@+id/custom_appbar"
         layout="@layout/custom_appbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <ImageView
-        android:id="@+id/plant_image_view"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="10dp"
-        android:layout_gravity="center"
-        android:scaleType="centerCrop"
-        android:cropToPadding="true"
-        android:background="@color/light_green"
-        android:contentDescription="@string/plant_image_description"
-        android:src="@drawable/baseline_flower_24" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/upload_image_button"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="5dp"
-        android:text="@string/select_image"
-        app:backgroundTint="@color/green" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/textInputLayout"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="10dp"
-        android:hint="@string/plant_name_input_label"
-        app:boxStrokeWidthFocused="2dp"
-        app:boxStrokeColor="@color/green"
-        app:cursorColor="@color/black"
-        app:endIconMode="clear_text"
-        app:hintTextColor="@color/green">
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/custom_appbar">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/plant_name_field"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLength="32"
-            android:padding="15dp"
-            android:textColor="@android:color/black" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_height="0dp"
+            android:orientation="vertical">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/select_pi_dropdown"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="10dp"
-        android:hint="@string/select_pi_hint"
-        app:endIconMode="dropdown_menu"
-        app:endIconTint="@color/dark_grey"
-        app:boxStrokeWidthFocused="2dp"
-        app:boxStrokeColor="@color/green"
-        app:cursorColor="@color/black"
-        app:hintTextColor="@color/green">
+            <ImageView
+                android:id="@+id/plant_image_view"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"
+                android:background="@color/light_green"
+                android:contentDescription="@string/plant_image_description"
+                android:cropToPadding="true"
+                android:scaleType="centerCrop"
+                android:src="@drawable/baseline_flower_24" />
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/select_pi"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="15dp"
-            android:inputType="none" />
-    </com.google.android.material.textfield.TextInputLayout>
+            <Button
+                android:id="@+id/upload_image_button"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="10dp"
+                android:textColor="@color/white"
+                android:text="@string/select_image"
+                app:backgroundTint="@color/green" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/select_device_dropdown"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="10dp"
-        android:hint="@string/select_device_hint"
-        app:endIconMode="dropdown_menu"
-        app:endIconTint="@color/dark_grey"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/plant_name_layout"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="10dp"
+                android:hint="@string/plant_name_input_label"
+                app:boxStrokeColor="@color/green"
+                app:boxStrokeWidthFocused="2dp"
+                app:cursorColor="@color/black"
+                app:endIconMode="clear_text"
+                app:hintTextColor="@color/green">
 
-        android:enabled="false"
-        app:boxStrokeWidthFocused="2dp"
-        app:boxStrokeColor="@color/green"
-        app:cursorColor="@color/black"
-        app:hintTextColor="@color/green">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/plant_name_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLength="32"
+                    android:padding="15dp"
+                    android:textColor="@android:color/black" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/select_moisture_device"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="15dp"
-            android:inputType="none" />
-    </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/select_pi_dropdown"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="10dp"
+                android:hint="@string/select_pi_hint"
+                app:boxStrokeColor="@color/green"
+                app:boxStrokeWidthFocused="2dp"
+                app:cursorColor="@color/black"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/dark_grey"
+                app:hintTextColor="@color/green">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/select_sensor_dropdown"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="30dp"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="15dp"
-        android:hint="@string/select_port_hint"
-        app:endIconMode="dropdown_menu"
-        app:endIconTint="@color/dark_grey"
-        android:enabled="false"
-        app:boxStrokeWidthFocused="2dp"
-        app:boxStrokeColor="@color/green"
-        app:cursorColor="@color/black"
-        app:hintTextColor="@color/green">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/select_pi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:padding="15dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/select_sensor_port"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="15dp"
-            android:inputType="none" />
-    </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/select_device_dropdown"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="10dp"
+                android:enabled="false"
+                android:hint="@string/select_device_hint"
+                app:boxStrokeColor="@color/green"
+                app:boxStrokeWidthFocused="2dp"
+                app:cursorColor="@color/black"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/dark_grey"
+                app:hintTextColor="@color/green">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="20dp">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/select_moisture_device"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:padding="15dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Vertical guideline for equal title width -->
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/title_width_guideline"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.2" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/select_sensor_dropdown"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="15dp"
+                android:enabled="false"
+                android:hint="@string/select_port_hint"
+                app:boxStrokeColor="@color/green"
+                app:boxStrokeWidthFocused="2dp"
+                app:cursorColor="@color/black"
+                app:endIconMode="dropdown_menu"
+                app:endIconTint="@color/dark_grey"
+                app:hintTextColor="@color/green">
 
-        <!-- Left guideline for first step label -->
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_left"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.25" />
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/select_sensor_port"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:padding="15dp" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Right guideline for last step label -->
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_right"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.945" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="20dp"
+                android:layout_marginBottom="20dp">
 
-        <!-- Light Level title -->
-        <TextView
-            android:id="@+id/light_level_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Light Level"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@id/light_slider"
-            app:layout_constraintEnd_toStartOf="@+id/title_width_guideline"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/label_low"
-            app:layout_constraintVertical_bias="0.5" />
+                <!-- Vertical guideline for equal title width -->
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/title_width_guideline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.2" />
 
-        <!-- Labels for the slider steps -->
-        <TextView
-            android:id="@+id/label_low"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/slider_label_low"
-            android:textSize="12sp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="@id/guideline_left"
-            app:layout_constraintEnd_toEndOf="@id/guideline_left" />
+                <!-- Left guideline for first step label -->
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline_left"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.25" />
 
-        <TextView
-            android:id="@+id/label_medium"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/slider_label_med"
-            android:textSize="12sp"
-            app:layout_constraintEnd_toEndOf="@id/guideline_right"
-            app:layout_constraintStart_toStartOf="@id/guideline_left"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintTop_toTopOf="parent" />
+                <!-- Right guideline for last step label -->
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline_right"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.945" />
 
-        <TextView
-            android:id="@+id/label_high"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/slider_label_high"
-            android:textSize="12sp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="@id/guideline_right"
-            app:layout_constraintEnd_toEndOf="@id/guideline_right" />
+                <!-- Light Level title -->
+                <TextView
+                    android:id="@+id/light_level_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/light_level_title"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="@id/light_slider"
+                    app:layout_constraintEnd_toStartOf="@+id/title_width_guideline"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/label_low"
+                    app:layout_constraintVertical_bias="0.5" />
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/light_slider"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="-10dp"
-            android:valueFrom="0"
-            android:valueTo="2"
-            android:stepSize="1"
-            app:labelBehavior="gone"
-            app:thumbColor="@color/green"
-            app:thumbRadius="10dp"
-            app:thumbHeight="20dp"
-            app:thumbWidth="20dp"
-            app:tickColor="@color/green"
-            app:tickRadiusActive="3dp"
-            app:tickRadiusInactive="3dp"
-            app:trackHeight="12dp"
-            app:trackColor="@color/transparent_green"
-            app:layout_constraintTop_toBottomOf="@id/label_low"
-            app:layout_constraintStart_toStartOf="@id/title_width_guideline"
-            app:layout_constraintEnd_toEndOf="parent" />
+                <!-- Labels for the slider steps -->
+                <TextView
+                    android:id="@+id/label_low"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/slider_label_low"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="@id/guideline_left"
+                    app:layout_constraintStart_toStartOf="@id/guideline_left"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-        <Space
-            android:id="@+id/light_moisture_spacer"
-            android:layout_width="match_parent"
-            android:layout_height="15dp"
-            app:layout_constraintTop_toBottomOf="@id/light_slider" />
+                <TextView
+                    android:id="@+id/label_medium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/slider_label_med"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="@id/guideline_right"
+                    app:layout_constraintHorizontal_bias="0.5"
+                    app:layout_constraintStart_toStartOf="@id/guideline_left"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Moisture Level title -->
-        <TextView
-            android:id="@+id/moisture_level_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Minimum Moisture"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/moisture_slider"
-            app:layout_constraintEnd_toStartOf="@id/title_width_guideline"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/moisture_slider"
-            app:layout_constraintVertical_bias="0.5" />
+                <TextView
+                    android:id="@+id/label_high"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/slider_label_high"
+                    android:textSize="12sp"
+                    app:layout_constraintEnd_toEndOf="@id/guideline_right"
+                    app:layout_constraintStart_toStartOf="@id/guideline_right"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Labels for the moisture slider -->
-        <TextView
-            android:id="@+id/label_min_moisture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="1"
-            app:layout_constraintEnd_toEndOf="@id/guideline_left"
-            app:layout_constraintStart_toStartOf="@id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@id/light_moisture_spacer" />
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/light_slider"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-10dp"
+                    android:stepSize="1"
+                    android:valueFrom="0"
+                    android:valueTo="2"
+                    app:labelBehavior="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@id/title_width_guideline"
+                    app:layout_constraintTop_toBottomOf="@id/label_low"
+                    app:thumbColor="@color/green"
+                    app:thumbHeight="20dp"
+                    app:thumbRadius="10dp"
+                    app:thumbWidth="20dp"
+                    app:tickColor="@color/green"
+                    app:tickRadiusActive="3dp"
+                    app:tickRadiusInactive="3dp"
+                    app:trackColor="@color/transparent_green"
+                    app:trackHeight="12dp" />
 
-        <TextView
-            android:id="@+id/label_max_moisture"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10"
-            app:layout_constraintEnd_toEndOf="@id/guideline_right"
-            app:layout_constraintStart_toStartOf="@id/guideline_right"
-            app:layout_constraintTop_toBottomOf="@id/light_moisture_spacer" />
+                <Space
+                    android:id="@+id/light_moisture_spacer"
+                    android:layout_width="match_parent"
+                    android:layout_height="15dp"
+                    app:layout_constraintTop_toBottomOf="@id/light_slider" />
 
-        <!-- Moisture Level slider -->
-        <com.google.android.material.slider.Slider
-            android:id="@+id/moisture_slider"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="-15dp"
-            android:stepSize="1"
-            android:value="4"
-            android:valueFrom="1"
-            android:valueTo="10"
-            app:labelBehavior="floating"
-            app:layout_constraintTop_toBottomOf="@id/label_min_moisture"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/title_width_guideline"
-            app:thumbColor="@color/green"
-            app:thumbHeight="20dp"
-            app:thumbRadius="10dp"
-            app:thumbWidth="20dp"
-            app:tickColor="@color/green"
-            app:tickRadiusActive="2dp"
-            app:tickRadiusInactive="2dp"
-            app:trackColor="@color/transparent_green"
-            app:trackHeight="12dp" />
+                <!-- Moisture Level title -->
+                <TextView
+                    android:id="@+id/moisture_level_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/minimum_moisture_title"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/moisture_slider"
+                    app:layout_constraintEnd_toStartOf="@id/title_width_guideline"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/moisture_slider"
+                    app:layout_constraintVertical_bias="0.5" />
 
-        <Space
-            android:id="@+id/moisture_humidity_spacer"
-            android:layout_width="match_parent"
-            android:layout_height="15dp"
-            app:layout_constraintTop_toBottomOf="@id/moisture_slider" />
+                <!-- Labels for the moisture slider -->
+                <TextView
+                    android:id="@+id/label_min_moisture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="1"
+                    app:layout_constraintEnd_toEndOf="@id/guideline_left"
+                    app:layout_constraintStart_toStartOf="@id/guideline_left"
+                    app:layout_constraintTop_toBottomOf="@id/light_moisture_spacer" />
 
-        <!-- Moisture level title -->
-        <TextView
-            android:id="@+id/humidity_level_title"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Minimum Humidity %"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/title_width_guideline"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/humidity_slider"
-            app:layout_constraintVertical_bias="0.5" />
+                <TextView
+                    android:id="@+id/label_max_moisture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="10"
+                    app:layout_constraintEnd_toEndOf="@id/guideline_right"
+                    app:layout_constraintStart_toStartOf="@id/guideline_right"
+                    app:layout_constraintTop_toBottomOf="@id/light_moisture_spacer" />
 
-        <!-- Labels for the moisture slider -->
-        <TextView
-            android:id="@+id/label_min_humidity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"
-            app:layout_constraintEnd_toEndOf="@id/guideline_left"
-            app:layout_constraintStart_toStartOf="@id/guideline_left"
-            app:layout_constraintTop_toBottomOf="@id/moisture_humidity_spacer" />
+                <!-- Moisture Level slider -->
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/moisture_slider"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-15dp"
+                    android:stepSize="1"
+                    android:value="4"
+                    android:valueFrom="1"
+                    android:valueTo="10"
+                    app:labelBehavior="floating"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@id/title_width_guideline"
+                    app:layout_constraintTop_toBottomOf="@id/label_min_moisture"
+                    app:thumbColor="@color/green"
+                    app:thumbHeight="20dp"
+                    app:thumbRadius="10dp"
+                    app:thumbWidth="20dp"
+                    app:tickColor="@color/green"
+                    app:tickRadiusActive="2dp"
+                    app:tickRadiusInactive="2dp"
+                    app:trackColor="@color/transparent_green"
+                    app:trackHeight="12dp" />
 
-        <TextView
-            android:id="@+id/label_max_humidity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="100"
-            app:layout_constraintEnd_toEndOf="@id/guideline_right"
-            app:layout_constraintStart_toStartOf="@id/guideline_right"
-            app:layout_constraintTop_toBottomOf="@id/moisture_humidity_spacer" />
+                <Space
+                    android:id="@+id/moisture_humidity_spacer"
+                    android:layout_width="match_parent"
+                    android:layout_height="15dp"
+                    app:layout_constraintTop_toBottomOf="@id/moisture_slider" />
 
-        <!-- Humidity slider -->
-        <com.google.android.material.slider.Slider
-            android:id="@+id/humidity_slider"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="-15dp"
-            android:stepSize="5"
-            android:value="45"
-            android:valueFrom="0"
-            android:valueTo="100"
-            app:labelBehavior="floating"
-            app:layout_constraintTop_toBottomOf="@id/label_min_humidity"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@id/title_width_guideline"
-            app:thumbColor="@color/green"
-            app:thumbHeight="20dp"
-            app:thumbRadius="10dp"
-            app:thumbWidth="20dp"
-            app:tickColor="@color/green"
-            app:tickRadiusActive="2dp"
-            app:tickRadiusInactive="2dp"
-            app:trackColor="@color/transparent_green"
-            app:trackHeight="12dp" />
+                <!-- Moisture level title -->
+                <TextView
+                    android:id="@+id/humidity_level_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/min_humidity_title"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/title_width_guideline"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/humidity_slider"
+                    app:layout_constraintVertical_bias="0.5" />
 
+                <!-- Labels for the moisture slider -->
+                <TextView
+                    android:id="@+id/label_min_humidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    app:layout_constraintEnd_toEndOf="@id/guideline_left"
+                    app:layout_constraintStart_toStartOf="@id/guideline_left"
+                    app:layout_constraintTop_toBottomOf="@id/moisture_humidity_spacer" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/label_max_humidity"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="100"
+                    app:layout_constraintEnd_toEndOf="@id/guideline_right"
+                    app:layout_constraintStart_toStartOf="@id/guideline_right"
+                    app:layout_constraintTop_toBottomOf="@id/moisture_humidity_spacer" />
 
-    <Button
-        android:id="@+id/add_plant_submit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:backgroundTint="@color/light_green"
-        android:elevation="10dp"
-        android:gravity="center"
-        android:text="@string/add_plant"
-        android:textAllCaps="false"
-        android:textColor="@color/black"
-        android:textSize="18sp" />
+                <!-- Humidity slider -->
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/humidity_slider"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="-15dp"
+                    android:stepSize="5"
+                    android:value="45"
+                    android:valueFrom="0"
+                    android:valueTo="100"
+                    app:labelBehavior="floating"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@id/title_width_guideline"
+                    app:layout_constraintTop_toBottomOf="@id/label_min_humidity"
+                    app:thumbColor="@color/green"
+                    app:thumbHeight="20dp"
+                    app:thumbRadius="10dp"
+                    app:thumbWidth="20dp"
+                    app:tickColor="@color/green"
+                    app:tickRadiusActive="2dp"
+                    app:tickRadiusInactive="2dp"
+                    app:trackColor="@color/transparent_green"
+                    app:trackHeight="12dp" />
 
-</LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <Button
+                android:id="@+id/add_plant_submit"
+                style="@style/Widget.Material3.Button.ElevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="30dp"
+                android:text="@string/add_plant"
+                android:textColor="@color/white"
+                app:backgroundTint="@color/button_background_colour"
+                android:textAllCaps="false"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

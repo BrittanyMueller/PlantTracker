@@ -16,4 +16,6 @@
     <string name="slider_label_med">Medium</string>
     <string name="slider_label_high">High</string>
     <string name="select_port_hint">Select Sensor Port</string>
+    <string name="minimum_moisture_title">Minimum Moisture</string>
+    <string name="min_humidity_title">Minimum Humidity %</string>
 </resources>

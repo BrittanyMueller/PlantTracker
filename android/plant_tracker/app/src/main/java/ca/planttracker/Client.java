@@ -23,6 +23,7 @@ import planttracker.server.Result;
 
 public class Client {
 
+    private static final int timeout = 15;
     private static PlantTrackerGrpc.PlantTrackerBlockingStub stub;
     private static ManagedChannel channel = null;
     private static final Client instance = new Client();
@@ -43,14 +44,22 @@ public class Client {
         return instance;
     }
 
-    public void addPlant(PlantInfo plantInfo) {
-
-        long returnCode = -1;
-
-        // TODO success/error handling, response
-        Result res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).addPlant(plantInfo);
-        returnCode = res.getReturnCode();
-
+    public boolean addPlant(PlantInfo plantInfo) {
+        try {
+            Result res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).addPlant(plantInfo);
+            if (res.getReturnCode() == 0) {
+                Log.i("AddPlantClient", "Plant added successfully.");
+                return true;
+            } else {
+                // Non-zero return code, error expected
+                Log.e("AddPlantClient", "Server failed to add plant: " + res.getError());
+            }
+        } catch (StatusRuntimeException e) {
+            Log.e("AddPlantClient", "GRPC call failed with: " + e.getStatus().getDescription(), e);
+        } catch (Exception e) {
+            Log.e("AddPlantClient", e.getMessage(), e);
+        }
+        return false;
     }
 
     public List<Pi> getAvailablePiSensors() {
@@ -58,7 +67,7 @@ public class Client {
 
         try {
             Empty emptyRequest = Empty.newBuilder().build();
-            GetAvailablePiResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getAvailablePiSensors(emptyRequest);
+            GetAvailablePiResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getAvailablePiSensors(emptyRequest);
             Log.i("GetPiRequest", "Response received: " + res.getPiListList().toString());
 
             // Parse protobuf types into objects for dropdown
@@ -81,22 +90,24 @@ public class Client {
     public Plant getPlant(long id, boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_PLANT).setId(id).setFetchImages(fetchImage).build();
-        GetPlantsResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getPlants(request);
+        GetPlantsResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlants(request);
 
         Plant plant = null;
         if (res.getPlantsCount() == 1 && res.getRes().getReturnCode() == 0) {
             // Request for 1 plant was successful, parse response
             Log.i("GetPlant", "Response found 1 plant");
             plant = new Plant(res.getPlants(0));
+        } else {
+            // Non-zero return code, error expected
+            Log.e("GetPlant", "Server error: " + res.getRes().getError());
         }
-        // TODO error handling, check return code, error string
         return plant;
     }
 
     public List<Plant> getPlantsByPi(long pid, boolean fetchImage) {
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setId(pid).setFetchImages(fetchImage).build();
-        GetPlantsResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getPlants(request);
+        GetPlantsResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlants(request);
 
         ArrayList<Plant> plants = new ArrayList<>();
         if (res.getRes().getReturnCode() == 0) {
@@ -106,8 +117,10 @@ public class Client {
                 plants.add(new Plant(plant));
             }
             Log.i("GetPlantsByPi", "Successful response getPlantsByPi");
+        } else {
+            // Non-zero return code, error expected
+            Log.e("GetPlantsByPi", "Server error: " + res.getRes().getError());
         }
-        // TODO else error handling?
         return plants;
     }
 
@@ -120,7 +133,7 @@ public class Client {
                 .build();
 
         try {
-            GetPlantsResponse res = stub.withDeadlineAfter(15, TimeUnit.SECONDS).getPlants(request);
+            GetPlantsResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlants(request);
             if (res.getRes().getReturnCode() == 0) {
                 // Request was successful, parse response
                 for (PlantInfo plant : res.getPlantsList()) {
@@ -140,7 +153,6 @@ public class Client {
             Log.e("GetPlants", e.getMessage(), e);
             throw e;
         }
-
         return plants;
     }
 }

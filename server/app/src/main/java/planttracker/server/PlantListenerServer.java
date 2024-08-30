@@ -84,7 +84,10 @@ public class PlantListenerServer {
    * @param request The request to be executed.
    */
   public synchronized void addRequestForPi(long pid, ListenerRequest request) {
-    requestQueueMap.get(pid).add(request);
+    LinkedBlockingQueue<ListenerRequest> queue = requestQueueMap.get(pid);
+    if (queue != null) {
+      queue.add(request);
+    }
   }
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {

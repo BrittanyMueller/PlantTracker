@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -18,6 +20,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.slider.Slider;
@@ -48,11 +51,17 @@ public class AddPlantActivity extends AppCompatActivity {
     Button selectImageBtn;
     ImageView plantImageView;
     EditText plantNameField;
+    TextInputLayout plantNameLayout;
 
-    // Dropdown selection views
+    // Dropdown selectable text views
     AutoCompleteTextView piTextView;
     AutoCompleteTextView deviceTextView;
     AutoCompleteTextView portTextView;
+
+    // Dropdown layouts
+    TextInputLayout piDropdown;
+    TextInputLayout deviceDropdown;
+    TextInputLayout portDropdown;
 
     // Selected device data
     Pi selectedPi;
@@ -96,6 +105,7 @@ public class AddPlantActivity extends AppCompatActivity {
         ImageView backButton = findViewById(R.id.back_arrow);
         backButton.setVisibility(View.VISIBLE);
         backButton.setOnClickListener((View v) -> {
+            setResult(RESULT_CANCELED);
             finish(); // returns to previous activity
         });
         TextView toolbarTitle = findViewById(R.id.toolbar_title);
@@ -105,6 +115,7 @@ public class AddPlantActivity extends AppCompatActivity {
         selectImageBtn = findViewById(R.id.upload_image_button);
         plantImageView = findViewById(R.id.plant_image_view);
         plantNameField = findViewById(R.id.plant_name_field);
+        plantNameLayout = findViewById(R.id.plant_name_layout);
         lightSlider = findViewById(R.id.light_slider);
         moistureSlider = findViewById(R.id.moisture_slider);
         humiditySlider = findViewById(R.id.humidity_slider);
@@ -113,21 +124,30 @@ public class AddPlantActivity extends AppCompatActivity {
         piTextView = findViewById(R.id.select_pi);
         deviceTextView = findViewById(R.id.select_moisture_device);
         portTextView = findViewById(R.id.select_sensor_port);
+        // Dropdown layouts to enable/disable based on selected Pi
+        piDropdown = findViewById(R.id.select_pi_dropdown);
+        deviceDropdown = findViewById(R.id.select_device_dropdown);
+        portDropdown = findViewById(R.id.select_sensor_dropdown);
 
         Client client = Client.getInstance();
         executorService.execute(() -> {
             // Fetch available pi with grpc to populate dropdowns
             List<Pi> piList = client.getAvailablePiSensors();
-            Log.i("GetPiRequestUI", piList.toString());
+
             runOnUiThread(() -> {
-                ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, piList);
-                piTextView.setAdapter(piAdapter);
+                if (piList.isEmpty()) {
+                    // Disable form submission if no pi available
+                    addPlantBtn.setEnabled(false);
+                    piDropdown.setEnabled(false);
+                    piTextView.setText("No Available Sensor Ports");
+                    deviceTextView.setText("--");
+                    portTextView.setText("--");
+                } else {
+                    ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, piList);
+                    piTextView.setAdapter(piAdapter);
+                }
             });
         });
-
-        // Find dropdown layouts to enable/disable based on selected Pi
-        TextInputLayout deviceDropdown = findViewById(R.id.select_device_dropdown);
-        TextInputLayout portDropdown = findViewById(R.id.select_sensor_dropdown);
 
         piTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -136,6 +156,7 @@ public class AddPlantActivity extends AppCompatActivity {
                 // Populate device dropdown based on selected Pi
                 ArrayAdapter<MoistureDevice> deviceAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, selectedPi.getMoistureDevices());
 
+                piDropdown.setErrorEnabled(false);
                 portTextView.setText("");
                 deviceTextView.setText("");    // Reset previous selection
                 deviceTextView.setAdapter(deviceAdapter);
@@ -151,6 +172,7 @@ public class AddPlantActivity extends AppCompatActivity {
                 // Populate available sensor ports based on selected MoistureDevice
                 ArrayAdapter<Integer> portAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, selectedDevice.getAvailablePorts());
 
+                deviceDropdown.setErrorEnabled(false);
                 portTextView.setText("");    // Reset previous selection
                 portTextView.setAdapter(portAdapter);
                 portDropdown.setEnabled(true);
@@ -160,8 +182,20 @@ public class AddPlantActivity extends AppCompatActivity {
         portTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+                portDropdown.setErrorEnabled(false);
                 selectedPort = (int) parentView.getItemAtPosition(pos);
             }
+        });
+
+        plantNameField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                plantNameLayout.setErrorEnabled(false);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
 
         // Set listeners for selecting plant image
@@ -171,10 +205,35 @@ public class AddPlantActivity extends AppCompatActivity {
         // Finally, submit plant and upload image if needed
         addPlantBtn = findViewById(R.id.add_plant_submit);
         addPlantBtn.setOnClickListener(view -> {
-            submitAddPlant();
-
-            // TODO if successful, return to main activity 
+            if (validateForm()) {
+                submitAddPlant();
+            }
         });
+    }
+
+    private boolean validateForm() {
+        boolean valid = true;
+        if (plantNameField.getText().toString().trim().isEmpty()) {
+            plantNameLayout.setErrorEnabled(true);
+            plantNameLayout.setError("Plant name required.");
+            plantNameField.requestFocus();
+            valid = false;
+        }
+        // Only show error on first empty dropdown
+        if (piTextView.getText().toString().isEmpty()) {
+            piDropdown.setErrorEnabled(true);
+            piDropdown.setError("Select the Pi connected to the plant.");
+            valid = false;
+        } else if (deviceTextView.getText().toString().isEmpty()) {
+            deviceDropdown.setErrorEnabled(true);
+            deviceDropdown.setError("Select the Moisture Device connected to the plant.");
+            valid = false;
+        } else if (portTextView.getText().toString().isEmpty()) {
+            portDropdown.setErrorEnabled(true);
+            portDropdown.setError("Select the sensor port connected to thr plant.");
+            valid = false;
+        }
+        return valid;
     }
 
     private void submitAddPlant() {
@@ -204,14 +263,20 @@ public class AddPlantActivity extends AppCompatActivity {
                         plant.setImageUrl(imageUrl);
                     }
                     return createPlant(plant.build());
-                })
-                .thenRun(() -> runOnUiThread(() -> {
-                    Log.d("SubmitAddPlant", "Add plant successful.");
-                    Toast.makeText(AddPlantActivity.this, "Add plant successful!", Toast.LENGTH_SHORT).show();
+                }).thenAccept(success -> runOnUiThread(() -> {
+                    if (success) {
+                        Log.d("SubmitAddPlant", "Add plant successful.");
+                        Toast.makeText(AddPlantActivity.this, "Add plant successful!", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();   // TODO return RESULT_OK to view plants activity
+                    } else {
+                        Log.d("SubmitAddPlant", "Add plant failed.");
+                        Toast.makeText(AddPlantActivity.this, "Add plant failed.", Toast.LENGTH_LONG).show();
+                    }
                 }))
                 .exceptionally(e -> {
-                    Log.e("SubmitAddPlant", "Add plant failed: " + e.getMessage(), e);
-                    runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Failed to add plant: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    Log.e("SubmitAddPlant", "Add plant failed exceptionally: " + e.getMessage(), e);
+                    runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Add plant failed. Check your network connection.", Toast.LENGTH_LONG).show());
                     return null;
                 });
     }
@@ -245,15 +310,7 @@ public class AddPlantActivity extends AppCompatActivity {
         }, executorService);
     }
 
-    private CompletableFuture<Void> createPlant(PlantInfo plant) {
-        return CompletableFuture.runAsync(() -> {
-            Log.d("CreatePlant", "Starting GRPC request with imageUrl: " + plant.getImageUrl());
-            try {
-                // TODO GRPC addPlant request, handle response? success?
-                Client.getInstance().addPlant(plant);
-            } catch (Exception e) {
-                Log.e("AddPlantRequest", "Failed to create new plant.", e);
-            }
-        }, executorService);
+    private CompletableFuture<Boolean> createPlant(PlantInfo plant) {
+        return CompletableFuture.supplyAsync(() -> Client.getInstance().addPlant(plant), executorService);
     }
 }
