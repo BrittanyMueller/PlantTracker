@@ -12,6 +12,8 @@
 
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 option java_multiple_files = true;
 option java_package = "planttracker.server";
 package planttracker.grpc;
@@ -25,8 +27,25 @@ service PlantTracker {
   rpc updatePlant(PlantInfo) returns (Result);
 
   rpc getPlants(GetPlantsRequest) returns (GetPlantsResponse);
+  rpc getAvailablePiSensors(google.protobuf.Empty) returns (GetAvailablePiResponse);
 
   rpc getPlantSensorData(GetPlantDataRequest) returns (PlantSensorDataList);
+}
+
+message GetAvailablePiResponse {
+  Result res = 1;
+  repeated Pi piList = 2;
+}
+message Pi {
+  int64 pid = 1;
+  string name = 2;
+  repeated AvailableMoistureDevice deviceList = 3;
+}
+// TODO refactoring naming conventions? separate Listener and Tracker?
+message AvailableMoistureDevice {
+  int64 id = 1;
+  string name = 2;
+  repeated int32 sensorPorts = 3;
 }
 
 message GetPlantDataRequest {

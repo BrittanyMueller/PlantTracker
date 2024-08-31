@@ -8,5 +8,14 @@
     <string name="plant_name_input_label">Plant Name</string>
     <string name="plant_image_description">Image of the plant.</string>
     <string name="select_image">Select Image</string>
-    <string name="connection_error">Connection failed \nswipe down to try again</string>
+    <string name="connection_error">Connection Failed\nRefresh to try again.</string>
+    <string name="select_pi_hint">Select Pi</string>
+    <string name="select_device_hint">Select Device</string>
+    <string name="light_level_title">Light Level</string>
+    <string name="slider_label_low">Low</string>
+    <string name="slider_label_med">Medium</string>
+    <string name="slider_label_high">High</string>
+    <string name="select_port_hint">Select Sensor Port</string>
+    <string name="minimum_moisture_title">Minimum Moisture</string>
+    <string name="min_humidity_title">Minimum Humidity %</string>
 </resources>

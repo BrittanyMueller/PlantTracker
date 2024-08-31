@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Disabled state, must come before default colour -->
+    <item android:state_enabled="false" android:color="@color/transparent_green" />
+    <item android:color="@color/green" />
+</selector>

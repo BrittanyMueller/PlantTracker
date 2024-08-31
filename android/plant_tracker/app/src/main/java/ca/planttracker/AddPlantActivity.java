@@ -5,8 +5,13 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -15,20 +20,27 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.slider.Slider;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import planttracker.server.PlantInfo;
 
 public class AddPlantActivity extends AppCompatActivity {
 
@@ -39,7 +51,28 @@ public class AddPlantActivity extends AppCompatActivity {
     Button selectImageBtn;
     ImageView plantImageView;
     EditText plantNameField;
+    TextInputLayout plantNameLayout;
+
+    // Dropdown selectable text views
+    AutoCompleteTextView piTextView;
+    AutoCompleteTextView deviceTextView;
+    AutoCompleteTextView portTextView;
+
+    // Dropdown layouts
+    TextInputLayout piDropdown;
+    TextInputLayout deviceDropdown;
+    TextInputLayout portDropdown;
+
+    // Selected device data
+    Pi selectedPi;
+    MoistureDevice selectedDevice;
+    int selectedPort;
+
     Slider lightSlider;
+    Slider moistureSlider;
+    Slider humiditySlider;
+
+    Button addPlantBtn;
 
     private final ActivityResultLauncher<Intent> selectImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -64,76 +97,193 @@ public class AddPlantActivity extends AppCompatActivity {
         storageReference = FirebaseStorage.getInstance().getReference();
 
         // Initialize threads for async tasks
-        // executorService = Executors.newFixedThreadPool(2);
         executorService = Executors.newSingleThreadExecutor();
 
+        // Set custom toolbar navigation & title
         ImageView hamburger = findViewById(R.id.hamburger_menu);
         hamburger.setVisibility(View.GONE);
         ImageView backButton = findViewById(R.id.back_arrow);
         backButton.setVisibility(View.VISIBLE);
         backButton.setOnClickListener((View v) -> {
+            setResult(RESULT_CANCELED);
             finish(); // returns to previous activity
         });
-
-
         TextView toolbarTitle = findViewById(R.id.toolbar_title);
         toolbarTitle.setText(getString(R.string.add_plant));
 
+        // Initialize ref to form elements
         selectImageBtn = findViewById(R.id.upload_image_button);
         plantImageView = findViewById(R.id.plant_image_view);
+        plantNameField = findViewById(R.id.plant_name_field);
+        plantNameLayout = findViewById(R.id.plant_name_layout);
+        lightSlider = findViewById(R.id.light_slider);
+        moistureSlider = findViewById(R.id.moisture_slider);
+        humiditySlider = findViewById(R.id.humidity_slider);
 
+        // Auto complete dropdowns to populate
+        piTextView = findViewById(R.id.select_pi);
+        deviceTextView = findViewById(R.id.select_moisture_device);
+        portTextView = findViewById(R.id.select_sensor_port);
+        // Dropdown layouts to enable/disable based on selected Pi
+        piDropdown = findViewById(R.id.select_pi_dropdown);
+        deviceDropdown = findViewById(R.id.select_device_dropdown);
+        portDropdown = findViewById(R.id.select_sensor_dropdown);
+
+        Client client = Client.getInstance();
+        executorService.execute(() -> {
+            // Fetch available pi with grpc to populate dropdowns
+            List<Pi> piList = client.getAvailablePiSensors();
+
+            runOnUiThread(() -> {
+                if (piList.isEmpty()) {
+                    // Disable form submission if no pi available
+                    addPlantBtn.setEnabled(false);
+                    piDropdown.setEnabled(false);
+                    piTextView.setText("No Available Sensor Ports");
+                    deviceTextView.setText("--");
+                    portTextView.setText("--");
+                } else {
+                    ArrayAdapter<Pi> piAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, piList);
+                    piTextView.setAdapter(piAdapter);
+                }
+            });
+        });
+
+        piTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+                selectedPi = (Pi) parentView.getItemAtPosition(pos);
+                // Populate device dropdown based on selected Pi
+                ArrayAdapter<MoistureDevice> deviceAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, selectedPi.getMoistureDevices());
+
+                piDropdown.setErrorEnabled(false);
+                portTextView.setText("");
+                deviceTextView.setText("");    // Reset previous selection
+                deviceTextView.setAdapter(deviceAdapter);
+                deviceDropdown.setEnabled(true);
+                portDropdown.setEnabled(false);
+            }
+        });
+
+        deviceTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+                selectedDevice = (MoistureDevice) parentView.getItemAtPosition(pos);
+                // Populate available sensor ports based on selected MoistureDevice
+                ArrayAdapter<Integer> portAdapter = new ArrayAdapter<>(AddPlantActivity.this, R.layout.dropdown_item, selectedDevice.getAvailablePorts());
+
+                deviceDropdown.setErrorEnabled(false);
+                portTextView.setText("");    // Reset previous selection
+                portTextView.setAdapter(portAdapter);
+                portDropdown.setEnabled(true);
+            }
+        });
+
+        portTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parentView, View view, int pos, long id) {
+                portDropdown.setErrorEnabled(false);
+                selectedPort = (int) parentView.getItemAtPosition(pos);
+            }
+        });
+
+        plantNameField.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                plantNameLayout.setErrorEnabled(false);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Set listeners for selecting plant image
         selectImageBtn.setOnClickListener(view -> selectImage());
         plantImageView.setOnClickListener(view -> selectImage());
 
-        plantNameField = findViewById(R.id.plant_name_field);
-
-        lightSlider = findViewById(R.id.light_slider);
-        // Set readable labels on light slider
-//        lightSlider.setLabelFormatter(value -> {
-//            switch ((int) value) {
-//                case 0:
-//                    return "Low";
-//                case 1:
-//                    return "Medium";
-//                case 2:
-//                    return "High";
-//                default:
-//                    // Impossible, restricted by UI
-//                    return "";
-//            }
-//        });
-
-        Button addPlantSubmit = findViewById(R.id.add_plant_submit);
-        addPlantSubmit.setOnClickListener(view -> {
-            if (imageUri != null) {
+        // Finally, submit plant and upload image if needed
+        addPlantBtn = findViewById(R.id.add_plant_submit);
+        addPlantBtn.setOnClickListener(view -> {
+            if (validateForm()) {
                 submitAddPlant();
             }
         });
     }
 
-    private void submitAddPlant() {
-        String plantName = plantNameField.getText().toString();
-        int lightLevel = (int) lightSlider.getValue();
+    private boolean validateForm() {
+        boolean valid = true;
+        if (plantNameField.getText().toString().trim().isEmpty()) {
+            plantNameLayout.setErrorEnabled(true);
+            plantNameLayout.setError("Plant name required.");
+            plantNameField.requestFocus();
+            valid = false;
+        }
+        // Only show error on first empty dropdown
+        if (piTextView.getText().toString().isEmpty()) {
+            piDropdown.setErrorEnabled(true);
+            piDropdown.setError("Select the Pi connected to the plant.");
+            valid = false;
+        } else if (deviceTextView.getText().toString().isEmpty()) {
+            deviceDropdown.setErrorEnabled(true);
+            deviceDropdown.setError("Select the Moisture Device connected to the plant.");
+            valid = false;
+        } else if (portTextView.getText().toString().isEmpty()) {
+            portDropdown.setErrorEnabled(true);
+            portDropdown.setError("Select the sensor port connected to thr plant.");
+            valid = false;
+        }
+        return valid;
+    }
 
-        // Waits for firebase image upload before proceeding with GRPC
-        uploadImage(imageUri)
+    private void submitAddPlant() {
+        CompletableFuture<String> imageUrlFuture;
+
+        if (imageUri == null) {
+            // Skip upload and create plant with null (default) image
+            imageUrlFuture = CompletableFuture.completedFuture(null);
+        } else {
+            // Upload image to firebase if one is provided
+            imageUrlFuture = uploadImage(imageUri);
+        }
+
+        // Waits for successful firebase upload before proceeding with GRPC
+        imageUrlFuture
                 .thenCompose(imageUrl -> {
                     Log.d("SubmitAddPlant", "Image upload completed, proceeding to create plant.");
-                    return createPlant(plantName, imageUrl, lightLevel);
-                })
-                .thenRun(() -> runOnUiThread(() -> {
-                    Log.d("SubmitAddPlant", "Add plant successful.");
-                    Toast.makeText(AddPlantActivity.this, "Add plant successful!", Toast.LENGTH_SHORT).show();
+                    PlantInfo.Builder plant = PlantInfo.newBuilder()
+                            .setName(plantNameField.getText().toString())
+                            .setLightLevelValue((int) lightSlider.getValue())
+                            .setMinMoisture((int) moistureSlider.getValue())
+                            .setMinHumidity((int) humiditySlider.getValue())
+                            .setPid(selectedPi.getId())
+                            .setMoistureDeviceId(selectedDevice.getId())
+                            .setSensorPort(selectedPort);
+                    if (imageUrl != null) {
+                        plant.setImageUrl(imageUrl);
+                    }
+                    return createPlant(plant.build());
+                }).thenAccept(success -> runOnUiThread(() -> {
+                    if (success) {
+                        Log.d("SubmitAddPlant", "Add plant successful.");
+                        Toast.makeText(AddPlantActivity.this, "Add plant successful!", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();   // TODO return RESULT_OK to view plants activity
+                    } else {
+                        Log.d("SubmitAddPlant", "Add plant failed.");
+                        Toast.makeText(AddPlantActivity.this, "Add plant failed.", Toast.LENGTH_LONG).show();
+                    }
                 }))
                 .exceptionally(e -> {
-                    Log.e("SubmitAddPlant", "Add plant failed: " + e.getMessage());
-                    runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Failed to add plant: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    Log.e("SubmitAddPlant", "Add plant failed exceptionally: " + e.getMessage(), e);
+                    runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Add plant failed. Check your network connection.", Toast.LENGTH_LONG).show());
                     return null;
                 });
     }
 
     private void selectImage() {
         // Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        // TODO allow to upload from camera app directly
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT).setType("image/*");
         selectImageLauncher.launch(intent);
     }
@@ -160,18 +310,7 @@ public class AddPlantActivity extends AppCompatActivity {
         }, executorService);
     }
 
-    // TODO what is the best way to pass form data here? Will be a lot of params...
-    private CompletableFuture<Void> createPlant(String name, String imageUrl, int lightLevel) {
-        return CompletableFuture.runAsync(() -> {
-            Log.d("CreatePlant", "Starting GRPC request with imageUrl: ." + imageUrl);
-            try {
-                // TODO GRPC addPlant request
-                Thread.sleep(4000); // Time to stare at toast
-                runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Sending GRPC request.", Toast.LENGTH_LONG).show());
-                Thread.sleep(4000); // Time to stare at toast
-            } catch (Exception e) {
-                Log.e("AddPlantRequest", "Failed to create new plant.", e);
-            }
-        }, executorService);
+    private CompletableFuture<Boolean> createPlant(PlantInfo plant) {
+        return CompletableFuture.supplyAsync(() -> Client.getInstance().addPlant(plant), executorService);
     }
 }

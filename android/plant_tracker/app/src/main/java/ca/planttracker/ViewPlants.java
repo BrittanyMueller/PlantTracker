@@ -43,7 +43,7 @@ import java.util.List;
 
 public class ViewPlants extends AppCompatActivity {
 
-    private final Client client = Client.instance();
+    private final Client client = Client.getInstance();
     private List<Plant> plants = new ArrayList<>();
 
     // TODO(qawse3dr) we probably want to move these and make it prettier
@@ -75,7 +75,7 @@ public class ViewPlants extends AppCompatActivity {
         setContentView(R.layout.view_plants_activity);
         askNotificationPermission();
 
-        SwipeRefreshLayout refresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+        SwipeRefreshLayout refresh = findViewById(R.id.swiperefresh);
         refresh.setOnRefreshListener(this::refreshViewPlants);
         refreshViewPlants();
 
@@ -113,12 +113,14 @@ public class ViewPlants extends AppCompatActivity {
             boolean error = false;
             try {
                 SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-                String serverAddress = pref.getString("server_ip", "10.0.0.2");
+                String serverAddress = pref.getString("server_ip", "10.0.2.2");
                 int serverPort = Integer.parseInt(pref.getString("server_port", "5050"));
 
                 if (serverAddress.equals("0.0.0.0")) {
+                    Log.i("RefreshPlants", "Fetching JSON plants for 0.0.0.0");
                     plants = getPlantData();
                 } else {
+                    Log.i("RefreshPlants", "Connecting to server at " + serverAddress);
                     client.connect(serverAddress, serverPort);
                     plants = client.getPlants(false);
                 }
@@ -148,7 +150,7 @@ public class ViewPlants extends AppCompatActivity {
                             });
                 }
             } catch (Exception e) {
-                Log.e("TAG", "Failed to connect to server with " + e);
+                Log.e("RefreshPlants", "Failed to connect to server with " + e, e);
                 error = true;
             } finally {
                 boolean finalError = error;
@@ -166,13 +168,11 @@ public class ViewPlants extends AppCompatActivity {
                     } else {
                         emptyView.setText(R.string.no_plants_found);
                     }
-
                     listView.setEmptyView(emptyView);
 
                     // in case we are refreshing finally set it to remove the refresh icon
                     SwipeRefreshLayout refresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
                     refresh.setRefreshing(false);
-
                 });
             }
         }).start();
@@ -185,7 +185,6 @@ public class ViewPlants extends AppCompatActivity {
             if (objArray != null) {
                 for (int i = 0; i < objArray.length(); i++) {
                     JSONObject plantObj = objArray.getJSONObject(i);
-                    Log.i("TAG", plantObj.getString("name"));
                     Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), plantObj.getString("imageUrl"));
                     plantList.add(plant);
                 }
@@ -193,6 +192,7 @@ public class ViewPlants extends AppCompatActivity {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+        Log.i("GetPlantsJSON", "Fetching JSON plants.");
         return plantList;
     }
 
