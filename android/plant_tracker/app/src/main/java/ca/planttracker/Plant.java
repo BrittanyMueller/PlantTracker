@@ -2,6 +2,9 @@ package ca.planttracker;
 
 import androidx.annotation.NonNull;
 
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
 import java.io.Serializable;
 
 import planttracker.server.LightLevel;
@@ -18,7 +21,7 @@ public class Plant implements Serializable {
         private double lastMoisture;
         private double lastHumidity;
         private double lastLight;
-
+        private boolean mockData = false;
         private boolean lastDataSet;
 
     public Plant(PlantInfo plant) {
@@ -46,7 +49,7 @@ public class Plant implements Serializable {
         this.lastMoisture = 40.2;
         this.lastLight = 200;
         this.lastHumidity = 30.2;
-
+        this.mockData = true;
     }
 
     public long getId() { return id; }
@@ -58,6 +61,11 @@ public class Plant implements Serializable {
     public LightLevel getLightLevel() { return lightLevel; };
 
     public boolean hasLastData() { return lastDataSet; }
+
+    public StorageReference getStorageReference() {
+        if (mockData) return null;
+        return FirebaseStorage.getInstance().getReference().child(getImageUrl());
+    }
 
     public double getLastMoisture() { return lastMoisture;}
     public double getLastHumidity() { return lastHumidity;}

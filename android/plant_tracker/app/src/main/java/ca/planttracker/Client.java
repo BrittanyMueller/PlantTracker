@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -179,7 +180,7 @@ public class Client {
                 for (PlantInfo plant : res.getPlantsList()) {
                     // Convert grpc info to Plant
                     plants.add(new Plant(plant));
-                    Log.i("GetPlantsPLANT", plant.toString());
+                    Log.i("GetPlants", plant.toString());
                 }
                 Log.i("GetPlants", "Successful response getPlants");
             } else {
@@ -196,12 +197,16 @@ public class Client {
         return plants;
     }
 
-    public List<PlantSensorData> getPlantSensorData(long plantId, LocalDateTime start, LocalDateTime end) {
+    public List<PlantSensorData> getPlantSensorData(long plantId, Instant start, Instant end) {
         if (host.equals("0.0.0.0")) {
             return new ArrayList<PlantSensorData>();
         }
 
-        GetPlantDataRequest req = GetPlantDataRequest.newBuilder().setPlantId(plantId).setStartDate(start.toEpochSecond(ZoneOffset.UTC)).setEndDate(end.toEpochSecond(ZoneOffset.UTC)).build();
+        // TODO might be nice to no have to specify end date if you want most recent data.
+        GetPlantDataRequest req = GetPlantDataRequest.newBuilder()
+                .setPlantId(plantId).setStartDate(start.toEpochMilli())
+                .setEndDate(end.toEpochMilli()
+                ).build();
         try {
             PlantSensorDataList list = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlantSensorData(req);
             return list.getDataList();

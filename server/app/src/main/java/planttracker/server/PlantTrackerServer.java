@@ -3,12 +3,14 @@ package planttracker.server;
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
+import io.grpc.stub.StreamObserver;
 import planttracker.server.exceptions.PlantTrackerException;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -167,14 +169,17 @@ public class PlantTrackerServer {
       return plantId;
     }
 
+    @Override
     public void deletePlant(PlantId request, io.grpc.stub.StreamObserver<Result> responseObserver) {
       logger.severe("deletePlant Not Implemented");
     }
 
+    @Override
     public void updatePlant(PlantInfo request, io.grpc.stub.StreamObserver<Result> responseObserver) {
       logger.severe("updatePlant Not Implemented");
     }
 
+    @Override
     public void getPlants(GetPlantsRequest request, io.grpc.stub.StreamObserver<GetPlantsResponse> responseObserver) {
       GetPlantsResponse response = null;
       ArrayList<PlantInfo> plantList = null;
@@ -279,10 +284,59 @@ public class PlantTrackerServer {
       return plant.build();
     }
 
-    public void getPlantData(GetPlantDataRequest request, io.grpc.stub.StreamObserver<PlantSensorDataList> responseObserver) {
-      logger.severe("getPlantData Not Implemented");
+    @Override
+    public void getPlantSensorData(GetPlantDataRequest request, StreamObserver<PlantSensorDataList> responseObserver) {
+
+      PlantSensorDataList.Builder data = PlantSensorDataList.newBuilder();
+
+      String sql = "SELECT * FROM plant_sensor_data " +
+                   "WHERE plant_id = ? AND ts BETWEEN ? and ? " +
+                   "ORDER BY ts ASC";
+      Database db = null;
+      try {
+        db = Database.getInstance();
+      } catch (PlantTrackerException e) {
+        responseObserver.onError(e);
+        return;
+      }
+
+      try (PreparedStatement selectStmt = db.connection.prepareStatement(sql); ){
+        db.lockDatabase();
+    
+        selectStmt.setLong(1, request.getPlantId());
+        selectStmt.setTimestamp(2, new Timestamp(request.getStartDate()));
+        selectStmt.setTimestamp(3, new Timestamp(request.getEndDate()));
+
+        logger.finest("Getting Sensor data for " + request.toString() + " QUERY " + selectStmt.toString());
+
+        selectStmt.executeQuery();
+        ResultSet resultSet = selectStmt.executeQuery();
+        
+        while (resultSet.next()) {
+          data.addData(PlantSensorData.newBuilder()
+                 .setEpochTs(resultSet.getTimestamp("ts").getTime())
+                 .setHumidity(resultSet.getFloat("humidity"))
+                 .setTemp(resultSet.getFloat("temp"))
+                 .setLight(LightSensorData.newBuilder().setLumens(resultSet.getFloat("light")).build())
+                 .setMoisture(MoistureSensorData.newBuilder().setMoistureLevel(resultSet.getFloat("moisture")).build())
+                ).build();
+        }
+        resultSet.close();
+        responseObserver.onNext(data.build());
+      } catch(SQLException e) {
+        logger.warning("Failed to retrieve plant data with: " + e);
+        responseObserver.onError(e);
+        return;
+      } finally {
+        if (db != null) {
+          db.unlockDatabase();
+        }
+      } 
+
+      responseObserver.onCompleted();
     }
-  
+
+    @Override
     public void getAvailablePiSensors(Empty request, io.grpc.stub.StreamObserver<GetAvailablePiResponse> responseObserver) {
       ArrayList<Pi> piList = null;
       GetAvailablePiResponse response = null;

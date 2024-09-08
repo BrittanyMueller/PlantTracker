@@ -26,8 +26,10 @@
                 android:id="@+id/plant_image"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:src="@drawable/plant_placeholder"
                 android:contentDescription="TODO"
+                android:scaleType="centerCrop"
+                android:src="@drawable/plant_placeholder"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 

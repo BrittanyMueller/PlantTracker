@@ -57,7 +57,7 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
         } else {
             // Use Glide to load the image from the URL
             Glide.with(context)
-                .load(plant.getImageUrl())
+                .load((plant.getStorageReference() != null) ?  plant.getStorageReference() : plant.getImageUrl())
                 .placeholder(R.drawable.plant_placeholder) // Optional placeholder image? not sure if just while loading
                 .into(holder.plantImage);
         }

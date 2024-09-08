@@ -71,7 +71,7 @@ public class ViewPlantsActivity extends AppBarActivity {
 
         createAppBar(true, getString(R.string.app_name));
 
-        SwipeRefreshLayout refresh = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+        SwipeRefreshLayout refresh = findViewById(R.id.swiperefresh);
         refresh.setOnRefreshListener(this::refreshViewPlants);
         refreshViewPlants();
 
@@ -133,9 +133,9 @@ public class ViewPlantsActivity extends AppBarActivity {
             // If we got any plants subscribe for notification
             for (Plant plant: plants) {
                 // If the preference manager already has this no need to subscribe.
-                if (pref.contains("plant-id-" + plant.getId())) {
-                    continue;
-                }
+//                if (pref.contains("plant-id-" + plant.getId())) {
+//                    continue;
+//                }
 
                 FirebaseMessaging.getInstance().subscribeToTopic("plant-id-" + plant.getId())
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -149,7 +149,6 @@ public class ViewPlantsActivity extends AppBarActivity {
                                     editor.putBoolean("plant-id-" + plant.getId(), true);
                                     editor.apply();
                                 }
-                                Toast.makeText(ViewPlantsActivity.this, msg, Toast.LENGTH_SHORT).show();
                             }
                         });
             }

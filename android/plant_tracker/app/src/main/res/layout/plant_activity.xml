@@ -102,10 +102,10 @@
                 android:id="@+id/light_bar_graph"
                 android:layout_width="wrap_content"
                 android:layout_height="110dp"
-                app:graph_max="100.0"
+                app:graph_max="24.0"
                 app:graph_min="0.0"
+                app:graph_unit="Hrs"
                 app:graph_title="Light Data"
-                app:layout_constraintBottom_toTopOf="@+id/progress_bar"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -118,7 +118,51 @@
                 android:background="?android:attr/listDivider" />
 
             <ImageView
-                android:id="@+id/imageView"
+                android:id="@+id/light_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right|center_vertical"
+                android:layout_marginEnd="20dp"
+                android:scaleX="-1"
+                app:srcCompat="@drawable/back_arrow_24"
+                app:tint="#000000" />
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="150dp"
+        android:layout_margin="10dp"
+        app:cardCornerRadius="7dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ca.planttracker.LineGraph
+                android:id="@+id/moisture_graph"
+                android:layout_width="wrap_content"
+                android:layout_height="110dp"
+                app:graph_max="100.0"
+                app:graph_min="0.0"
+                app:graph_unit="%"
+                app:graph_label_step="2"
+                app:graph_title="Moisture Data"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <View
+                android:id="@+id/moisture"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_margin="5dp"
+                android:background="?android:attr/listDivider" />
+
+            <ImageView
+                android:id="@+id/moisture_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|center_vertical"
