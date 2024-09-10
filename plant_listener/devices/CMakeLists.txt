@@ -21,5 +21,8 @@ target_include_directories(plantlistener-device_objlib PUBLIC ${CMAKE_CURRENT_SO
 
 # Only build the mock sensor if we aren't on actual hardware
 add_subdirectory(mock)
-add_subdirectory(ADS7830)
-add_subdirectory(dht22)
+
+if(NOT ${CMAKE_BUILD_TYPE} STREQUAL test)
+  add_subdirectory(ADS7830)
+  add_subdirectory(dht22)
+endif()

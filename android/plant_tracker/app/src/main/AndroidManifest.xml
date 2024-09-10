@@ -31,7 +31,10 @@
             android:name=".AddPlantActivity"
             android:exported="true"/>
         <activity
-            android:name=".ViewPlants"
+            android:name=".PlantActivity"
+            android:exported="true"/>
+        <activity
+            android:name=".ViewPlantsActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,7 +42,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Settings"
+            android:name=".SettingsActivity"
             android:exported="true"/>
     </application>
 

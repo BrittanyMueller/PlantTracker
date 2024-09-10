@@ -19,7 +19,7 @@ class LightSensor : public Sensor {
   LightSensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev){};
 
   void updatePlant(const std::shared_ptr<Plant>& plant, double data) override {
-    plant->setLight(static_cast<uint64_t>(data));
+    plant->setLight(static_cast<int64_t>(data));
   }
 };
 }  // namespace plantlistener::core

@@ -46,7 +46,7 @@ class PlantListenerConfig {
   uint16_t port = 5051;
   int32_t retry_count = 5;
   std::chrono::seconds retry_timeout = std::chrono::seconds(30);
-  std::chrono::seconds poll_rate = std::chrono::seconds(10);
+  std::chrono::seconds poll_rate = std::chrono::minutes(30);
 
   std::vector<plantlistener::device::DeviceConfig> devices = {};
   std::vector<SensorConfig> sensors = {};

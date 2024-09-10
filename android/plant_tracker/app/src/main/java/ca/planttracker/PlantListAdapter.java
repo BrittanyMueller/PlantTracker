@@ -38,6 +38,7 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
             holder = new ViewHolder();  // Create new holder to reference view
             holder.plantImage = convertView.findViewById(R.id.plant_image);
             holder.plantName = convertView.findViewById(R.id.plant_title);
+            holder.plantStatus = convertView.findViewById(R.id.status);
             convertView.setTag(holder);
         } else {
             // Get the ViewHolder from the recycled view
@@ -48,13 +49,15 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
         Plant plant = getItem(position);
         holder.plantName.setText(plant != null ? plant.getName() : null);
 
+
+
         if (plant.getImageUrl() == null) {
             // Default plant image placeholder
             holder.plantImage.setImageResource(R.drawable.plant_placeholder);
         } else {
             // Use Glide to load the image from the URL
             Glide.with(context)
-                .load(plant.getImageUrl())
+                .load((plant.getStorageReference() != null) ?  plant.getStorageReference() : plant.getImageUrl())
                 .placeholder(R.drawable.plant_placeholder) // Optional placeholder image? not sure if just while loading
                 .into(holder.plantImage);
         }
@@ -66,5 +69,6 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
     private static class ViewHolder {
         ImageView plantImage;
         TextView plantName;
+        ImageView plantStatus;
     }
 }

@@ -90,6 +90,7 @@ message PlantInfo {
   uint32 sensor_port = 8;
   optional string image_url = 9;
   optional bytes image = 10;
+  optional PlantSensorData last_report = 11;
 }
 
 enum LightLevel {
@@ -163,7 +164,7 @@ message PlantSensorData {
   LightSensorData light = 3;
   float humidity = 4;
   float temp = 5;
-  optional uint64 epoch_ts = 6;  // Epoch timestamp in seconds.
+  optional uint64 epoch_ts = 6;  // Epoch timestamp in milliseconds.
 }
 
 message MoistureSensorData {

@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+
+import org.threeten.bp.Instant;
+
 import java.util.Calendar;
 
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -18,6 +21,7 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 
 import io.grpc.Grpc;
@@ -33,6 +37,8 @@ public class PlantListenerServer {
   private Server server;
 
   private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+  private Map<Long, PlantSensorData> lastPlantReportMap;
+
 
   /* The port on which the server should run */
   private int port;
@@ -40,14 +46,15 @@ public class PlantListenerServer {
   public PlantListenerServer(PlantTrackerConfig config) {
     server = null;
     port = config.listenerPort;
-    requestQueueMap = new HashMap<Long, LinkedBlockingQueue<ListenerRequest>>();
+    requestQueueMap = new HashMap<>();
+    lastPlantReportMap = new HashMap<>();
   }
 
   public void start() throws PlantTrackerException {
     try {
       logger.finer("Starting plant listener server on port " + port);
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
-                   .addService(new PlantListenerImpl(requestQueueMap))
+                   .addService(new PlantListenerImpl(requestQueueMap, lastPlantReportMap))
                    .build()
                    .start();
                    
@@ -88,6 +95,10 @@ public class PlantListenerServer {
     if (queue != null) {
       queue.add(request);
     }
+  }
+
+  public PlantSensorData getLastReport(long plantId) {
+    return lastPlantReportMap.get(plantId);
   }
 
   static class PlantListenerImpl extends PlantListenerGrpc.PlantListenerImplBase {
@@ -132,12 +143,15 @@ public class PlantListenerServer {
     ) {};
 
     private Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap;
+    private Map<Long, PlantSensorData> lastPlantReportMap;
     private Map<Long, PlantSensorNotificationInfo> plantNotificationMap = 
       new HashMap<Long, PlantSensorNotificationInfo>();
 
 
-    PlantListenerImpl(Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap) throws PlantTrackerException {
+
+    PlantListenerImpl(Map<Long, LinkedBlockingQueue<ListenerRequest>> requestQueueMap, Map<Long, PlantSensorData> lastPlantReportMap) throws PlantTrackerException {
       this.requestQueueMap = requestQueueMap;
+      this.lastPlantReportMap = lastPlantReportMap;
 
       ArrayList<PlantRequirements> reqs = getPlantRequirements();
       for (PlantRequirements req: reqs) {
@@ -356,9 +370,13 @@ public class PlantListenerServer {
 
     private void handleNotification(PlantSensorData data) {
       PlantSensorNotificationInfo notificationInfo = plantNotificationMap.get(data.getPlantId());
+      if (notificationInfo == null) {
+        logger.warning("plant is missing from notification map " + data.getPlantId());
+        return;
+      }
 
       Calendar notificationTimeout = Calendar.getInstance();
-      notificationTimeout.add(Calendar.HOUR, -1);
+      notificationTimeout.add(Calendar.HOUR, -24);
 
       // Multiple by 10 to cover [0-1.0] percent to [1..10] integer range.
       int moistureValue = (int)(data.getMoisture().getMoistureLevel() * 10);
@@ -372,9 +390,9 @@ public class PlantListenerServer {
       if (moistureValue <= notificationInfo.moisture.minValue && 
           notificationInfo.moisture.lastValue > notificationInfo.moisture.minValue &&
           notificationInfo.moisture.lastNotification.before(notificationTimeout)) {
-            Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Moisture level at %d%%", (int)(data.getMoisture().getMoistureLevel() * 100))).setImage(notificationImage).build()).setTopic(topic).build();
+            Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Moisture level at %d%%", moistureValue * 10)).setImage(notificationImage).build()).setTopic(topic).build();
             try {
-              logger.fine("Sending notification for plant-id-%d moisture");
+              logger.fine("Sending notification for moisture: " + topic);
               FirebaseMessaging.getInstance().send(message);
               notificationInfo.moisture.lastNotification = Calendar.getInstance();
             } catch (FirebaseMessagingException e) {
@@ -386,9 +404,9 @@ public class PlantListenerServer {
       if (humidityValue <= notificationInfo.humidity.minValue && 
       notificationInfo.humidity.lastValue > notificationInfo.humidity.minValue &&
       notificationInfo.humidity.lastNotification.before(notificationTimeout)) {
-        Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Humidity level at %.2f%%", (int)(data.getHumidity() * 100))).setImage(notificationImage).build()).setTopic(topic).build();
+        Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Humidity level at %d%%", humidityValue)).setImage(notificationImage).build()).setTopic(topic).build();
         try {
-          logger.fine("Sending notification for plant-id-%d humidity");
+          logger.fine("Sending notification for humidity: " + topic);
 					FirebaseMessaging.getInstance().send(message);
           // Only set on valid notification
           notificationInfo.moisture.lastNotification = Calendar.getInstance();
@@ -407,24 +425,30 @@ public class PlantListenerServer {
     public void reportSensor(PlantSensorDataList request, StreamObserver<Result> responseObserver) {
       logger.finest("Sensor report request received.");
       Result res = Result.newBuilder().setError("").setReturnCode(0).build();
+
+      java.sql.Timestamp ts = new Timestamp(Instant.now().toEpochMilli());
       try {
         Database db = Database.getInstance();
-        String insertData = "INSERT INTO plant_sensor_data VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        String insertData = "INSERT INTO plant_sensor_data VALUES (?, ?, ?, ?, ?, ?)";
         PreparedStatement insertStmt = db.connection.prepareStatement(insertData);
   
         List<PlantSensorData> dataList = request.getDataList();
         for (PlantSensorData data : dataList) {
+          // Adds to the last report so the app can get the latest info.
+          lastPlantReportMap.put(data.getPlantId(), data);
+
           insertStmt.setLong(1, data.getPlantId());
           insertStmt.setFloat(2, data.getMoisture().getMoistureLevel());
           insertStmt.setFloat(3, data.getLight().getLumens());
           insertStmt.setFloat(4, data.getTemp());
           insertStmt.setFloat(5, data.getHumidity());
+          insertStmt.setTimestamp(6, ts);
 
           int affectedRows = insertStmt.executeUpdate();
           if (affectedRows == 1) {
-            logger.finest("Sensor data for Plant ID " + data.getPlantId() + " inserted successfully.");
+            logger.finest("Sensor data for Plant ID " + data.getPlantId() + " inserted successfully. PLANTDATA: " + data.toString());
+            logger.finest("Sensor data for Plant ID " + data.getPlantId() + " inserted successfully. QUERY: " + insertStmt.toString());
           } else {
-            // TODO i dont find this message that useful, better logging or error msg ideas?
             throw new SQLException("Expected 1 affected row after inserting sensor data, but rows affected were: " + affectedRows);
           }
 
@@ -476,8 +500,20 @@ public class PlantListenerServer {
             return;
           }
           
-          // TODO need to update notificationMap for added plants.
-          responseObserver.onNext(req);
+          try {
+            if (req.getType() == ListenerRequestType.NEW_PLANT) {
+              ArrayList<PlantRequirements> reqs = getPlantRequirements();
+              for (PlantRequirements plantReq: reqs) {
+                plantNotificationMap.putIfAbsent(plantReq.pid, new PlantSensorNotificationInfo(plantReq.pid, plantReq.name,
+                                        new NotificationRecord(plantReq.minMoisture), 
+                                        new NotificationRecord(plantReq.minHumidity)));
+              }
+            }
+            responseObserver.onNext(req);
+          } catch (PlantTrackerException e) {
+            logger.warning("Failed add new plant to map with : " + e);
+          }
+          
         }
       } catch (InterruptedException e) {
         logger.warning("Request was interrupted with: " + e);

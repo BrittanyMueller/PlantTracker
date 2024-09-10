@@ -8,25 +8,14 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceFragmentCompat;
 
-public class Settings extends AppCompatActivity {
+public class SettingsActivity extends AppBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
 
-        ImageView hamburger = findViewById(R.id.hamburger_menu);
-        hamburger.setVisibility(View.GONE);
-        ImageView backButton = findViewById(R.id.back_arrow);
-        backButton.setVisibility(View.VISIBLE);
-        backButton.setOnClickListener((View v) -> {
-            finish(); // Returns to previous activity
-        });
-
-
-        TextView toolbarTitle = findViewById(R.id.toolbar_title);
-        toolbarTitle.setText("Settings");
-
+        createAppBar(false, "Settings");
         getSupportFragmentManager().beginTransaction().replace(R.id.preference, new MainPreference()).commit();
     }
 
