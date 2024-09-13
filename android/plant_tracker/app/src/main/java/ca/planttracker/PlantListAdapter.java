@@ -17,6 +17,13 @@ import java.util.List;
 
 public class PlantListAdapter extends ArrayAdapter<Plant> {
 
+    public enum Status {
+        HAPPY,
+        FINE,
+        OK,
+        SAD,
+    }
+
     List<Plant> plantList;
     Context context;
 
@@ -48,6 +55,45 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
         // For every plant in list, inflate card view
         Plant plant = getItem(position);
         holder.plantName.setText(plant != null ? plant.getName() : null);
+
+        // Figure out status
+        Status status = Status.HAPPY;
+
+        if (plant.hasLastData()) {
+            holder.plantStatus.setVisibility(View.VISIBLE);
+
+            if (plant.getLastHumidity() < plant.getMinHumidity() - 5 || plant.getLastMoisture() < plant.getMinMoisture() * 10 - 5) {
+                status = Status.SAD;
+            } else if (plant.getLastHumidity() < plant.getMinHumidity() || plant.getLastMoisture() < plant.getMinMoisture() * 10) {
+                status = Status.OK;
+            } else if (plant.getLastHumidity() < plant.getMinHumidity() + 5 || plant.getLastMoisture() < plant.getMinMoisture() * 10 + 5) {
+                status = Status.FINE;
+            } else {
+                status = Status.HAPPY;
+            }
+
+            switch(status) {
+                case HAPPY:
+                    holder.plantStatus.setImageResource(R.drawable.outline_sentiment_excited_24);
+                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.green, convertView.getContext().getTheme()));
+                    break;
+                case FINE:
+                    holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_satisfied_24);
+                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.yellow, convertView.getContext().getTheme()));
+                    break;
+                case OK:
+                    holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_neutral_24);
+                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.orange, convertView.getContext().getTheme()));
+                    break;
+                case SAD:
+                    holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_dissatisfied_24);
+                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.red, convertView.getContext().getTheme()));
+
+                    break;
+            }
+        } else {
+            holder.plantStatus.setVisibility(View.INVISIBLE);
+        }
 
 
 

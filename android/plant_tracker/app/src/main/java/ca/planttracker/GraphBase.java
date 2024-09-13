@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
@@ -55,12 +56,10 @@ public class GraphBase extends View {
 
     // Paint information
     protected Paint textPaint = null;
+    protected Paint dataPaint = null;
     private boolean initialized = false;
+    private int dataPaintColour = Color.rgb(41, 53, 181);
 
-
-    public GraphBase(Context context) {
-        super(context);
-    }
 
     public GraphBase(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -72,14 +71,16 @@ public class GraphBase extends View {
         setAttr(attrs);
     }
 
-
-
     /******************* OVERRIDABLE METHODS **********************/
     protected void init() {
         textPaint = new Paint();
         textPaint.setTextSize(32);
         textPaint.setTextAlign(Paint.Align.CENTER);
         initialized = true;
+
+        dataPaint = new Paint();
+        dataPaint.setColor(dataPaintColour);
+        dataPaint.setStrokeWidth(3);
 
         canvasWidth = getWidth();
         canvasHeight = getHeight();
@@ -102,6 +103,7 @@ public class GraphBase extends View {
         if (ta.hasValue(R.styleable.GraphBase_graph_unit)) {
             units = ta.getString(R.styleable.GraphBase_graph_unit);
         }
+        dataPaintColour = ta.getColor(R.styleable.GraphBase_graph_data_color, Color.rgb(41, 53, 181));
     }
 
     protected void calculateHitBoxes() {
@@ -130,9 +132,6 @@ public class GraphBase extends View {
     int calculateAbsY(double value) { return xAxisBottom - calculateRelativeY(value); }
 
 
-    /******************** PRIVATE METHODS ************************/
-
-
     /***************** Overrides for View ************************/
 
     protected void onDraw(@NonNull Canvas canvas) {
@@ -143,7 +142,6 @@ public class GraphBase extends View {
         // Title
         textPaint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText(title, (float) 20, 50, textPaint);
-
         // Draws dashed line dataTarget
         int dashLength = (canvasWidth - 100) / 30;
         int dataTargetY = calculateAbsY(dataTarget);

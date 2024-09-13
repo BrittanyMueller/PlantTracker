@@ -3,6 +3,7 @@
     <style name="Base.Theme.PlantTracker" parent="Theme.Material3.Light.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="android:statusBarColor">@color/green</item>
+        <item name="android:windowBackground">#EEEEEE</item>
     </style>
     <style name="Theme.PlantTracker" parent="Base.Theme.PlantTracker" />
 </resources>

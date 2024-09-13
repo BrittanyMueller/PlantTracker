@@ -70,4 +70,6 @@ public class Plant implements Serializable {
     public double getLastMoisture() { return lastMoisture;}
     public double getLastHumidity() { return lastHumidity;}
     public double getLastLight() { return lastLight;}
+    public int getMinMoisture() { return minMoisture; }
+    public int getMinHumidity() { return minMoisture; }
 }
