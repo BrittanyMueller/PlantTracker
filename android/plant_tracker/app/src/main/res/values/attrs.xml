@@ -6,5 +6,6 @@
         <attr name="graph_min" format="float"/>
         <attr name="graph_label_step" format="integer"/>
         <attr name="graph_unit" format="string"/>
+        <attr name="graph_data_color" format="color"/>
     </declare-styleable>
 </resources>

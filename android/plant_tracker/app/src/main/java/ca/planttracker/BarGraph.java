@@ -17,8 +17,6 @@ import androidx.annotation.NonNull;
  */
 public class BarGraph extends GraphBase {
 
-  private Paint paintBlue;
-
   private int animationCounter = 0;
 
   // Stolen from https://stackoverflow.com/questions/5896234/how-to-use-android-canvas-to-draw-a-rectangle-with-only-topleft-and-topright-cor
@@ -29,10 +27,6 @@ public class BarGraph extends GraphBase {
           0, 0           // Bottom left radius in px
   };
 
-  public BarGraph(Context context) {
-    super(context);
-  }
-
   public BarGraph(Context context, AttributeSet attrs) {
     super(context, attrs);
   }
@@ -42,19 +36,12 @@ public class BarGraph extends GraphBase {
   }
 
   /*************** OVERRIDE METHODS *************************/
-  @Override
-  protected void init() {
-    super.init();
-    paintBlue = new Paint();
-    paintBlue.setColor(Color.rgb(41, 53, 181));
-  }
 
   @Override
   protected void calculateHitBoxes() {
-   super.calculateHitBoxes();
-    animationCounter = 0;
+     super.calculateHitBoxes();
+     animationCounter = 0;
   }
-
 
   @Override
   protected void onDraw(@NonNull Canvas canvas) {
@@ -66,7 +53,7 @@ public class BarGraph extends GraphBase {
       RectF rect = hitBoxRect.get(i);
       int rectTop = xAxisBottom - Math.min(calculateRelativeY(data.get(i).value), animationCounter);
       path.addRoundRect(rect.left, rectTop, rect.right, rect.bottom, corners, Path.Direction.CW);
-      canvas.drawPath(path, paintBlue);
+      canvas.drawPath(path, dataPaint);
     }
 
     // TODO interpolated it for all vars

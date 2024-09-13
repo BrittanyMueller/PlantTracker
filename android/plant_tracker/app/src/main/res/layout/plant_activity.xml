@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical">
 
     <!-- Include the custom app bar -->
@@ -14,7 +14,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="20dp"
         android:padding="10dp"
@@ -36,7 +36,7 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_margin="10dp">
 
         <LinearLayout
@@ -87,9 +87,11 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
+
     <androidx.cardview.widget.CardView
+        android:layout_weight="1"
         android:layout_width="wrap_content"
-        android:layout_height="150dp"
+        android:layout_height="0dp"
         android:layout_margin="10dp"
         app:cardCornerRadius="7dp">
 
@@ -101,11 +103,13 @@
             <ca.planttracker.BarGraph
                 android:id="@+id/light_bar_graph"
                 android:layout_width="wrap_content"
-                android:layout_height="110dp"
+                android:layout_height="0dp"
                 app:graph_max="24.0"
+                android:layout_weight="2"
                 app:graph_min="0.0"
                 app:graph_unit="Hrs"
                 app:graph_title="Light Data"
+                app:graph_data_color="@color/green"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -123,6 +127,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="right|center_vertical"
                 android:layout_marginEnd="20dp"
+                android:layout_marginBottom="5dp"
                 android:scaleX="-1"
                 app:srcCompat="@drawable/back_arrow_24"
                 app:tint="#000000" />
@@ -131,9 +136,13 @@
     </androidx.cardview.widget.CardView>
 
     <androidx.cardview.widget.CardView
+        android:layout_weight="1"
         android:layout_width="wrap_content"
-        android:layout_height="150dp"
-        android:layout_margin="10dp"
+        android:layout_height="0dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
         app:cardCornerRadius="7dp">
 
         <LinearLayout
@@ -144,8 +153,10 @@
             <ca.planttracker.LineGraph
                 android:id="@+id/moisture_graph"
                 android:layout_width="wrap_content"
-                android:layout_height="110dp"
+                android:layout_height="0dp"
+                android:layout_weight="2"
                 app:graph_max="100.0"
+                app:graph_data_color="@color/green"
                 app:graph_min="0.0"
                 app:graph_unit="%"
                 app:graph_label_step="2"
@@ -165,8 +176,10 @@
                 android:id="@+id/moisture_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right|center_vertical"
+                android:layout_gravity="end|center_vertical"
                 android:layout_marginEnd="20dp"
+                android:layout_marginBottom="5dp"
+
                 android:scaleX="-1"
                 app:srcCompat="@drawable/back_arrow_24"
                 app:tint="#000000" />
