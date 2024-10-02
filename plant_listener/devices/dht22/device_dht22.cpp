@@ -12,6 +12,12 @@
 
 #include "device_dht22.hpp"
 
+#include <cerrno>
+#include <chrono>
+#include <thread>
+
+#include <spdlog/spdlog.h>
+
 using plantlistener::device::Device;
 using plantlistener::device::DeviceDHT22;
 using plantlistener::device::DeviceType;
@@ -29,16 +35,23 @@ DeviceDHT22::~DeviceDHT22() {
 
 
 double DeviceDHT22::readPort(const uint8_t port) {
-  DHT22Data data = read_dht22(&dev_);
-  if (data.err == 0) {
-    humidity = static_cast<double>(data.humidity);
-    temp = static_cast<double>(data.temp);
+  for (int i = 0; i < 5; i++) {
+    DHT22Data data = read_dht22(&dev_);
+    if (data.err == 0) {
+      humidity_ = static_cast<double>(data.humidity);
+      temp_ = static_cast<double>(data.temp);
+      break;
+    }
+    if (i < 4) {
+      // spdlog::warn("Failed to read dht22 port retry {}", i);
+      std::this_thread::sleep_for(std::chrono::seconds(3));
+    }
   }
 
   if (port == HUMIDITY_PORT) {
-    return humidity;
+    return humidity_;
   } else if (port == TEMP_PORT) {
-    return temp;
+    return temp_;
   } else {
     return -1;
   }

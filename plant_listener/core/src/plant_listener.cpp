@@ -203,11 +203,12 @@ Error PlantListener::start() {
     new_dev->set_name(name);
 
     auto port_count = dev->getPortCount();
-    for (auto& sensor : sensors_) {
-      if (sensor->getType() == SensorType::LIGHT) {
-        port_count--;  // All lights must be at the end.
-      }
-    }
+    // for v1.
+    // for (auto& sensor : sensors_) {
+    //   if (sensor->getType() == SensorType::LIGHT && dev->) {
+    //     port_count--;  // All lights must be at the end.
+    //   }
+    // }
     new_dev->set_num_sensors(port_count);
   }
 
@@ -282,12 +283,12 @@ Error PlantListener::start() {
         plant_data->set_humidity(data.humidity_data);
         plant_data->set_temp(data.temp_data);
 
-        float lumens = data.light_data * 1.023f;  // TODO replace a with a real coefficient.
+        float lumens = data.light_data;
         float moisture = 1 - (data.moisture_data / 255.0f);  // needs to be in a separate var due to rpi.
     
         LightSensorData* lightData = new LightSensorData;
-        lightData->set_sensor_value(data.light_data);
-        lightData->set_lumens(lumens);  
+        lightData->set_sensor_value(std::max(static_cast<int64_t>(data.light_data), static_cast<int64_t>(0)));
+        lightData->set_lumens(std::max(lumens, 0.0f));  
 
         MoistureSensorData* moistureData = new MoistureSensorData;
         moistureData->set_sensor_value(data.moisture_data);

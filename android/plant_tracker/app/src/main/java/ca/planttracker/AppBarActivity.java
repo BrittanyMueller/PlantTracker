@@ -1,10 +1,15 @@
 package ca.planttracker;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.Toolbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -12,10 +17,26 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 
-public class AppBarActivity extends AppCompatActivity {
+public class AppBarActivity extends AppCompatActivity implements PopupMenu.OnMenuItemClickListener {
 
-    protected void createAppBar(boolean hamburger, String title) {
+    protected PopupMenu popupMenu;
+
+    protected void createAppBar(boolean hamburger, String title, int menuResource) {
         ImageView hamburgerMenu = findViewById(R.id.hamburger_menu);
+        Toolbar toolbar = ((Toolbar)findViewById(R.id.toolbar));
+
+        if (menuResource != -1) {
+            popupMenu = new PopupMenu(this, toolbar);
+            popupMenu.setGravity(GravityCompat.END);
+            ImageView menuButton = findViewById(R.id.more_icon);
+            getMenuInflater().inflate(menuResource, popupMenu.getMenu());
+            menuButton.setOnClickListener((View v) -> {
+                popupMenu.show();  // Show the menu
+            });
+        }
+
+        popupMenu.setOnMenuItemClickListener(this);
+
         if (hamburger) {
 
             hamburgerMenu.setOnClickListener((View v) -> {
@@ -48,5 +69,10 @@ public class AppBarActivity extends AppCompatActivity {
 
         TextView toolbarTitle = findViewById(R.id.toolbar_title);
         toolbarTitle.setText(title);
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        return false;
     }
 }

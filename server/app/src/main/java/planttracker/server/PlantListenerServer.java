@@ -387,10 +387,10 @@ public class PlantListenerServer {
       String notificationImage = null;
       String title = notificationInfo.name + " needs your attention";
 
-      if (moistureValue <= notificationInfo.moisture.minValue && 
-          notificationInfo.moisture.lastValue > notificationInfo.moisture.minValue &&
+      if (moistureValue < notificationInfo.moisture.minValue && 
+          notificationInfo.moisture.lastValue >= notificationInfo.moisture.minValue &&
           notificationInfo.moisture.lastNotification.before(notificationTimeout)) {
-            Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Moisture level at %d%%", moistureValue * 10)).setImage(notificationImage).build()).setTopic(topic).build();
+            Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Moisture level at %d%%", (int)(data.getMoisture().getMoistureLevel() * 100))).setImage(notificationImage).build()).setTopic(topic).build();
             try {
               logger.fine("Sending notification for moisture: " + topic);
               FirebaseMessaging.getInstance().send(message);

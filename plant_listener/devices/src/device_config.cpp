@@ -23,6 +23,8 @@ Expected<DeviceType> plantlistener::device::strToDeviceType(const std::string& d
     return {DeviceType::TEMP_AND_HUMIDITY};
   } else if (dev_type == "PH_LEVEL") {
     return {DeviceType::PH_LEVEL};
+  } else if (dev_type == "LIGHT") {
+    return {DeviceType::LIGHT};
   } else {
     return {Error::Code::ERROR_INVALID_VALUE,
             "DeviceType must be one of (ADC, TEMP_AND_HUMIDITY, or PH_LEVEL) "

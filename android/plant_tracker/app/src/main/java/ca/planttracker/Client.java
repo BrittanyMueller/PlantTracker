@@ -32,6 +32,7 @@ import planttracker.server.GetPlantsRequest;
 import planttracker.server.GetPlantsRequestType;
 import planttracker.server.GetPlantsResponse;
 import planttracker.server.LightLevel;
+import planttracker.server.PlantId;
 import planttracker.server.PlantSensorData;
 import planttracker.server.PlantSensorDataList;
 import planttracker.server.PlantTrackerGrpc;
@@ -210,6 +211,20 @@ public class Client {
         try {
             PlantSensorDataList list = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlantSensorData(req);
             return list.getDataList();
+        } catch (StatusRuntimeException e) {
+            Log.e("GetPlantSensorData", "Failed to get sensor data for plantId=" + String.valueOf(plantId), e);
+            throw e;
+        }
+    }
+
+    public boolean deletePlant(long plantId) {
+        if (host.equals("0.0.0.0")) {
+            return true;
+        }
+        PlantId id = PlantId.newBuilder().setId(plantId).build();
+        try {
+            Result res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).deletePlant(id);
+            return res.hasError();
         } catch (StatusRuntimeException e) {
             Log.e("GetPlantSensorData", "Failed to get sensor data for plantId=" + String.valueOf(plantId), e);
             throw e;

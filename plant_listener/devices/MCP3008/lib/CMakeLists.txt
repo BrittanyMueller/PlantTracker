@@ -10,18 +10,7 @@
 # @author: BrittanyMueller
 #
 
-add_subdirectory(lib)
-
-add_executable(dht22_tester dht22-main.c)
-target_link_libraries(dht22_tester dht22)
-
-
-add_library(plantlistener-device-dht22-temp-dev SHARED device_dht22.cpp)
-
-target_link_libraries(plantlistener-device-dht22-temp-dev
-  PRIVATE 
-  plantlistener-device_objlib
-  json
-  dht22
-  spdlog
-)
+find_package(Threads REQUIRED)
+add_library(mcp3008 STATIC mcp3008.cpp)
+target_include_directories(mcp3008 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(mcp3008 PUBLIC pigpio rt Threads::Threads)

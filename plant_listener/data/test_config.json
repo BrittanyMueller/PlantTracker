@@ -6,12 +6,12 @@
         "log_level": "DBG",
         "retry_count": -1,
         "retry_timeout": 5,
-        "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
+        "uuid": "a024a4f4-830e-45d1-842f-6a8391b74c21"
     },
     "sensors": [
         {
             "type": "light",
-            "device": "DEVTEST",
+            "device": "test_device",
             "port": 7
         },
         {
@@ -26,7 +26,7 @@
     "devices": {
         "instances": [
             {
-                "name": "DEVTEST",
+                "name": "test_device",
                 "type": "ADC",
                 "lib": "mock_dev",
                 "ports": 8,

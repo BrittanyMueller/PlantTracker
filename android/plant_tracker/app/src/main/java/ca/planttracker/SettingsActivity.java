@@ -15,7 +15,7 @@ public class SettingsActivity extends AppBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
 
-        createAppBar(false, "Settings");
+        createAppBar(false, "Settings", -1);
         getSupportFragmentManager().beginTransaction().replace(R.id.preference, new MainPreference()).commit();
     }
 

@@ -74,6 +74,8 @@ public class AddPlantActivity extends AppBarActivity {
 
     Button addPlantBtn;
 
+    private boolean requestInProgress = false;
+
     private final ActivityResultLauncher<Intent> selectImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -93,7 +95,7 @@ public class AddPlantActivity extends AppBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.add_plant_activity);
 
-        createAppBar(false, getString(R.string.add_plant));
+        createAppBar(false, getString(R.string.add_plant), -1);
 
         FirebaseApp.initializeApp(AddPlantActivity.this);
         storageReference = FirebaseStorage.getInstance().getReference();
@@ -229,6 +231,10 @@ public class AddPlantActivity extends AppBarActivity {
 
     private void submitAddPlant() {
         CompletableFuture<String> imageUrlFuture;
+        if (requestInProgress) {
+            return;
+        }
+        requestInProgress = true;
 
         if (imageUri == null) {
             // Skip upload and create plant with null (default) image
@@ -261,11 +267,13 @@ public class AddPlantActivity extends AppBarActivity {
                         setResult(RESULT_OK);
                         finish();   // TODO return RESULT_OK to view plants activity
                     } else {
+                        requestInProgress = false;
                         Log.d("SubmitAddPlant", "Add plant failed.");
                         Toast.makeText(AddPlantActivity.this, "Add plant failed.", Toast.LENGTH_LONG).show();
                     }
                 }))
                 .exceptionally(e -> {
+                    requestInProgress = false;
                     Log.e("SubmitAddPlant", "Add plant failed exceptionally: " + e.getMessage(), e);
                     runOnUiThread(() -> Toast.makeText(AddPlantActivity.this, "Add plant failed. Check your network connection.", Toast.LENGTH_LONG).show());
                     return null;

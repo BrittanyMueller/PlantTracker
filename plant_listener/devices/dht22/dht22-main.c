@@ -5,7 +5,7 @@
 
 int main() {
   if (gpioInitialise() < 0) return 1;
-  struct DHT22 dht22 = init_dht22(4);
+  struct DHT22 dht22 = init_dht22(12);
   while (1) {
     struct DHT22Data data = read_dht22(&dht22);
     if (data.err) {

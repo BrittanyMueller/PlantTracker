@@ -88,7 +88,6 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
                 case SAD:
                     holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_dissatisfied_24);
                     holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.red, convertView.getContext().getTheme()));
-
                     break;
             }
         } else {
