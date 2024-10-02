@@ -58,7 +58,7 @@ public class Database {
         sensor_port INT,
         plant_id INT NULL,
         FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id) ON DELETE CASCADE,
-        FOREIGN KEY (plant_id) REFERENCES plants(id) ON DELETE CASCADE,
+        FOREIGN KEY (plant_id) REFERENCES plants(id),
         PRIMARY KEY (moisture_device_id, sensor_port)
         );""",
         """

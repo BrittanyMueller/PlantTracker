@@ -1,5 +1,7 @@
 package ca.planttracker;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.storage.FirebaseStorage;
@@ -64,6 +66,7 @@ public class Plant implements Serializable {
 
     public StorageReference getStorageReference() {
         if (mockData) return null;
+        if (imageUrl == null || imageUrl.isEmpty()) return null;
         return FirebaseStorage.getInstance().getReference().child(getImageUrl());
     }
 
