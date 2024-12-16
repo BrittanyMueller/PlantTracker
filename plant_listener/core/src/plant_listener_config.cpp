@@ -132,7 +132,7 @@ Error PlantListenerConfig::load() {
       DeviceConfig dev_cfg;
       std::string lib_name, dev_type;
 
-      dev_cfg.cfg = dev["cfg"];
+      dev_cfg.cfg = (dev.contains("cfg")) ? dev["cfg"] : json::object();
       parseValue<std::string>(dev, "name", dev_cfg.name);
       parseValue<uint32_t>(dev, "ports", dev_cfg.ports);
 

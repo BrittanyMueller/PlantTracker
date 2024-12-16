@@ -1,0 +1,71 @@
+{
+  "name": "Dev Pi",
+  "server": {
+    "address": "10.0.0.150",
+    "port": 5051,
+    "log_level": "DBG",
+    "retry_count": -1,
+    "retry_timeout": 5,
+    "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
+  },
+  "sensors": [
+    {
+      "type": "light",
+      "device": "light_dev",
+      "port": 0
+    },
+    {
+      "type": "temp",
+      "device": "temp_and_hum_dev"
+    },
+    {
+      "type": "humidity",
+      "device": "temp_and_hum_dev"
+    }
+  ],
+  "devices": {
+    "instances": [
+      {
+        "name": "moisture_dev",
+        "type": "ADC",
+        "lib": "mcp3008",
+        "ports": 8,
+        "cfg": {
+          "min": 0,
+          "max": 255
+        }
+      },
+      {
+        "name": "temp_and_hum_dev",
+        "type": "TEMP_AND_HUMIDITY",
+        "lib": "dht22",
+        "ports": 2,
+        "cfg": {
+          "pin": 4,
+          "min": 0,
+          "max": 100
+        }
+      },
+      {
+        "name": "light_dev",
+        "type": "LIGHT",
+        "lib": "dh1750",
+        "ports": 1
+      }
+    ],
+    "libs": [
+      {
+        "name": "mcp3008",
+        "lib_path": "lib/libplantlistener-device-mcp3008-adc-dev.so"
+      },
+      {
+        "name": "dh1750",
+        "lib_path": "lib/libplantlistener-device-dh1750-light-dev.so"
+      },
+      {
+        "name": "dht22",
+        "lib_path": "lib/libplantlistener-device-dht22-temp-dev.so"
+      }
+    ]
+  }
+}

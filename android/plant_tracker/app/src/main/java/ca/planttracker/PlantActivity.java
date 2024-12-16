@@ -1,10 +1,17 @@
 package ca.planttracker;
 
+import static java.lang.Double.max;
+
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.appcompat.widget.Toolbar;
 
 import com.bumptech.glide.Glide;
 
@@ -12,6 +19,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
@@ -29,33 +37,54 @@ public class PlantActivity extends AppBarActivity {
 
     private List<String> days = new ArrayList<>();
     private Plant plant;
+    private TextView lightText;
+    private TextView moistureText;
+    private TextView humidityText;
+
+    // graphs
+    private BarGraph lightGraph;
+    private LineGraph moistureGraph;
 
     private List<BarGraph.DataPoint> lightData = new ArrayList<BarGraph.DataPoint>();
+
     @SuppressLint("DefaultLocale")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.plant_activity);
 
-        Plant plant = (Plant) getIntent().getSerializableExtra("plant");
-
+        plant = (Plant) getIntent().getSerializableExtra("plant");
         assert plant != null;
-        createAppBar(false, plant.getName());
+        createAppBar(false, plant.getName(), R.menu.plant_menu);
 
         if (plant.getImageUrl() != null) {
             ImageView plantImage = findViewById(R.id.plant_image_view);
             Glide.with(getBaseContext())
-                    .load((plant.getStorageReference() != null) ?  plant.getStorageReference() : plant.getImageUrl())
+                    .load((plant.getStorageReference() != null) ? plant.getStorageReference() : plant.getImageUrl())
                     .placeholder(R.drawable.plant_placeholder) // Optional placeholder image? not sure if just while loading
                     .into(plantImage);
         }
 
-        TextView lightText = findViewById(R.id.light_level);
-        TextView moistureText = findViewById(R.id.moisture_level);
-        TextView humidityText = findViewById(R.id.humidity_level);
+        lightText = findViewById(R.id.light_level);
+        moistureText = findViewById(R.id.moisture_level);
+        humidityText = findViewById(R.id.humidity_level);
+        lightGraph = findViewById(R.id.light_bar_graph);
+        moistureGraph = findViewById(R.id.moisture_graph);
 
+        refreshData();
+    }
+
+    private void refreshData() {
         if (plant.hasLastData()) {
-            lightText.setText(String.format("%.2f \nLumens", plant.getLastLight()));
+            // Needed for v1. v2 is actually good lol
+            // int R = 1000;
+            // float Vin = 3.3f;
+            // float conversionFactor = 3.3f/255;
+            // float Vout = (float)plant.getLastLight() * conversionFactor;
+            // float Rout = R * (Vin / Vout - 1);
+            // float lux = 100 * 1/(Rout/ 100000);
+
+            lightText.setText(String.format("%d \nLux", (int)max(0, plant.getLastLight())));
             moistureText.setText(String.format("%.2f%%\nMoisture", plant.getLastMoisture()));
             humidityText.setText(String.format("%.2f%%\nHumidity", plant.getLastHumidity()));
         } else {
@@ -63,8 +92,6 @@ public class PlantActivity extends AppBarActivity {
             moistureText.setText("Unknown\nMoisture");
             humidityText.setText("Unknown\nHumidity");
         }
-
-        BarGraph lightGraph = findViewById(R.id.light_bar_graph);
 
         switch(plant.getLightLevel()) {
             case LOW:
@@ -81,8 +108,8 @@ public class PlantActivity extends AppBarActivity {
 
         // Fetch and calculate the data in another thread.
         new Thread(() -> {
-            Instant start = LocalDate.now().minusDays(6).atStartOfDay().toInstant(ZoneOffset.UTC);
-            Instant end = LocalDate.now().atTime(LocalTime.MAX).toInstant(ZoneOffset.UTC);
+            Instant start = LocalDate.now().minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant();
+            Instant end = Instant.now();
             List<PlantSensorData> sensorDataList = Client.getInstance().getPlantSensorData(plant.getId(), start, end);
 
             Calendar cal = Calendar.getInstance();
@@ -91,7 +118,6 @@ public class PlantActivity extends AppBarActivity {
 
             List<BarGraph.DataPoint> lightData = new ArrayList<>();
             List<LineGraph.DataPoint> moistureData = new ArrayList<>();
-
 
             for (int i = 0; i < 7; i++) {
                 days.add(day.getDayOfWeek().name().substring(0, 1));
@@ -103,14 +129,11 @@ public class PlantActivity extends AppBarActivity {
                 moistureData.add(new GraphBase.DataPoint(days.get(days.size() -1) + ".5", 0));
             }
 
-
-
             if (!sensorDataList.isEmpty()) {
                 // First we need to figure out how many data pointer were above our threshold
                 // and what the average time between the data points is.
                 long averageSum = 0;
                 long lastTs = sensorDataList.get(0).getEpochTs();
-                Instant now = Instant.now();
                 LocalDate nowDay = LocalDate.now();
                 for (PlantSensorData d: sensorDataList) {
                     averageSum += d.getEpochTs() - lastTs;
@@ -118,13 +141,21 @@ public class PlantActivity extends AppBarActivity {
 
                     Instant curTs = Instant.ofEpochMilli(d.getEpochTs());
 
-                    int curDay = (int)(curTs.atZone(ZoneOffset.UTC).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
-                    int curHour = curTs.atZone(ZoneOffset.UTC).toLocalTime().getHour();
+                    // todo change to UTC when server is updated
+                    int curDay = (int)(curTs.atZone(ZoneOffset.systemDefault()).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
+                    int curHour = curTs.atZone(ZoneOffset.systemDefault()).toLocalTime().getHour();
                     // TODO get threshold based on light level.
-                    if (d.getLight().getLumens() > 10) {
+                    if (d.getLight().getLumens() > 500) {
                         lightData.get(curDay).value += 1;
                     }
-                    moistureData.get((int)(curDay*2 + ((curHour <= 12) ? 0 : 1))).value = d.getMoisture().getMoistureLevel() * 100;
+
+                    // To ensure we don't error out be careful with incoming TS as timestamps are annoying
+                    int i = (int)(curDay*2 + ((curHour <= 12) ? 0 : 1));
+                    if (i >= moistureData.size()) {
+                        Log.e("PlantActivity", "Timestamp curHour " + String.valueOf(curHour) + " Went out of bounds");
+                        continue; // bad ts
+                    }
+                    moistureData.get(i).value = d.getMoisture().getMoistureLevel() * 100;
                 }
 
                 // Now calculate how many milliseconds each data point above the threshold is worth.
@@ -135,15 +166,42 @@ public class PlantActivity extends AppBarActivity {
                 for (int i = 0; i < lightData.size(); i++) {
                     // 1 hours = 3600000 milli
                     lightData.get(i).value = (lightData.get(i).value * timeMilliModifier) / 3600000.0;
+
                 }
+            }
+
+            // If it is before 12 remove the last data point as it doesn't exist yet.
+            // maybe this should be in the graph code...
+            if (LocalDateTime.now().getHour() < 12) {
+                moistureData.remove(moistureData.size()-1);
             }
 
             runOnUiThread(() -> {
                 lightGraph.setData(lightData);
-                LineGraph moistureGraph = findViewById(R.id.moisture_graph);
                 moistureGraph.setData(moistureData);
             });
         }).start();
+    }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.plant_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onMenuItemClick(MenuItem item) {
+        if (item.getItemId() == R.id.refresh_menu_item) {
+            refreshData();
+        } else if (item.getItemId() == R.id.delete_menu_item) {
+            Client.getInstance().deletePlant(plant.getId());
+            // TODO(qawse3dr) add toast on failure.
+            finish();
+        } else if (item.getItemId() == R.id.edit_menu_item) {
+
+        }
+        return true;
     }
 }

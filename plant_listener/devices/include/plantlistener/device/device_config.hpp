@@ -17,12 +17,14 @@
 
 namespace plantlistener::device {
 
-enum class DeviceType { ADC, TEMP_AND_HUMIDITY, PH_LEVEL };
+enum class DeviceType { ADC, TEMP_AND_HUMIDITY, PH_LEVEL, LIGHT };
 
 // since only ADC support multiple ports instead hardcode
 // port configuration for other device types.
 #define TEMP_PORT 0
 #define HUMIDITY_PORT 1
+
+#define LIGHT_PORT 0
 
 #define PH_PORT 0
 

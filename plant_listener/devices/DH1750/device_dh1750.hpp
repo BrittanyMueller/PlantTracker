@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023-2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
+ * (C) Copyright 2024 Brittany Mueller and Larry Milne (https://www.larrycloud.ca)
  *
  * This code is distributed on "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND.
@@ -13,24 +13,18 @@
 
 #include <plantlistener/device/device.hpp>
 
-extern "C" {
-#include "dht22.h"
-}
+#include "dh1750.hpp"
 
 namespace plantlistener::device {
 
-class DeviceDHT22 : public Device {
+class DeviceDH1750 : public Device {
  private:
   int handle_ = 0;
-  struct DHT22 dev_ {};
-
-  // This sensor is very unreliable save the last result to report when it fails.
-  double humidity_ = 0;
-  double temp_ = 0;
+  DH1750 dev_{}; // TODO probably need to get the bus and address from config.
 
  public:
-  DeviceDHT22(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
-  ~DeviceDHT22();
+  DeviceDH1750(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
+  ~DeviceDH1750() = default;
 
   /**
    * Reads the value from a specific port. If the read fails for any reason -1

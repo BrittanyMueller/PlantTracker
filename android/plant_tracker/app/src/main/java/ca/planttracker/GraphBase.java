@@ -71,6 +71,7 @@ public class GraphBase extends View {
         setAttr(attrs);
     }
 
+
     /******************* OVERRIDABLE METHODS **********************/
     protected void init() {
         textPaint = new Paint();
@@ -85,7 +86,7 @@ public class GraphBase extends View {
         canvasWidth = getWidth();
         canvasHeight = getHeight();
         xAxisBottom = canvasHeight * 8/10;
-        yAxisTop = 50;
+        yAxisTop = canvasHeight/10;
         yAxisSize = xAxisBottom - yAxisTop;
 
         calculateHitBoxes();
@@ -162,7 +163,7 @@ public class GraphBase extends View {
 
         // TODO make fancy with dotted lines and value at top of dotted line
         if (infoText != null) {
-            canvas.drawText(infoText, (float) canvasWidth /2, 100, textPaint);
+            canvas.drawText(infoText, (float) canvasWidth /2, yAxisTop, textPaint);
         }
 
     }

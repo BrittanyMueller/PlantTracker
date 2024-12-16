@@ -69,7 +69,7 @@ public class ViewPlantsActivity extends AppBarActivity {
         setContentView(R.layout.view_plants_activity);
         askNotificationPermission();
 
-        createAppBar(true, getString(R.string.app_name));
+        createAppBar(true, getString(R.string.app_name), R.menu.view_plants_menu);
 
         SwipeRefreshLayout refresh = findViewById(R.id.swiperefresh);
         refresh.setOnRefreshListener(this::refreshViewPlants);
