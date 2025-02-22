@@ -23,9 +23,9 @@ public class AppBarActivity extends AppCompatActivity implements PopupMenu.OnMen
 
     protected void createAppBar(boolean hamburger, String title, int menuResource) {
         ImageView hamburgerMenu = findViewById(R.id.hamburger_menu);
-        Toolbar toolbar = ((Toolbar)findViewById(R.id.toolbar));
 
         if (menuResource != -1) {
+            Toolbar toolbar = ((Toolbar)findViewById(R.id.toolbar));
             popupMenu = new PopupMenu(this, toolbar);
             popupMenu.setGravity(GravityCompat.END);
             ImageView menuButton = findViewById(R.id.more_icon);
@@ -33,12 +33,10 @@ public class AppBarActivity extends AppCompatActivity implements PopupMenu.OnMen
             menuButton.setOnClickListener((View v) -> {
                 popupMenu.show();  // Show the menu
             });
+            popupMenu.setOnMenuItemClickListener(this);
         }
 
-        popupMenu.setOnMenuItemClickListener(this);
-
         if (hamburger) {
-
             hamburgerMenu.setOnClickListener((View v) -> {
                 DrawerLayout drawer = findViewById(R.id.drawer_layout);
                 drawer.openDrawer(GravityCompat.START);

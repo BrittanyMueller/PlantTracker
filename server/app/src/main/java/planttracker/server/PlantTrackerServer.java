@@ -64,6 +64,7 @@ public class PlantTrackerServer {
 
   static class PlantTrackerImpl extends PlantTrackerGrpc.PlantTrackerImplBase {
 
+    @Override
     public void addPlant(PlantInfo request, io.grpc.stub.StreamObserver<Result> responseObserver) {
 
       Result res = Result.newBuilder().setReturnCode(0).build();
@@ -138,26 +139,25 @@ public class PlantTrackerServer {
         insertStmt.setInt(5, plant.getMinHumidity());
         insertStmt.setLong(6, plant.getPid());
         
-        try (ResultSet resultSet = insertStmt.executeQuery()) {
-          if (resultSet.next()) {
-            // Insert successful, retrieve generated plant
-            plantId = resultSet.getInt("id");
-  
-            // Update moisture sensor associated with plant id
-            updateStmt.setInt(1, plantId);
-            updateStmt.setLong(2, plant.getMoistureDeviceId());
-            updateStmt.setInt(3, plant.getSensorPort());
+        ResultSet resultSet = insertStmt.executeQuery();
+        if (resultSet.next()) {
+          // Insert successful, retrieve generated plant
+          plantId = resultSet.getInt("id");
 
-            int affectedRows = updateStmt.executeUpdate();
-            if (affectedRows != 1) {
-              throw new SQLException("Expected to update 1 row, but updated " + affectedRows + " rows for sensor with device ID " + plant.getMoistureDeviceId());
-            }
-            // Full transaction successful, commit
-            db.connection.commit();
-            logger.info(String.format("New plant '%s' added.", plant.getName()));
-          } else {
-            throw new SQLException("Failed to insert new Plant with name '" + plant.getName() + "'");
+          // Update moisture sensor associated with plant id
+          updateStmt.setInt(1, plantId);
+          updateStmt.setLong(2, plant.getMoistureDeviceId());
+          updateStmt.setInt(3, plant.getSensorPort());
+
+          int affectedRows = updateStmt.executeUpdate();
+          if (affectedRows != 1) {
+            throw new SQLException("Expected to update 1 row, but updated " + affectedRows + " rows for sensor with device ID " + plant.getMoistureDeviceId());
           }
+          // Full transaction successful, commit
+          db.connection.commit();
+          logger.info(String.format("New plant '%s' added.", plant.getName()));
+        } else {
+          throw new SQLException("Failed to insert new Plant with name '" + plant.getName() + "'");
         }
       } catch (SQLException e) {
         db.rollback();
@@ -171,7 +171,60 @@ public class PlantTrackerServer {
 
     @Override
     public void deletePlant(PlantId request, io.grpc.stub.StreamObserver<Result> responseObserver) {
-      logger.severe("deletePlant Not Implemented");
+      Result response = Result.newBuilder().setReturnCode(0).build();
+
+      String deletePlantSql = "DELETE FROM plants WHERE plants.id = ?";
+      // TODO(qawse3dr) Figure out a better way than deleting the plant data first.
+      String deleteDataSql = "DELETE FROM plant_sensor_data WHERE plant_id = ?";
+      String updateSensorSql = "UPDATE sensors SET plant_id = null WHERE plant_id = ?";
+
+      Database db = null;
+
+      try {
+        db = Database.getInstance();
+      } catch (PlantTrackerException e) {
+        responseObserver.onNext(Result.newBuilder().setReturnCode(-1).setError(updateSensorSql).build());
+        responseObserver.onCompleted();
+        return;
+      }
+
+      try (PreparedStatement deleteStmt = db.connection.prepareStatement(deletePlantSql);
+           PreparedStatement deleteDataStmt = db.connection.prepareStatement(deleteDataSql);
+           PreparedStatement updateStmt = db.connection.prepareStatement(updateSensorSql);) {
+        db.connection.setAutoCommit(false);
+        deleteStmt.setLong(1, request.getId());
+        deleteDataStmt.setLong(1, request.getId());
+        updateStmt.setLong(1, request.getId());
+
+        // Ignore return as we don't care if there is data associated with it.
+        deleteDataStmt.executeUpdate();
+        
+        // Must go before delete as sensor port will have cascade delete.
+        int affectedRows = updateStmt.executeUpdate();
+        if (affectedRows < 1) {
+          throw new SQLException(
+              "Expected to update 1 row, but updated " + affectedRows + " rows for plant " + request.getId());
+        }
+
+        affectedRows = deleteStmt.executeUpdate();
+        if (affectedRows < 1) {
+          throw new SQLException(
+              "Expected to delete 1 row, but deleted " + affectedRows + " rows for plant " + request.getId());
+        }
+
+
+        db.connection.commit();
+        logger.info(String.format("Deleted plant %d", request.getId()));
+      } catch (SQLException e) {
+        db.rollback();
+        String errStr = String.format("Failed to delete plant with id %d err %s", request.getId(), e.getMessage());
+        logger.severe(errStr);
+        response = Result.newBuilder().setReturnCode(1).setError(errStr).build();
+      } finally {
+        db.resetAutoCommit();
+      }
+      responseObserver.onNext(response);
+      responseObserver.onCompleted();
     }
 
     @Override
