@@ -3,9 +3,11 @@ stages:
   - lint
   - build
   - test
+  - deploy
     
 .base_job:
   image: registry.larrycloud.ca/qawse3dr/plant-tracker:latest 
+  dependencies: []
 
 Lint:
   extends: .base_job
@@ -44,6 +46,36 @@ Test Plant Tracker Server:
     - cd server
     - chmod +x gradlew
     - ./gradlew test
+
+Build Plant Tracker Server Docker:
+  extends: .base_job
+  stage: deploy
+  image: docker:latest 
+  tags:
+    - dind
+  dependencies:
+    - Build Plant Tracker Server
+  variables:
+    IMAGE_NAME: registry.larrycloud.ca/qawse3dr/plant-tracker-server
+    VERSION_FILE: deployment/docker/DOCKER_VERSION
+    DOCKER_HOST: "unix:///var/run/docker.sock"  
+  script:
+    - echo "$DOCKER_PASSWORD" | docker login registry.larrycloud.ca -u "$DOCKER_USERNAME" --password-stdin
+    - export IMAGE_VERSION=$(cat ${VERSION_FILE})
+    # Build the Docker image
+    - cp out/plant-tracker.jar deployment/docker
+    - cd deployment/docker
+    - docker build -t $IMAGE_NAME:$IMAGE_VERSION .
+    # Tag the image with 'latest' as well
+    - docker tag $IMAGE_NAME:$IMAGE_VERSION $IMAGE_NAME:latest
+
+    # Push the image to Docker registry
+    - docker push $IMAGE_NAME:$IMAGE_VERSION
+    - docker push $IMAGE_NAME:latest
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master" && $CI_PIPELINE_SOURCE == "push"'
+      changes: 
+      - ${VERSION_FILE}
 
 
 #########################################
@@ -110,6 +142,7 @@ Test Coverage Plant Listener:
 #                                       #
 #########################################
 Build Android Plant Tracker Debug:
+  extends: .base_job
   image: registry.larrycloud.ca/qawse3dr/plant-tracker-android:latest
   stage: build
   variables:
@@ -122,5 +155,6 @@ Build Android Plant Tracker Debug:
     - make PlantTracker
   artifacts:
     paths:
-      - build/app
+      - build/PlantTracker.apk
     expire_in: 1 week
+
