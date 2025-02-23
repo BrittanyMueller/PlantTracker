@@ -110,7 +110,7 @@ TEST(LiveTests, start_stop_test) {
   // Check the device was added
   ASSERT_EQ(server.devices.size(), 1);  // Only the ADC should be sent over
   ASSERT_EQ(server.devices[0].name(), "mock_dev_adc");
-  ASSERT_EQ(server.devices[0].num_sensors(), 7);
+  ASSERT_EQ(server.devices[0].num_sensors(), 8);
 
   // Check to make sure the plants are added
   ASSERT_EQ(tester.getPlants().size(), 1);
