@@ -43,7 +43,7 @@ add_custom_target(PlantTracker
     COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/app
     COMMAND chmod +x ${CMAKE_SOURCE_DIR}/android/plant_tracker//gradlew
     COMMAND cd ${CMAKE_SOURCE_DIR}/android/plant_tracker/ && ./gradlew assembleDebug
-    COMMAND cp ${CMAKE_SOURCE_DIR}/android/plant_tracker/app/build/outputs/apk/debug/app-debug.apk ${CMAKE_BINARY_DIR}/app
+    COMMAND cp ${CMAKE_SOURCE_DIR}/android/plant_tracker/app/build/outputs/apk/debug/app-debug.apk ${CMAKE_BINARY_DIR}/PlantTracker.apk
 )
 
 set(FORMAT_SUFFIXES .h .hpp .c .cpp .java .proto)
