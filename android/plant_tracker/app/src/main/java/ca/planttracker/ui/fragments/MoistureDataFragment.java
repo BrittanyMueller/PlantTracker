@@ -1,4 +1,4 @@
-package ca.planttracker;
+package ca.planttracker.ui.fragments;
 
 import android.os.Bundle;
 
@@ -7,6 +7,8 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import ca.planttracker.R;
 
 /**
  * A simple {@link Fragment} subclass.

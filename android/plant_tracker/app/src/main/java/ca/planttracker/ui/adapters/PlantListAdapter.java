@@ -1,4 +1,4 @@
-package ca.planttracker;
+package ca.planttracker.ui.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -14,6 +14,9 @@ import androidx.annotation.Nullable;
 import com.bumptech.glide.Glide;
 
 import java.util.List;
+
+import ca.planttracker.data.models.Plant;
+import ca.planttracker.R;
 
 public class PlantListAdapter extends ArrayAdapter<Plant> {
 

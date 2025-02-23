@@ -1,4 +1,4 @@
-package ca.planttracker;
+package ca.planttracker.util;
 import android.content.Context;
 
 import com.bumptech.glide.Glide;

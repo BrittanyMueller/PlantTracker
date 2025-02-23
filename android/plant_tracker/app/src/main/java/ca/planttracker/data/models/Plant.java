@@ -1,6 +1,4 @@
-package ca.planttracker;
-
-import android.util.Log;
+package ca.planttracker.data.models;
 
 import androidx.annotation.NonNull;
 
@@ -26,22 +24,24 @@ public class Plant implements Serializable {
         private boolean mockData = false;
         private boolean lastDataSet;
 
-    public Plant(PlantInfo plant) {
-        this.id = plant.getId();
-        this.name = plant.getName();
-        this.imageUrl = plant.getImageUrl();
-        this.lightLevel = plant.getLightLevel();
-        this.minMoisture = plant.getMinMoisture();
-        this.minHumidity = plant.getMinHumidity();
-        this.pid = plant.getPid();
-        this.lastDataSet = plant.hasLastReport();
+    public Plant(PlantInfo data) {
+        this.id = data.getId();
+        this.name = data.getName();
+        this.imageUrl = data.getImageUrl();
+        this.lightLevel = data.getLightLevel();
+        this.minMoisture = data.getMinMoisture();
+        this.minHumidity = data.getMinHumidity();
+        this.pid = data.getPid();
+        this.lastDataSet = data.hasLastReport();
 
         if (lastDataSet) {
-            lastLight = plant.getLastReport().getLight().getLumens();
-            lastHumidity = plant.getLastReport().getHumidity();
-            lastMoisture = plant.getLastReport().getMoisture().getMoistureLevel() * 100;
+            lastLight = data.getLastReport().getLight().getLumens();
+            lastHumidity = data.getLastReport().getHumidity();
+            lastMoisture = data.getLastReport().getMoisture().getMoistureLevel() * 100;
         }
     }
+
+    // Mock data model
     public Plant(int id, @NonNull String name, String imageUrl, LightLevel level) {
         this.name = name;
         this.imageUrl = imageUrl;
@@ -62,17 +62,18 @@ public class Plant implements Serializable {
 
     public LightLevel getLightLevel() { return lightLevel; };
 
+    public int getMinMoisture() { return minMoisture; }
+    public int getMinHumidity() { return minMoisture; }
+
     public boolean hasLastData() { return lastDataSet; }
 
     public StorageReference getStorageReference() {
         if (mockData) return null;
         if (imageUrl == null || imageUrl.isEmpty()) return null;
-        return FirebaseStorage.getInstance().getReference().child(getImageUrl());
+        return FirebaseStorage.getInstance().getReference().child(imageUrl);
     }
+    public double getLastMoisture() { return lastMoisture; }
+    public double getLastHumidity() { return lastHumidity; }
+    public double getLastLight() { return lastLight; }
 
-    public double getLastMoisture() { return lastMoisture;}
-    public double getLastHumidity() { return lastHumidity;}
-    public double getLastLight() { return lastLight;}
-    public int getMinMoisture() { return minMoisture; }
-    public int getMinHumidity() { return minMoisture; }
 }

@@ -1,8 +1,9 @@
-package ca.planttracker;
+package ca.planttracker.ui.activities;
 
 import static java.lang.Double.max;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -11,29 +12,26 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.appcompat.widget.Toolbar;
-
 import com.bumptech.glide.Glide;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalField;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.TreeSet;
+import java.util.Optional;
 
-import planttracker.server.LightLevel;
+import ca.planttracker.ui.graph.BarGraph;
+import ca.planttracker.ui.graph.GraphBase;
+import ca.planttracker.ui.graph.LineGraph;
+import ca.planttracker.data.models.Plant;
+import ca.planttracker.R;
 import planttracker.server.PlantSensorData;
 
-public class PlantActivity extends AppBarActivity {
+public class ViewPlantActivity extends BaseActivity {
 
     private List<String> days = new ArrayList<>();
     private Plant plant;
@@ -45,7 +43,7 @@ public class PlantActivity extends AppBarActivity {
     private BarGraph lightGraph;
     private LineGraph moistureGraph;
 
-    private List<BarGraph.DataPoint> lightData = new ArrayList<BarGraph.DataPoint>();
+    private List<BarGraph.DataPoint> lightData = new ArrayList<>();
 
     @SuppressLint("DefaultLocale")
     @Override
@@ -55,7 +53,7 @@ public class PlantActivity extends AppBarActivity {
 
         plant = (Plant) getIntent().getSerializableExtra("plant");
         assert plant != null;
-        createAppBar(false, plant.getName(), R.menu.plant_menu);
+        initCustomToolbar(false, plant.getName(), Optional.of(R.menu.plant_menu));
 
         if (plant.getImageUrl() != null) {
             ImageView plantImage = findViewById(R.id.plant_image_view);
@@ -110,7 +108,7 @@ public class PlantActivity extends AppBarActivity {
         new Thread(() -> {
             Instant start = LocalDate.now().minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant();
             Instant end = Instant.now();
-            List<PlantSensorData> sensorDataList = Client.getInstance().getPlantSensorData(plant.getId(), start, end);
+            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end);
 
             Calendar cal = Calendar.getInstance();
             cal.get(Calendar.DAY_OF_WEEK);
@@ -196,11 +194,14 @@ public class PlantActivity extends AppBarActivity {
         if (item.getItemId() == R.id.refresh_menu_item) {
             refreshData();
         } else if (item.getItemId() == R.id.delete_menu_item) {
-            Client.getInstance().deletePlant(plant.getId());
+            PlantTrackerClient.getInstance().deletePlant(plant.getId());
             // TODO(qawse3dr) add toast on failure.
             finish();
         } else if (item.getItemId() == R.id.edit_menu_item) {
-
+            // Pass intent to populate edit form
+            Intent intent = new Intent(this, PlantFormActivity.class);
+            intent.putExtra("plant", plant);
+            startActivity(intent);
         }
         return true;
     }
