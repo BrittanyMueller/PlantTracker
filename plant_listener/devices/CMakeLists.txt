@@ -23,8 +23,9 @@ target_include_directories(plantlistener-device_objlib PUBLIC ${CMAKE_CURRENT_SO
 add_subdirectory(mock)
 
 if(NOT ${CMAKE_BUILD_TYPE} STREQUAL test)
-  add_subdirectory(ADS7830)
+  add_subdirectory(ads7830)
   add_subdirectory(dht22)
-  add_subdirectory(DH1750)
-  add_subdirectory(MCP3008)
+  add_subdirectory(dh1750)
+  add_subdirectory(mcp3008)
+  add_subdirectory(sht3x)
 endif()
