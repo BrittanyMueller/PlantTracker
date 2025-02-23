@@ -28,13 +28,13 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/green" />
         <activity
-            android:name=".AddPlantActivity"
+            android:name=".ui.activities.AddPlantActivity"
             android:exported="true"/>
         <activity
-            android:name=".PlantActivity"
+            android:name=".ui.activities.ViewPlantActivity"
             android:exported="true"/>
         <activity
-            android:name=".ViewPlantsActivity"
+            android:name=".ui.activities.PlantListActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -42,7 +42,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SettingsActivity"
+            android:name=".ui.activities.SettingsActivity"
             android:exported="true"/>
     </application>
 

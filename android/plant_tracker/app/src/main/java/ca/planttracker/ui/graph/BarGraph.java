@@ -1,11 +1,9 @@
-package ca.planttracker;
+package ca.planttracker.ui.graph;
 
 import static java.lang.Math.min;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.util.AttributeSet;

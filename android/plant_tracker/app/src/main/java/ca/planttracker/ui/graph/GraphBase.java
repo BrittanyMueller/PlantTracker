@@ -1,4 +1,4 @@
-package ca.planttracker;
+package ca.planttracker.ui.graph;
 
 import static java.lang.Math.min;
 
@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import ca.planttracker.R;
 
 
 public class GraphBase extends View {

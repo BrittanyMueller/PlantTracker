@@ -1,21 +1,21 @@
-package ca.planttracker;
+package ca.planttracker.ui.activities;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.PreferenceFragmentCompat;
 
-public class SettingsActivity extends AppBarActivity {
+import java.util.Optional;
+
+import ca.planttracker.R;
+
+public class SettingsActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
 
-        createAppBar(false, "Settings", -1);
+        initCustomToolbar(false, "Settings", Optional.empty());
         getSupportFragmentManager().beginTransaction().replace(R.id.preference, new MainPreference()).commit();
     }
 

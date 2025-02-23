@@ -5,7 +5,7 @@
     android:id="@+id/frameLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MoistureDataFragment">
+    tools:context=".ui.fragments.MoistureDataFragment">
 
 
     <com.google.android.material.tabs.TabLayout
@@ -74,7 +74,7 @@
                 app:tint="#000000" />
         </LinearLayout>
 
-        <ca.planttracker.LineGraph
+        <ca.planttracker.ui.graph.LineGraph
             android:id="@+id/moisture_graph_large"
             android:layout_width="wrap_content"
             android:layout_height="200dp"

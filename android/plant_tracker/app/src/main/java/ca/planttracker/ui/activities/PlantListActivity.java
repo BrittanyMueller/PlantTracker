@@ -1,4 +1,4 @@
-package ca.planttracker;
+package ca.planttracker.ui.activities;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,7 +11,6 @@ import android.Manifest;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,19 +24,17 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-public class ViewPlantsActivity extends AppBarActivity {
+import ca.planttracker.data.models.Plant;
+import ca.planttracker.ui.adapters.PlantListAdapter;
+import ca.planttracker.R;
 
-    private final Client client = Client.getInstance();
+public class PlantListActivity extends BaseActivity {
+
+    private final PlantTrackerClient client = PlantTrackerClient.getInstance();
     private List<Plant> plants = new ArrayList<>();
 
     // TODO(qawse3dr) we probably want to move these and make it prettier
@@ -69,7 +66,7 @@ public class ViewPlantsActivity extends AppBarActivity {
         setContentView(R.layout.view_plants_activity);
         askNotificationPermission();
 
-        createAppBar(true, getString(R.string.app_name), R.menu.view_plants_menu);
+        initCustomToolbar(true, getString(R.string.app_name), Optional.of(R.menu.view_plants_menu));
 
         SwipeRefreshLayout refresh = findViewById(R.id.swiperefresh);
         refresh.setOnRefreshListener(this::refreshViewPlants);
@@ -77,14 +74,14 @@ public class ViewPlantsActivity extends AppBarActivity {
 
         FloatingActionButton fab = findViewById(R.id.addPlantButton);
         fab.setOnClickListener((View v) -> {
-                Intent intent = new Intent(ViewPlantsActivity.this, AddPlantActivity.class);
+                Intent intent = new Intent(PlantListActivity.this, AddPlantActivity.class);
                 startActivity(intent);
         });
 
         ListView plantListView = findViewById(R.id.plants_listview);
         plantListView.setOnItemClickListener((AdapterView<?> l, View v, int position, long id) -> {
             Plant plant = (Plant) l.getAdapter().getItem(position);
-            Intent intent = new Intent(ViewPlantsActivity.this, PlantActivity.class);
+            Intent intent = new Intent(PlantListActivity.this, ViewPlantActivity.class);
             intent.putExtra("plant", plant);
             startActivity(intent);
         });

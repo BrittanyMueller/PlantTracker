@@ -128,7 +128,7 @@
                     app:tint="#000000" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <ca.planttracker.BarGraph
+            <ca.planttracker.ui.graph.BarGraph
                 android:id="@+id/light_bar_graph"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
@@ -186,7 +186,7 @@
                     app:tint="#000000" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <ca.planttracker.LineGraph
+            <ca.planttracker.ui.graph.LineGraph
                 android:id="@+id/moisture_graph"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
