@@ -22,7 +22,7 @@ public class Plant implements Serializable {
         private double lastHumidity;
         private double lastLight;
         private boolean mockData = false;
-        private boolean lastDataSet;
+        private final boolean lastDataSet;
 
     public Plant(PlantInfo data) {
         this.id = data.getId();
@@ -63,7 +63,7 @@ public class Plant implements Serializable {
     public LightLevel getLightLevel() { return lightLevel; };
 
     public int getMinMoisture() { return minMoisture; }
-    public int getMinHumidity() { return minMoisture; }
+    public int getMinHumidity() { return minHumidity; }
 
     public boolean hasLastData() { return lastDataSet; }
 

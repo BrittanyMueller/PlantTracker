@@ -58,56 +58,50 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
         // For every plant in list, inflate card view
         Plant plant = getItem(position);
         holder.plantName.setText(plant != null ? plant.getName() : null);
+        holder.plantStatus.setVisibility(View.INVISIBLE);
+        holder.plantImage.setImageResource(R.drawable.plant_placeholder);
 
         // Figure out status
         Status status = Status.HAPPY;
 
-        if (plant.hasLastData()) {
-            holder.plantStatus.setVisibility(View.VISIBLE);
+        if (plant != null) {
+            if (plant.hasLastData()) {
+                holder.plantStatus.setVisibility(View.VISIBLE);
 
-            if (plant.getLastHumidity() < plant.getMinHumidity() - 5 || plant.getLastMoisture() < plant.getMinMoisture() * 10 - 5) {
-                status = Status.SAD;
-            } else if (plant.getLastHumidity() < plant.getMinHumidity() || plant.getLastMoisture() < plant.getMinMoisture() * 10) {
-                status = Status.OK;
-            } else if (plant.getLastHumidity() < plant.getMinHumidity() + 5 || plant.getLastMoisture() < plant.getMinMoisture() * 10 + 5) {
-                status = Status.FINE;
-            } else {
-                status = Status.HAPPY;
+                if (plant.getLastHumidity() < plant.getMinHumidity() - 5 || plant.getLastMoisture() < plant.getMinMoisture() * 10 - 5) {
+                    status = Status.SAD;
+                } else if (plant.getLastHumidity() < plant.getMinHumidity() || plant.getLastMoisture() < plant.getMinMoisture() * 10) {
+                    status = Status.OK;
+                } else if (plant.getLastHumidity() < plant.getMinHumidity() + 5 || plant.getLastMoisture() < plant.getMinMoisture() * 10 + 5) {
+                    status = Status.FINE;
+                }
             }
-
-            switch(status) {
-                case HAPPY:
-                    holder.plantStatus.setImageResource(R.drawable.outline_sentiment_excited_24);
-                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.green, convertView.getContext().getTheme()));
-                    break;
-                case FINE:
-                    holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_satisfied_24);
-                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.yellow, convertView.getContext().getTheme()));
-                    break;
-                case OK:
-                    holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_neutral_24);
-                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.orange, convertView.getContext().getTheme()));
-                    break;
-                case SAD:
-                    holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_dissatisfied_24);
-                    holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.red, convertView.getContext().getTheme()));
-                    break;
+            if (plant.getImageUrl() != null) {
+                // Use Glide to load the image from the URL
+                Glide.with(context)
+                        .load((plant.getStorageReference() != null) ?  plant.getStorageReference() : plant.getImageUrl())
+                        .placeholder(R.drawable.plant_placeholder) // Optional placeholder image? not sure if just while loading
+                        .into(holder.plantImage);
             }
-        } else {
-            holder.plantStatus.setVisibility(View.INVISIBLE);
         }
 
-
-
-        if (plant.getImageUrl() == null) {
-            // Default plant image placeholder
-            holder.plantImage.setImageResource(R.drawable.plant_placeholder);
-        } else {
-            // Use Glide to load the image from the URL
-            Glide.with(context)
-                .load((plant.getStorageReference() != null) ?  plant.getStorageReference() : plant.getImageUrl())
-                .placeholder(R.drawable.plant_placeholder) // Optional placeholder image? not sure if just while loading
-                .into(holder.plantImage);
+        switch(status) {
+            case HAPPY:
+                holder.plantStatus.setImageResource(R.drawable.outline_sentiment_excited_24);
+                holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.green, convertView.getContext().getTheme()));
+                break;
+            case FINE:
+                holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_satisfied_24);
+                holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.yellow, convertView.getContext().getTheme()));
+                break;
+            case OK:
+                holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_neutral_24);
+                holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.orange, convertView.getContext().getTheme()));
+                break;
+            case SAD:
+                holder.plantStatus.setImageResource(R.drawable.baseline_sentiment_dissatisfied_24);
+                holder.plantStatus.setColorFilter(convertView.getResources().getColor(R.color.red, convertView.getContext().getTheme()));
+                break;
         }
 
         return convertView;
