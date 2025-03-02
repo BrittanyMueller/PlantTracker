@@ -1,6 +1,5 @@
 package ca.planttracker.ui.activities;
 
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -26,15 +25,14 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
-import java.security.cert.PKIXRevocationChecker;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import ca.planttracker.PlantTrackerClient;
 import ca.planttracker.R;
 import ca.planttracker.data.models.MoistureDevice;
 import ca.planttracker.data.models.Pi;
@@ -43,7 +41,7 @@ public abstract class PlantFormActivity extends BaseActivity {
 
     protected ExecutorService executorService;
     StorageReference storageReference;
-    Uri imageUri;
+    Uri imageUri; // Local image reference
 
     Button selectImageBtn;
     ImageView plantImageView;
@@ -75,14 +73,14 @@ public abstract class PlantFormActivity extends BaseActivity {
 
     private final ActivityResultLauncher<Intent> selectImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                if (result.getResultCode() == PlantFormActivity.RESULT_OK && result.getData() != null) {
                     imageUri = result.getData().getData();
                     try {
                         Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
                         plantImageView.setImageBitmap(bitmap);
                     } catch (IOException e) {
+                        Log.e("PhotoPicker", "Error selecting image: ", e);
                         Toast.makeText(PlantFormActivity.this, "Error selecting image.", Toast.LENGTH_SHORT).show();
-                        Log.e("PhotoPicker", Objects.requireNonNull(e.getMessage()));
                     }
                 }
             });
@@ -194,8 +192,7 @@ public abstract class PlantFormActivity extends BaseActivity {
                 // TODO disable submit button + loading animation instead of jank flag
                 requestInProgress = true;
                 submitBtn.setEnabled(false);
-                // Waits for successful firebase upload before proceeding with GRPC
-                uploadImage().thenCompose(this::handleSubmit).thenRun(() -> requestInProgress = false);
+                handleSubmit().thenRun(() -> requestInProgress = false);
             }
         });
     }
@@ -232,10 +229,10 @@ public abstract class PlantFormActivity extends BaseActivity {
         selectImageLauncher.launch(intent);
     }
 
-    private CompletableFuture<String> uploadImage() {
+    protected CompletableFuture<String> uploadImage() {
         // TODO handle existing images, delete old pic if new one uploaded
         if (imageUri == null) {
-            Log.d("FirebaseImageUpload", "No image selected - skipping upload.");
+            Log.d("FirebaseStorage", "No image selected - skipping upload.");
             return CompletableFuture.completedFuture(null);
         } else {
             return CompletableFuture.supplyAsync(() -> {
@@ -247,17 +244,17 @@ public abstract class PlantFormActivity extends BaseActivity {
 
                 ref.putFile(imageUri).addOnSuccessListener(taskSnapshot -> {
                     // Upload successful, returns promised image path
-                    Log.d("FirebaseImageUpload", "Image upload successful.");
+                    Log.d("FirebaseStorage", "Image upload successful.");
                     future.complete(path);
                     runOnUiThread(() -> Toast.makeText(PlantFormActivity.this, "Image uploaded successfully!", Toast.LENGTH_SHORT).show());
                 }).addOnFailureListener(e -> {
                     future.completeExceptionally(e);
-                    Log.e("FirebaseImageUpload", "Image upload failed.", e);
+                    Log.e("FirebaseStorage", "Image upload failed.", e);
                 });
-                return future.join();   // Waits for future image url
+                return future.join();   // Returns image url on complete
             }, executorService);
         }
     }
 
-    protected abstract CompletableFuture<Void> handleSubmit(String imageUrl);
+    protected abstract CompletableFuture<Void> handleSubmit();
 }

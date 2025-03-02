@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import ca.planttracker.PlantTrackerClient;
 import ca.planttracker.data.models.Plant;
 import ca.planttracker.ui.adapters.PlantListAdapter;
 import ca.planttracker.R;

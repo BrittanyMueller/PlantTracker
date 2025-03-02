@@ -13,7 +13,6 @@ import planttracker.server.PlantInfo;
 public class Plant implements Serializable {
         private long id;
         private String name;
-        private String imageUrl;
         private LightLevel lightLevel;
         private int minMoisture;
         private int minHumidity;
@@ -21,13 +20,12 @@ public class Plant implements Serializable {
         private double lastMoisture;
         private double lastHumidity;
         private double lastLight;
-        private boolean mockData = false;
         private final boolean lastDataSet;
+        private final StorageReference imageRef;
 
     public Plant(PlantInfo data) {
         this.id = data.getId();
         this.name = data.getName();
-        this.imageUrl = data.getImageUrl();
         this.lightLevel = data.getLightLevel();
         this.minMoisture = data.getMinMoisture();
         this.minHumidity = data.getMinHumidity();
@@ -39,38 +37,40 @@ public class Plant implements Serializable {
             lastHumidity = data.getLastReport().getHumidity();
             lastMoisture = data.getLastReport().getMoisture().getMoistureLevel() * 100;
         }
+        if (data.getImageUrl() != null) {
+            this.imageRef = FirebaseStorage.getInstance().getReference().child(data.getImageUrl());
+        } else {
+            this.imageRef = null;
+        }
     }
 
     // Mock data model
-    public Plant(int id, @NonNull String name, String imageUrl, LightLevel level) {
-        this.name = name;
-        this.imageUrl = imageUrl;
+    public Plant(int id, @NonNull String name, LightLevel level) {
         this.id = id;
+        this.name = name;
         this.lightLevel = level;
         this.lastDataSet = true;
         this.lastMoisture = 40.2;
         this.lastLight = 200;
         this.lastHumidity = 30.2;
-        this.mockData = true;
+        this.imageRef = null;
     }
 
     public long getId() { return id; }
 
     public String getName() { return name; }
 
-    public String getImageUrl() { return imageUrl; }
-
     public LightLevel getLightLevel() { return lightLevel; };
 
     public int getMinMoisture() { return minMoisture; }
     public int getMinHumidity() { return minHumidity; }
 
+    public long getPid() { return pid; }
+
     public boolean hasLastData() { return lastDataSet; }
 
     public StorageReference getStorageReference() {
-        if (mockData) return null;
-        if (imageUrl == null || imageUrl.isEmpty()) return null;
-        return FirebaseStorage.getInstance().getReference().child(imageUrl);
+        return imageRef;
     }
     public double getLastMoisture() { return lastMoisture; }
     public double getLastHumidity() { return lastHumidity; }

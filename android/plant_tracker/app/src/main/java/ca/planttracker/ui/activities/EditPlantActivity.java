@@ -1,11 +1,16 @@
 package ca.planttracker.ui.activities;
 
-import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.ImageView;
+
+import com.bumptech.glide.Glide;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import ca.planttracker.PlantTrackerClient;
 import ca.planttracker.R;
 import ca.planttracker.data.models.Plant;
 import planttracker.server.PlantInfo;
@@ -20,16 +25,30 @@ public class EditPlantActivity extends PlantFormActivity {
 
         existingPlant = (Plant) getIntent().getSerializableExtra("plant");
 
+        ImageView imageView = findViewById(R.id.plant_image_view);
+        Glide.with(getBaseContext())
+                .load(existingPlant.getStorageReference())
+                .placeholder(R.drawable.plant_placeholder) // Fallback image
+                .into(imageView);
+
+        plantNameField.setText(existingPlant.getName());
+
         // TODO populate form with existing plant info
     }
 
     @Override
-    protected CompletableFuture<Void> handleSubmit(String uploadUrl) {
-        return updatePlant(uploadUrl);
+    protected CompletableFuture<Void> handleSubmit() {
+        if (existingPlant.getStorageReference() != null && imageUri == null) {
+            existingPlant.getStorageReference().delete().addOnSuccessListener(_void -> {
+                Log.d("FirebaseStorage", "Image successfully deleted.");
+            }).addOnFailureListener((e) -> Log.e("FirebaseStorage", "Failed to delete image", e));
+        }
+        // Waits for successful firebase upload before proceeding with GRPC
+        return uploadImage().thenCompose(this::updatePlant);
     }
 
     private CompletableFuture<Void> updatePlant(String uploadUrl) {
-        // TODO
+        // TODO build updated plant and make grpc call
         return CompletableFuture.completedFuture(null);
     }
 

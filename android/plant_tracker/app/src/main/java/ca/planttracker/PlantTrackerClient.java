@@ -1,4 +1,4 @@
-package ca.planttracker.ui.activities;
+package ca.planttracker;
 
 import android.util.Log;
 
@@ -45,6 +45,7 @@ public class PlantTrackerClient {
     private static final int timeout = 15;
     private static PlantTrackerGrpc.PlantTrackerBlockingStub stub;
     private static ManagedChannel channel = null;
+    // TODO removing context will fix this leak, context only used for mock data
     private static final PlantTrackerClient instance = new PlantTrackerClient();
     private String host;
     private Context ctx;
@@ -245,7 +246,7 @@ public class PlantTrackerClient {
                 for (int i = 0; i < objArray.length(); i++) {
                     JSONObject plantObj = objArray.getJSONObject(i);
                     Log.i("TAG", plantObj.getString("name"));
-                    Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), plantObj.getString("imageUrl"), LightLevel.MED);
+                    Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), LightLevel.MED);
                     plantList.add(plant);
                 }
             }
