@@ -105,13 +105,13 @@ Build Plant Listener:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf.toolchain.cmake ..
     - make -j4
-    - mkdir -p ../out/plant_listener
-    - mv ./bin ../out/plant_listener
-    - mv ./lib ../out/plant_listener
-    - mv ../plant_listener/data/config.json ../out/plant_listener
+    - mkdir -p ../out/listener
+    - mv ./bin ../out/listener
+    - mv ./lib ../out/listener
+    - mv ../listener/data/config.json ../out/listener
   artifacts:
     paths:
-      - out/plant_listener
+      - out/listener
     expire_in: 1 week
 
 

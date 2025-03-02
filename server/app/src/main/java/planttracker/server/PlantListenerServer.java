@@ -371,40 +371,40 @@ public class PlantListenerServer {
     private void handleNotification(PlantSensorData data) {
       PlantSensorNotificationInfo notificationInfo = plantNotificationMap.get(data.getPlantId());
       if (notificationInfo == null) {
-        logger.warning("plant is missing from notification map " + data.getPlantId());
+        logger.warning("Plant is missing from notification map " + data.getPlantId());
         return;
       }
 
       Calendar notificationTimeout = Calendar.getInstance();
       notificationTimeout.add(Calendar.HOUR, -24);
 
-      // Multiple by 10 to cover [0-1.0] percent to [1..10] integer range.
-      int moistureValue = (int)(data.getMoisture().getMoistureLevel() * 10);
-      int humidityValue = (int)(data.getHumidity() * 100);
+      // Multiple by 10 to convert [0-1.0] percent to [1..10] integer range. Do a ceil so it won't trigger
+      // until until it is exactly the number or lower.
+      int moistureValue = (int)Math.ceil(data.getMoisture().getMoistureLevel() * 10);
+
+      // Humidity is already in a range 0-100 so just leave it.
+      int humidityValue = (int)(data.getHumidity());
 
       String topic = String.format("plant-id-%d", data.getPlantId());
-      // String notificationImage = "https://gitlab.larrycloud.ca/uploads/-/system/project/avatar/48/leaf-svgrepo-com__1_.png";
-      String notificationImage = null;
       String title = notificationInfo.name + " needs your attention";
 
-      if (moistureValue < notificationInfo.moisture.minValue && 
-          notificationInfo.moisture.lastValue >= notificationInfo.moisture.minValue &&
-          notificationInfo.moisture.lastNotification.before(notificationTimeout)) {
-            Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Moisture level at %d%%", (int)(data.getMoisture().getMoistureLevel() * 100))).setImage(notificationImage).build()).setTopic(topic).build();
-            try {
-              logger.fine("Sending notification for moisture: " + topic);
-              FirebaseMessaging.getInstance().send(message);
-              notificationInfo.moisture.lastNotification = Calendar.getInstance();
-            } catch (FirebaseMessagingException e) {
-              // TODO(qawse3dr) RETHROW
-            }
-            
-          }
+      if (moistureValue <= notificationInfo.moisture.minValue && 
+      notificationInfo.moisture.lastValue >= notificationInfo.moisture.minValue &&
+      notificationInfo.moisture.lastNotification.before(notificationTimeout)) {
+          Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Moisture level at %d%%", (int)(data.getMoisture().getMoistureLevel() * 100))).build()).setTopic(topic).build();
+          try {
+            logger.fine("Sending notification for moisture: " + topic);
+            FirebaseMessaging.getInstance().send(message);
+            notificationInfo.moisture.lastNotification = Calendar.getInstance();
+          } catch (FirebaseMessagingException e) {
+            // TODO(qawse3dr) RETHROW
+          }      
+      }
 
       if (humidityValue <= notificationInfo.humidity.minValue && 
       notificationInfo.humidity.lastValue > notificationInfo.humidity.minValue &&
       notificationInfo.humidity.lastNotification.before(notificationTimeout)) {
-        Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Humidity level at %d%%", humidityValue)).setImage(notificationImage).build()).setTopic(topic).build();
+        Message message = Message.builder().setNotification(Notification.builder().setTitle(title).setBody(String.format("Humidity level at %d%%", humidityValue)).build()).setTopic(topic).build();
         try {
           logger.fine("Sending notification for humidity: " + topic);
 					FirebaseMessaging.getInstance().send(message);
@@ -413,12 +413,9 @@ public class PlantListenerServer {
 				} catch (FirebaseMessagingException e) {
           // TODO(qawse3dr) RETHROW
 				}
-
       }
-
       notificationInfo.moisture.lastValue = moistureValue;
       notificationInfo.humidity.lastValue = humidityValue;
-
     }
 
     @Override
