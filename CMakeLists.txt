@@ -36,12 +36,12 @@ endif()
 add_subdirectory(idl)
 
 if(NOT "$ENV{BUILD_PLANT_LISTENER}" STREQUAL "0")
-    add_subdirectory(plant_listener)
+    add_subdirectory(listener)
 endif()
 
 add_custom_target(PlantTracker
     COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/app
-    COMMAND chmod +x ${CMAKE_SOURCE_DIR}/android/plant_tracker//gradlew
+    COMMAND chmod +x ${CMAKE_SOURCE_DIR}/android/plant_tracker/gradlew
     COMMAND cd ${CMAKE_SOURCE_DIR}/android/plant_tracker/ && ./gradlew assembleDebug
     COMMAND cp ${CMAKE_SOURCE_DIR}/android/plant_tracker/app/build/outputs/apk/debug/app-debug.apk ${CMAKE_BINARY_DIR}/PlantTracker.apk
 )
