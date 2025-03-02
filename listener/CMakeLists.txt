@@ -16,6 +16,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Needed for rpi
+link_libraries(atomic)
+
 # Grab nlohmann JSON
 include(FetchContent)
 FetchContent_Declare(
