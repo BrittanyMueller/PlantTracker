@@ -21,6 +21,7 @@ public class Plant implements Serializable {
         private double lastMoisture;
         private double lastHumidity;
         private double lastLight;
+        private double lastTemp;
         private boolean mockData = false;
         private final boolean lastDataSet;
 
@@ -38,6 +39,7 @@ public class Plant implements Serializable {
             lastLight = data.getLastReport().getLight().getLumens();
             lastHumidity = data.getLastReport().getHumidity();
             lastMoisture = data.getLastReport().getMoisture().getMoistureLevel() * 100;
+            lastTemp = data.getLastReport().getTemp();
         }
     }
 
@@ -51,6 +53,7 @@ public class Plant implements Serializable {
         this.lastMoisture = 40.2;
         this.lastLight = 200;
         this.lastHumidity = 30.2;
+        this.lastTemp = 20;
         this.mockData = true;
     }
 
@@ -75,5 +78,7 @@ public class Plant implements Serializable {
     public double getLastMoisture() { return lastMoisture; }
     public double getLastHumidity() { return lastHumidity; }
     public double getLastLight() { return lastLight; }
+    public double getLastTemp() { return lastTemp; }
+
 
 }

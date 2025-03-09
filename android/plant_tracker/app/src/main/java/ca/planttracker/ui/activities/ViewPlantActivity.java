@@ -30,6 +30,7 @@ import ca.planttracker.ui.graph.LineGraph;
 import ca.planttracker.data.models.Plant;
 import ca.planttracker.R;
 import planttracker.server.PlantSensorData;
+import planttracker.server.TimePeriod;
 
 public class ViewPlantActivity extends BaseActivity {
 
@@ -38,6 +39,8 @@ public class ViewPlantActivity extends BaseActivity {
     private TextView lightText;
     private TextView moistureText;
     private TextView humidityText;
+    private TextView tempText;
+
 
     // graphs
     private BarGraph lightGraph;
@@ -66,6 +69,7 @@ public class ViewPlantActivity extends BaseActivity {
         lightText = findViewById(R.id.light_level);
         moistureText = findViewById(R.id.moisture_level);
         humidityText = findViewById(R.id.humidity_level);
+        tempText = findViewById(R.id.temp_level);
         lightGraph = findViewById(R.id.light_bar_graph);
         moistureGraph = findViewById(R.id.moisture_graph);
 
@@ -85,10 +89,12 @@ public class ViewPlantActivity extends BaseActivity {
             lightText.setText(String.format("%d \nLux", (int)max(0, plant.getLastLight())));
             moistureText.setText(String.format("%.2f%%\nMoisture", plant.getLastMoisture()));
             humidityText.setText(String.format("%.2f%%\nHumidity", plant.getLastHumidity()));
+            tempText.setText(String.format("%.2fC", plant.getLastTemp()));
         } else {
             lightText.setText("Unknown\nLumens");
             moistureText.setText("Unknown\nMoisture");
             humidityText.setText("Unknown\nHumidity");
+            tempText.setText("Unknown\n Temperature");
         }
 
         switch(plant.getLightLevel()) {
@@ -108,7 +114,9 @@ public class ViewPlantActivity extends BaseActivity {
         new Thread(() -> {
             Instant start = LocalDate.now().minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant();
             Instant end = Instant.now();
-            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end);
+            // get data in 6 hour increments
+            long periodFactor = 6;
+            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end, TimePeriod.Hour, 6, 1000);
 
             Calendar cal = Calendar.getInstance();
             cal.get(Calendar.DAY_OF_WEEK);
@@ -128,43 +136,22 @@ public class ViewPlantActivity extends BaseActivity {
             }
 
             if (!sensorDataList.isEmpty()) {
-                // First we need to figure out how many data pointer were above our threshold
-                // and what the average time between the data points is.
-                long averageSum = 0;
-                long lastTs = sensorDataList.get(0).getEpochTs();
                 LocalDate nowDay = LocalDate.now();
                 for (PlantSensorData d: sensorDataList) {
-                    averageSum += d.getEpochTs() - lastTs;
-                    lastTs = d.getEpochTs();
-
                     Instant curTs = Instant.ofEpochMilli(d.getEpochTs());
+                    int curDay = (int)(curTs.atZone(ZoneOffset.UTC).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
+                    int curHour = curTs.atZone(ZoneOffset.UTC).toLocalTime().getHour();
 
-                    // todo change to UTC when server is updated
-                    int curDay = (int)(curTs.atZone(ZoneOffset.systemDefault()).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
-                    int curHour = curTs.atZone(ZoneOffset.systemDefault()).toLocalTime().getHour();
-                    // TODO get threshold based on light level.
-                    if (d.getLight().getLumens() > 500) {
-                        lightData.get(curDay).value += 1;
-                    }
+                    // Calculate how much each datapoint should count for
+                    double lightDataPointFactor = d.getEpochTimeSpan() / (1000.0 * 60 * 60);
+                    lightData.get(curDay).value += lightDataPointFactor * ((double) d.getRequiredLightPoints() / d.getDataPoints());
 
-                    // To ensure we don't error out be careful with incoming TS as timestamps are annoying
-                    int i = (int)(curDay*2 + ((curHour <= 12) ? 0 : 1));
+                    int i = (curDay*2 + ((curHour <= 12) ? 0 : 1));
                     if (i >= moistureData.size()) {
                         Log.e("PlantActivity", "Timestamp curHour " + String.valueOf(curHour) + " Went out of bounds");
                         continue; // bad ts
                     }
                     moistureData.get(i).value = d.getMoisture().getMoistureLevel() * 100;
-                }
-
-                // Now calculate how many milliseconds each data point above the threshold is worth.
-                long timeMilliModifier = averageSum / sensorDataList.size();
-                Log.i("averageSum", String.valueOf(timeMilliModifier));
-
-                // Finally multiply the data by the lightModify and convert it into hours
-                for (int i = 0; i < lightData.size(); i++) {
-                    // 1 hours = 3600000 milli
-                    lightData.get(i).value = (lightData.get(i).value * timeMilliModifier) / 3600000.0;
-
                 }
             }
 

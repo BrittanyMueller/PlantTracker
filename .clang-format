@@ -12,5 +12,7 @@ SortIncludes: true
 
 ---
 Language: Java
+BasedOnStyle: Google
+ColumnLimit: 120
 ---
 Language: Proto
