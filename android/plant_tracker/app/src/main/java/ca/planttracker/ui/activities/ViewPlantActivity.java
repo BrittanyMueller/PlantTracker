@@ -45,6 +45,9 @@ public class ViewPlantActivity extends BaseActivity {
     // graphs
     private BarGraph lightGraph;
     private LineGraph moistureGraph;
+    private LineGraph humidityGraph;
+    private LineGraph tempGraph;
+
 
     private List<BarGraph.DataPoint> lightData = new ArrayList<>();
 
@@ -72,6 +75,9 @@ public class ViewPlantActivity extends BaseActivity {
         tempText = findViewById(R.id.temp_level);
         lightGraph = findViewById(R.id.light_bar_graph);
         moistureGraph = findViewById(R.id.moisture_graph);
+        humidityGraph = findViewById(R.id.humidity_graph);
+        tempGraph = findViewById(R.id.temp_graph);
+
 
         refreshData();
     }
@@ -87,9 +93,9 @@ public class ViewPlantActivity extends BaseActivity {
             // float lux = 100 * 1/(Rout/ 100000);
 
             lightText.setText(String.format("%d \nLux", (int)max(0, plant.getLastLight())));
-            moistureText.setText(String.format("%.2f%%\nMoisture", plant.getLastMoisture()));
-            humidityText.setText(String.format("%.2f%%\nHumidity", plant.getLastHumidity()));
-            tempText.setText(String.format("%.2fC", plant.getLastTemp()));
+            moistureText.setText(String.format("%.1f%%\nMoisture", plant.getLastMoisture()));
+            humidityText.setText(String.format("%.1f%%\nHumidity", plant.getLastHumidity()));
+            tempText.setText(String.format("%.1fC", plant.getLastTemp()));
         } else {
             lightText.setText("Unknown\nLumens");
             moistureText.setText("Unknown\nMoisture");
@@ -108,7 +114,9 @@ public class ViewPlantActivity extends BaseActivity {
                 lightGraph.setDataTarget(8);
                 break;
         }
-
+        tempGraph.showDataTarget(false);
+        moistureGraph.setDataTarget(plant.getMinMoisture() * 10);
+        humidityGraph.setDataTarget(plant.getMinHumidity());
 
         // Fetch and calculate the data in another thread.
         new Thread(() -> {
@@ -124,6 +132,9 @@ public class ViewPlantActivity extends BaseActivity {
 
             List<BarGraph.DataPoint> lightData = new ArrayList<>();
             List<LineGraph.DataPoint> moistureData = new ArrayList<>();
+            List<LineGraph.DataPoint> humidityData = new ArrayList<>();
+            List<LineGraph.DataPoint> tempData = new ArrayList<>();
+
 
             for (int i = 0; i < 7; i++) {
                 days.add(day.getDayOfWeek().name().substring(0, 1));
@@ -133,6 +144,10 @@ public class ViewPlantActivity extends BaseActivity {
                 // Have a data point every 12 hours, so 2 points per day
                 moistureData.add(new GraphBase.DataPoint(days.get(days.size() -1), 0));
                 moistureData.add(new GraphBase.DataPoint(days.get(days.size() -1) + ".5", 0));
+                humidityData.add(new GraphBase.DataPoint(days.get(days.size() -1), 0));
+                humidityData.add(new GraphBase.DataPoint(days.get(days.size() -1) + ".5", 0));
+                tempData.add(new GraphBase.DataPoint(days.get(days.size() -1), 0));
+                tempData.add(new GraphBase.DataPoint(days.get(days.size() -1) + ".5", 0));
             }
 
             if (!sensorDataList.isEmpty()) {
@@ -152,6 +167,9 @@ public class ViewPlantActivity extends BaseActivity {
                         continue; // bad ts
                     }
                     moistureData.get(i).value = d.getMoisture().getMoistureLevel() * 100;
+                    humidityData.get(i).value = d.getHumidity();
+                    tempData.get(i).value = d.getTemp();
+
                 }
             }
 
@@ -159,11 +177,16 @@ public class ViewPlantActivity extends BaseActivity {
             // maybe this should be in the graph code...
             if (LocalDateTime.now().getHour() < 12) {
                 moistureData.remove(moistureData.size()-1);
+                humidityData.remove(humidityData.size()-1);
+                tempData.remove(tempData.size()-1);
+
             }
 
             runOnUiThread(() -> {
                 lightGraph.setData(lightData);
                 moistureGraph.setData(moistureData);
+                humidityGraph.setData(humidityData);
+                tempGraph.setData(tempData);
             });
         }).start();
     }
