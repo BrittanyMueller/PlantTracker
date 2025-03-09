@@ -1,18 +1,18 @@
 {
     "name": "Dev Pi",
     "server": {
-        "address": "10.0.0.29",
+        "address": "127.0.0.1",
         "port": 5051,
         "log_level": "DBG",
         "retry_count": -1,
         "retry_timeout": 5,
-        "uuid": "a024a4f4-830e-45d1-842f-6a8391b74c21"
+        "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
     },
     "sensors": [
         {
             "type": "light",
-            "device": "test_device",
-            "port": 7
+            "device": "light_dev",
+            "port": 0
         },
         {
             "type": "temp",
@@ -26,13 +26,23 @@
     "devices": {
         "instances": [
             {
-                "name": "test_device",
+                "name": "DEVTEST",
                 "type": "ADC",
                 "lib": "mock_dev",
                 "ports": 8,
                 "cfg": {
                     "min": 0,
-                    "max": 255
+                    "max": 100
+                }
+            },
+            {
+                "name": "light_dev",
+                "type": "LIGHT",
+                "lib": "mock_dev",
+                "ports": 8,
+                "cfg": {
+                    "min": 0,
+                    "max": 2000
                 }
             },
             {

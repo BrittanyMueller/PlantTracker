@@ -1,11 +1,10 @@
 package planttracker.server;
 
+import com.google.protobuf.Empty;
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
 import io.grpc.stub.StreamObserver;
-import planttracker.server.exceptions.PlantTrackerException;
-
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,14 +14,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import java.util.logging.*;
-
-import com.google.protobuf.Empty;
+import planttracker.server.exceptions.PlantTrackerException;
 
 public class PlantTrackerServer {
-
-  private final static Logger logger = Logger.getGlobal(); 
+  private final static Logger logger = Logger.getGlobal();
   private static PlantListenerServer plantListener;
   private Server server;
 
@@ -40,7 +36,8 @@ public class PlantTrackerServer {
       logger.finer("Starting PlantTracker Server on port " + port);
       server = Grpc.newServerBuilderForPort(port, InsecureServerCredentials.create())
                    .addService(new PlantTrackerImpl())
-                   .build().start();
+                   .build()
+                   .start();
     } catch (IOException e) {
       throw new PlantTrackerException("Failed to start PlantTracker Server", e);
     }
@@ -63,24 +60,25 @@ public class PlantTrackerServer {
   }
 
   static class PlantTrackerImpl extends PlantTrackerGrpc.PlantTrackerImplBase {
-
     @Override
     public void addPlant(PlantInfo request, io.grpc.stub.StreamObserver<Result> responseObserver) {
-
       Result res = Result.newBuilder().setReturnCode(0).build();
 
       try {
         // Insert new plant & update sensor, returning generated plant id
         long plantId = insertPlant(request);
-        
+
         // Get device name to build PlantSensor for listener
         String deviceName = getMoistureDeviceName(request.getMoistureDeviceId());
-        PlantSensor sensor = PlantSensor.newBuilder().setDeviceName(deviceName)
-                                        .setSensorPort(request.getSensorPort())
-                                        .setPlantId(plantId).build();
-        
+        PlantSensor sensor = PlantSensor.newBuilder()
+                                 .setDeviceName(deviceName)
+                                 .setSensorPort(request.getSensorPort())
+                                 .setPlantId(plantId)
+                                 .build();
+
         // Request listener for new plant by pi
-        ListenerRequest listenerRequest = ListenerRequest.newBuilder().setType(ListenerRequestType.NEW_PLANT).setPlant(sensor).build();
+        ListenerRequest listenerRequest =
+            ListenerRequest.newBuilder().setType(ListenerRequestType.NEW_PLANT).setPlant(sensor).build();
         plantListener.addRequestForPi(request.getPid(), listenerRequest);
 
       } catch (PlantTrackerException e) {
@@ -90,7 +88,7 @@ public class PlantTrackerServer {
         logger.finest("Add plant response sent.");
         responseObserver.onNext(res);
         responseObserver.onCompleted();
-      }      
+      }
     }
 
     private String getMoistureDeviceName(long deviceId) throws PlantTrackerException {
@@ -108,7 +106,8 @@ public class PlantTrackerServer {
             name = resultSet.getString("name");
           } else {
             // Device not found
-            throw new PlantTrackerException("Failed to get device name. Device with ID " + deviceId + " does not exist.");
+            throw new PlantTrackerException(
+                "Failed to get device name. Device with ID " + deviceId + " does not exist.");
           }
         }
       } catch (SQLException e) {
@@ -124,12 +123,11 @@ public class PlantTrackerServer {
       Database db = Database.getInstance();
 
       String insertPlantSql = "INSERT INTO plants (name, image_url, light_level, min_moisture, min_humidity, pid)"
-                            + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
+          + " VALUES (?, ?, ?, ?, ?, ?) RETURNING id";
       String updateSensorSql = "UPDATE sensors SET plant_id = ? WHERE moisture_device_id = ? AND sensor_port = ?";
 
       try (PreparedStatement insertStmt = db.connection.prepareStatement(insertPlantSql);
            PreparedStatement updateStmt = db.connection.prepareStatement(updateSensorSql);) {
-        
         db.connection.setAutoCommit(false);
 
         insertStmt.setString(1, plant.getName());
@@ -138,7 +136,7 @@ public class PlantTrackerServer {
         insertStmt.setInt(4, plant.getMinMoisture());
         insertStmt.setInt(5, plant.getMinHumidity());
         insertStmt.setLong(6, plant.getPid());
-        
+
         ResultSet resultSet = insertStmt.executeQuery();
         if (resultSet.next()) {
           // Insert successful, retrieve generated plant
@@ -151,7 +149,8 @@ public class PlantTrackerServer {
 
           int affectedRows = updateStmt.executeUpdate();
           if (affectedRows != 1) {
-            throw new SQLException("Expected to update 1 row, but updated " + affectedRows + " rows for sensor with device ID " + plant.getMoistureDeviceId());
+            throw new SQLException("Expected to update 1 row, but updated " + affectedRows
+                + " rows for sensor with device ID " + plant.getMoistureDeviceId());
           }
           // Full transaction successful, commit
           db.connection.commit();
@@ -198,7 +197,7 @@ public class PlantTrackerServer {
 
         // Ignore return as we don't care if there is data associated with it.
         deleteDataStmt.executeUpdate();
-        
+
         // Must go before delete as sensor port will have cascade delete.
         int affectedRows = updateStmt.executeUpdate();
         if (affectedRows < 1) {
@@ -211,7 +210,6 @@ public class PlantTrackerServer {
           throw new SQLException(
               "Expected to delete 1 row, but deleted " + affectedRows + " rows for plant " + request.getId());
         }
-
 
         db.connection.commit();
         logger.info(String.format("Deleted plant %d", request.getId()));
@@ -237,19 +235,21 @@ public class PlantTrackerServer {
       GetPlantsResponse response = null;
       ArrayList<PlantInfo> plantList = null;
       String sql = "SELECT * FROM plants JOIN sensors ON plants.id = plant_id";
-      
+
       try {
-        switch(request.getType()) {
+        switch (request.getType()) {
           case GET_PLANT:
             if (!request.hasId()) {
-              throw new PlantTrackerException("Request type " + GetPlantsRequestType.GET_PLANT.toString() + " requires an ID.");
+              throw new PlantTrackerException(
+                  "Request type " + GetPlantsRequestType.GET_PLANT.toString() + " requires an ID.");
             }
             logger.info("Request to GET_PLANT with ID " + request.getId() + " received.");
             plantList = selectPlants(sql + " WHERE id = ?", request.getId(), request.getFetchImages());
             break;
           case GET_PLANTS_BY_PI:
             if (!request.hasId()) {
-              throw new PlantTrackerException("Request type " + GetPlantsRequestType.GET_PLANTS_BY_PI.toString() + " requires an ID.");
+              throw new PlantTrackerException(
+                  "Request type " + GetPlantsRequestType.GET_PLANTS_BY_PI.toString() + " requires an ID.");
             }
             logger.info("Request to GET_PLANTS_BY_PI with ID " + request.getId() + " received.");
             plantList = selectPlants(sql + " WHERE pid = ?", request.getId(), request.getFetchImages());
@@ -283,7 +283,6 @@ public class PlantTrackerServer {
      * @throws PlantTrackerException
      */
     private ArrayList<PlantInfo> selectPlants(String sql, long id, boolean fetchImage) throws PlantTrackerException {
-
       ArrayList<PlantInfo> plantList = new ArrayList<PlantInfo>();
       Database db = Database.getInstance();
 
@@ -292,7 +291,7 @@ public class PlantTrackerServer {
         if (id != -1) {
           // Set optional id field in where clause
           selectStmt.setLong(1, id);
-        }      
+        }
         ResultSet res = selectStmt.executeQuery();
         while (res.next()) {
           logger.info(res.toString());
@@ -310,21 +309,22 @@ public class PlantTrackerServer {
 
     /**
      * Builds a new Protobuf PlantInfo from a JDBC ResultSet.
-     * @param res ResultSet obtained after selecting a Plant from the DB. 
+     * @param res ResultSet obtained after selecting a Plant from the DB.
      * @param fetchImage Flag indicating if images should be...
      * @return PlantInfo built using the ResultSet data.
      * @throws SQLException
      */
     private PlantInfo buildPlantInfo(ResultSet res, boolean fetchImage) throws SQLException {
-      PlantInfo.Builder plant = PlantInfo.newBuilder().setId(res.getLong("id"))
-                                      .setName(res.getString("name"))
-                                      .setLightLevelValue(res.getInt("light_level"))
-                                      .setMinMoisture(res.getInt("min_moisture"))
-                                      .setMinHumidity(res.getInt("min_humidity"))
-                                      .setImageUrl(res.getString("image_url"))
-                                      .setPid(res.getLong("pid"))
-                                      .setMoistureDeviceId(res.getLong("moisture_device_id"))
-                                      .setSensorPort(res.getInt("sensor_port"));
+      PlantInfo.Builder plant = PlantInfo.newBuilder()
+                                    .setId(res.getLong("id"))
+                                    .setName(res.getString("name"))
+                                    .setLightLevelValue(res.getInt("light_level"))
+                                    .setMinMoisture(res.getInt("min_moisture"))
+                                    .setMinHumidity(res.getInt("min_humidity"))
+                                    .setImageUrl(res.getString("image_url"))
+                                    .setPid(res.getLong("pid"))
+                                    .setMoistureDeviceId(res.getLong("moisture_device_id"))
+                                    .setSensorPort(res.getInt("sensor_port"));
       if (fetchImage) {
         // TODO image as byte blob
         plant.setImage(null);
@@ -337,15 +337,45 @@ public class PlantTrackerServer {
       return plant.build();
     }
 
+    private static String timePeriodToSqlInterval(TimePeriod period, long factor) {
+      String sqlInterval = String.valueOf(factor) + " ";
+
+      switch (period) {
+        case Day:
+          return sqlInterval + "days";
+        case Hour:
+          return sqlInterval + "hours";
+        case Minute:
+          return sqlInterval + "minutes";
+        case Week:
+          return sqlInterval + "weeks";
+        default:
+          throw new RuntimeException("Unexpected Interval");
+      }
+    }
+
     @Override
     public void getPlantSensorData(GetPlantDataRequest request, StreamObserver<PlantSensorDataList> responseObserver) {
-
       PlantSensorDataList.Builder data = PlantSensorDataList.newBuilder();
 
-      String sql = "SELECT * FROM plant_sensor_data " +
-                   "WHERE plant_id = ? AND ts BETWEEN ? and ? " +
-                   "ORDER BY ts ASC";
+      // clang-format off
+      String sql = """
+        SELECT DATE_BIN(?::INTERVAL, ts, '1970-01-01 00:00:0 UTC') AS start_ts,
+          AVG(moisture) AS moisture,
+          AVG(light) AS light,
+          AVG(temp) AS temp,
+          AVG(humidity) AS humidity,
+          COUNT(*) AS data_points,
+          COUNT(CASE WHEN light >= ? THEN 1 END) AS required_light_points,
+          MAX(ts) - MIN(ts) as timespan
+        FROM plant_sensor_data WHERE plant_id = ? AND ts BETWEEN ? AND ? 
+        GROUP BY start_ts
+        ORDER BY start_ts ASC;
+      """;
+
       Database db = null;
+      // clang-format on
+
       try {
         db = Database.getInstance();
       } catch (PlantTrackerException e) {
@@ -353,30 +383,36 @@ public class PlantTrackerServer {
         return;
       }
 
-      try (PreparedStatement selectStmt = db.connection.prepareStatement(sql); ){
+      try (PreparedStatement selectStmt = db.connection.prepareStatement(sql);) {
         db.lockDatabase();
-    
-        selectStmt.setLong(1, request.getPlantId());
-        selectStmt.setTimestamp(2, new Timestamp(request.getStartDate()));
-        selectStmt.setTimestamp(3, new Timestamp(request.getEndDate()));
 
+        selectStmt.setString(1, timePeriodToSqlInterval(request.getTimePeriod(), request.getTimePeriodFactor()));
+        selectStmt.setLong(2, request.getMinimumLight());
+        selectStmt.setLong(3, request.getPlantId());
+        selectStmt.setTimestamp(4, new Timestamp(request.getStartDate()));
+        selectStmt.setTimestamp(5, new Timestamp(request.getEndDate()));
         logger.finest("Getting Sensor data for " + request.toString() + " QUERY " + selectStmt.toString());
 
         selectStmt.executeQuery();
         ResultSet resultSet = selectStmt.executeQuery();
-        
+
         while (resultSet.next()) {
-          data.addData(PlantSensorData.newBuilder()
-                 .setEpochTs(resultSet.getTimestamp("ts").getTime())
-                 .setHumidity(resultSet.getFloat("humidity"))
-                 .setTemp(resultSet.getFloat("temp"))
-                 .setLight(LightSensorData.newBuilder().setLumens(resultSet.getFloat("light")).build())
-                 .setMoisture(MoistureSensorData.newBuilder().setMoistureLevel(resultSet.getFloat("moisture")).build())
-                ).build();
+          data.addData(
+                  PlantSensorData.newBuilder()
+                      .setEpochTs(resultSet.getTimestamp("start_ts").getTime())
+                      .setDataPoints(resultSet.getLong("data_points"))
+                      .setRequiredLightPoints(resultSet.getLong("required_light_points"))
+                      .setEpochTimeSpan(resultSet.getTimestamp("timespan").getTime())
+                      .setHumidity(resultSet.getFloat("humidity"))
+                      .setTemp(resultSet.getFloat("temp"))
+                      .setLight(LightSensorData.newBuilder().setLumens(resultSet.getFloat("light")).build())
+                      .setMoisture(
+                          MoistureSensorData.newBuilder().setMoistureLevel(resultSet.getFloat("moisture")).build()))
+              .build();
         }
         resultSet.close();
         responseObserver.onNext(data.build());
-      } catch(SQLException e) {
+      } catch (SQLException e) {
         logger.warning("Failed to retrieve plant data with: " + e);
         responseObserver.onError(e);
         return;
@@ -384,13 +420,14 @@ public class PlantTrackerServer {
         if (db != null) {
           db.unlockDatabase();
         }
-      } 
+      }
 
       responseObserver.onCompleted();
     }
 
     @Override
-    public void getAvailablePiSensors(Empty request, io.grpc.stub.StreamObserver<GetAvailablePiResponse> responseObserver) {
+    public void getAvailablePiSensors(
+        Empty request, io.grpc.stub.StreamObserver<GetAvailablePiResponse> responseObserver) {
       ArrayList<Pi> piList = null;
       GetAvailablePiResponse response = null;
       Result.Builder res = Result.newBuilder();
@@ -412,17 +449,15 @@ public class PlantTrackerServer {
     }
 
     private ArrayList<Pi> selectAvailablePi() throws PlantTrackerException {
-
       ArrayList<Pi> piList = new ArrayList<Pi>();
       Database db = Database.getInstance();
 
-      String sql = "SELECT pi.id AS pid, pi.name AS pi_name, moisture_devices.id AS mid, moisture_devices.name AS device_name, sensor_port " +
-                   "FROM pi JOIN moisture_devices ON pid = pi.id " +
-                   "JOIN sensors ON moisture_device_id = moisture_devices.id AND sensors.plant_id IS NULL;";
+      String sql = "SELECT pi.id AS pid, pi.name AS pi_name, moisture_devices.id AS mid, moisture_devices.name AS "
+          + "device_name, sensor_port "
+          + "FROM pi JOIN moisture_devices ON pid = pi.id "
+          + "JOIN sensors ON moisture_device_id = moisture_devices.id AND sensors.plant_id IS NULL;";
 
-      try (PreparedStatement stmt = db.connection.prepareStatement(sql);
-          ResultSet resultSet = stmt.executeQuery()) {
-
+      try (PreparedStatement stmt = db.connection.prepareStatement(sql); ResultSet resultSet = stmt.executeQuery()) {
         Map<Long, Pi.Builder> piMap = new HashMap<>();
 
         while (resultSet.next()) {
@@ -439,19 +474,21 @@ public class PlantTrackerServer {
             AvailableMoistureDevice.Builder device = null;
             for (AvailableMoistureDevice.Builder md : pi.getDeviceListBuilderList()) {
               if (md.getId() == mid) {
-                device = md;  // Update sensor ports for existing device
+                device = md; // Update sensor ports for existing device
                 md.addSensorPorts(port);
                 break;
               }
             }
             if (device == null) {
               // New device  found, initialize builder with data
-              AvailableMoistureDevice.Builder newDevice = AvailableMoistureDevice.newBuilder().setId(mid).setName(deviceName).addSensorPorts(port);
+              AvailableMoistureDevice.Builder newDevice =
+                  AvailableMoistureDevice.newBuilder().setId(mid).setName(deviceName).addSensorPorts(port);
               pi.addDeviceList(newDevice);
             }
           } else {
-            // New Pi record, 
-            AvailableMoistureDevice.Builder newDevice = AvailableMoistureDevice.newBuilder().setId(mid).setName(deviceName).addSensorPorts(port);
+            // New Pi record,
+            AvailableMoistureDevice.Builder newDevice =
+                AvailableMoistureDevice.newBuilder().setId(mid).setName(deviceName).addSensorPorts(port);
             Pi.Builder newPi = Pi.newBuilder().setPid(pid).setName(piName).addDeviceList(newDevice);
             piMap.put(pid, newPi);
           }
@@ -467,5 +504,4 @@ public class PlantTrackerServer {
       return piList;
     }
   }
-
 }
