@@ -55,7 +55,7 @@ public class App {
                 }
             }
 
-            // Set global loggers level, map our log levels to Java's
+            // Set global loggers level, map our config to logger Levels
             switch (config.logLevel) {
                 case "MAX":
                 case "DEBUG":
@@ -78,7 +78,6 @@ public class App {
             db = Database.getInstance();
             db.createTables();  // Create tables if not exists
 
-
             // Configure Firebase
             FirebaseOptions options;
             try {
@@ -89,7 +88,6 @@ public class App {
             }
             FirebaseApp.initializeApp(options);
 
-            
             PlantListenerServer listener = new PlantListenerServer(config);
             listener.start();
             
@@ -106,7 +104,7 @@ public class App {
             }
             System.exit(1);
         } finally {
-            // stop servers?
+            // TODO stop servers?
             if (db != null) {
                 db.close();
             }

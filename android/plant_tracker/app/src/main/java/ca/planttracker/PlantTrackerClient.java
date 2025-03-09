@@ -118,13 +118,13 @@ public class PlantTrackerClient {
         return piList;
     }
 
-    public Plant getPlant(long id, boolean fetchImage) {
+    public Plant getPlant(long id) {
         if (host.equals("0.0.0.0")) {
             return getPlantData().get(0);
         }
 
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
-                .setType(GetPlantsRequestType.GET_PLANT).setId(id).setFetchImages(fetchImage).build();
+                .setType(GetPlantsRequestType.GET_PLANT).setId(id).build();
         GetPlantsResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlants(request);
 
         Plant plant = null;
@@ -139,12 +139,12 @@ public class PlantTrackerClient {
         return plant;
     }
 
-    public List<Plant> getPlantsByPi(long pid, boolean fetchImage) {
+    public List<Plant> getPlantsByPi(long pid) {
         if (host.equals("0.0.0.0")) {
             return getPlantData();
         }
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
-                .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setId(pid).setFetchImages(fetchImage).build();
+                .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setId(pid).build();
         GetPlantsResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlants(request);
 
         ArrayList<Plant> plants = new ArrayList<>();
@@ -162,7 +162,7 @@ public class PlantTrackerClient {
         return plants;
     }
 
-    public List<Plant> getPlants(boolean fetchImage) {
+    public List<Plant> getPlants() {
         if (host.equals("0.0.0.0")) {
             return getPlantData();
         }
@@ -170,7 +170,6 @@ public class PlantTrackerClient {
         ArrayList<Plant> plants = new ArrayList<>();
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_ALL_PLANTS)
-                .setFetchImages(fetchImage)
                 .build();
 
         try {

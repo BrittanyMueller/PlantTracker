@@ -23,7 +23,7 @@ package planttracker.grpc;
  */
 service PlantTracker {
   rpc addPlant(PlantInfo) returns (Result);
-  rpc deletePlant(PlantId) returns (Result);
+  rpc deletePlant(DeletePlantRequest) returns (Result);
   rpc updatePlant(PlantInfo) returns (Result);
 
   rpc getPlants(GetPlantsRequest) returns (GetPlantsResponse);
@@ -63,12 +63,11 @@ enum GetPlantsRequestType {
 message GetPlantsRequest {
   GetPlantsRequestType type = 1;
   optional uint64 id = 2;  // Optional, id of Pi or Plant to retrieve.
-  bool fetch_images = 3;   // Whether images should be fetched with request.
 }
 
-// GPRC doesn't allow for primitive types in rpc calls so use this as a wrapper when deleting plants.
-message PlantId {
-  uint64 id = 1;
+message DeletePlantRequest {
+  uint64 plant_id = 1;
+  uint64 pid = 2;
 }
 
 // TODO change res-> result
@@ -89,8 +88,7 @@ message PlantInfo {
   uint64 moisture_device_id = 7;
   uint32 sensor_port = 8;
   optional string image_url = 9;
-  optional bytes image = 10;
-  optional PlantSensorData last_report = 11;
+  optional PlantSensorData last_report = 10;
 }
 
 enum LightLevel {

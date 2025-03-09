@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS plants (
 CREATE TABLE IF NOT EXISTS sensors (
     moisture_device_id INT,
     sensor_port INT,
-    plant_id INT NULL,
+    plant_id INT UNIQUE NULL,
     FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id) ON DELETE CASCADE,
     FOREIGN KEY (plant_id) REFERENCES plants(id) ON DELETE CASCADE,
     PRIMARY KEY (moisture_device_id, sensor_port)

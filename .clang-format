@@ -9,8 +9,9 @@ IncludeBlocks: Regroup
 DerivePointerAlignment: false
 PointerAlignment: Left
 SortIncludes: true
-
 ---
 Language: Java
+BasedOnStyle: Google
+ColumnLimit: 120
 ---
 Language: Proto
