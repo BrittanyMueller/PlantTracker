@@ -25,12 +25,16 @@ public class EditPlantActivity extends PlantFormActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        // Must get called before on create
+        existingPlant = (Plant) getIntent().getSerializableExtra("plant");
+
         super.onCreate(savedInstanceState);
         initCustomToolbar(false, getString(R.string.edit_plant), Optional.empty());
 
-        existingPlant = (Plant) getIntent().getSerializableExtra("plant");
 
         ImageView imageView = findViewById(R.id.plant_image_view);
+
         Glide.with(getBaseContext())
                 .load(existingPlant.getStorageReference())
                 .placeholder(R.drawable.plant_placeholder) // Fallback image

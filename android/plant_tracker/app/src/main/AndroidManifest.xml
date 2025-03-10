@@ -31,6 +31,9 @@
             android:name=".ui.activities.AddPlantActivity"
             android:exported="true"/>
         <activity
+            android:name=".ui.activities.EditPlantActivity"
+            android:exported="true"/>
+        <activity
             android:name=".ui.activities.ViewPlantActivity"
             android:exported="true"/>
         <activity

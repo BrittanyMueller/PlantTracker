@@ -533,7 +533,7 @@ public class PlantTrackerServer {
       String sql =
           "SELECT pi.id AS pid, pi.name AS pi_name, moisture_devices.id AS mid, moisture_devices.name AS device_name, sensor_port "
           + "FROM pi JOIN moisture_devices ON pid = pi.id "
-          + "JOIN sensors ON moisture_device_id = moisture_devices.id"
+          + "JOIN sensors ON moisture_device_id = moisture_devices.id "
           + "WHERE sensors.plant_id IS NULL";
 
       if (request.hasPlantId()) {

@@ -23,9 +23,7 @@ public class Plant implements Serializable {
         private double lastHumidity;
         private double lastLight;
         private final boolean lastDataSet;
-
-        // TODO storage ref not serializable, cant use like this
-        private final StorageReference imageRef;
+        private final String imageUrl;
 
     public Plant(PlantInfo data) {
         this.id = data.getId();
@@ -37,16 +35,12 @@ public class Plant implements Serializable {
         this.moistureDeviceId = data.getMoistureDeviceId();
         this.sensorPort = data.getSensorPort();
         this.lastDataSet = data.hasLastReport();
+        this.imageUrl = data.getImageUrl();
 
         if (lastDataSet) {
             lastLight = data.getLastReport().getLight().getLumens();
             lastHumidity = data.getLastReport().getHumidity();
             lastMoisture = data.getLastReport().getMoisture().getMoistureLevel() * 100;
-        }
-        if (data.getImageUrl() != null) {
-            this.imageRef = FirebaseStorage.getInstance().getReference().child(data.getImageUrl());
-        } else {
-            this.imageRef = null;
         }
     }
 
@@ -59,7 +53,7 @@ public class Plant implements Serializable {
         this.lastMoisture = 40.2;
         this.lastLight = 200;
         this.lastHumidity = 30.2;
-        this.imageRef = null;
+        this.imageUrl = null;
     }
 
     public long getId() { return id; }
@@ -76,7 +70,10 @@ public class Plant implements Serializable {
     public boolean hasLastData() { return lastDataSet; }
 
     public StorageReference getStorageReference() {
-        return imageRef;
+        if (imageUrl != null) {
+            return FirebaseStorage.getInstance().getReference().child(imageUrl);
+        }
+        return null;
     }
     public double getLastMoisture() { return lastMoisture; }
     public double getLastHumidity() { return lastHumidity; }
