@@ -30,7 +30,8 @@ class Error {
     ERROR_NETWORKING,
     ERROR_NOT_CONNECTED,
     ERROR_NOT_INIT,
-    ERROR_OUT_OF_RANGE
+    ERROR_OUT_OF_RANGE,
+    ERROR_TIMEOUT
   };
 
   Code code = Code::OK;

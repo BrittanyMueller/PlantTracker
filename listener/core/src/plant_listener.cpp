@@ -353,8 +353,14 @@ Error PlantListener::stop() {
   spdlog::info("Stopping PlantListener please wait... ");
 
   // Wait until the state changes to init meaning it stopped.
-  cv_.wait(lck, [&] { return state_ == State::INITALIZED; });
-  spdlog::info("Stopped PlantListener!");
+  cv_.notify_all();
+  auto timeout = !cv_.wait_for(lck, std::chrono::seconds(10), [&] { return state_ == State::INITALIZED; });
+  if (timeout) {
+    spdlog::warn("Timed out when stopping PlantListener!");
+    return {Error::Code::ERROR_TIMEOUT, "Timed out when waiting for state change."};
+  } else {
+    spdlog::info("Stopped PlantListener!");
+  }
   return {};
 }
 
@@ -385,7 +391,7 @@ void PlantListener::plantEventWorkLoop(grpc::ClientContext& client_context) {
     // First we need to get the request don't lock as this is a long poll
     lck.unlock();
     done_reading = !duplex->Read(&request);
-    spdlog::debug("got request...");
+    spdlog::debug("Got request...");
     lck.lock();
 
     // Break out if we are done reading;
