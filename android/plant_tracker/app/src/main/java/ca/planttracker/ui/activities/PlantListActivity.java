@@ -97,7 +97,7 @@ public class PlantListActivity extends BaseActivity {
             int serverPort = Integer.parseInt(pref.getString("server_port", "5050"));
             try {
                 client.connect(getApplicationContext(), serverAddress, serverPort);
-                plants = client.getPlants(false);
+                plants = client.getPlants();
             } catch (Exception e) {
                 Log.e("TAG", "Failed to connect to server with " + e);
                 error = true;

@@ -17,10 +17,14 @@ public class Plant implements Serializable {
         private int minMoisture;
         private int minHumidity;
         private long pid;
+        private long moistureDeviceId;
+        private int sensorPort;
         private double lastMoisture;
         private double lastHumidity;
         private double lastLight;
         private final boolean lastDataSet;
+
+        // TODO storage ref not serializable, cant use like this
         private final StorageReference imageRef;
 
     public Plant(PlantInfo data) {
@@ -30,6 +34,8 @@ public class Plant implements Serializable {
         this.minMoisture = data.getMinMoisture();
         this.minHumidity = data.getMinHumidity();
         this.pid = data.getPid();
+        this.moistureDeviceId = data.getMoistureDeviceId();
+        this.sensorPort = data.getSensorPort();
         this.lastDataSet = data.hasLastReport();
 
         if (lastDataSet) {
@@ -75,5 +81,6 @@ public class Plant implements Serializable {
     public double getLastMoisture() { return lastMoisture; }
     public double getLastHumidity() { return lastHumidity; }
     public double getLastLight() { return lastLight; }
-
+    public long getMoistureDeviceId() { return  moistureDeviceId;}
+    public int getSensorPort() { return sensorPort;}
 }

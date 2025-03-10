@@ -27,6 +27,7 @@ import com.google.firebase.storage.StorageReference;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -119,11 +120,9 @@ public abstract class PlantFormActivity extends BaseActivity {
         deviceDropdown = findViewById(R.id.select_device_dropdown);
         portDropdown = findViewById(R.id.select_sensor_dropdown);
 
-        PlantTrackerClient client = PlantTrackerClient.getInstance();
         executorService.execute(() -> {
             // Fetch available pi with grpc to populate dropdowns
-            List<Pi> piList = client.getAvailablePiSensors();
-
+            List<Pi> piList = getAvailablePiSensors();
             runOnUiThread(() -> {
                 if (piList.isEmpty()) {
                     // Disable form submission if no pi available
@@ -195,6 +194,11 @@ public abstract class PlantFormActivity extends BaseActivity {
                 handleSubmit().thenRun(() -> requestInProgress = false);
             }
         });
+    }
+
+    public List<Pi> getAvailablePiSensors() {
+        PlantTrackerClient client = PlantTrackerClient.getInstance();
+        return client.getAvailablePiSensors(Optional.empty());
     }
 
     private boolean validateForm() {

@@ -200,7 +200,7 @@ public class ViewPlantActivity extends BaseActivity {
             finish();
         } else if (item.getItemId() == R.id.edit_menu_item) {
             // Pass intent to populate edit form
-            Intent intent = new Intent(this, PlantFormActivity.class);
+            Intent intent = new Intent(this, EditPlantActivity.class);
             intent.putExtra("plant", plant);
             startActivity(intent);
         }

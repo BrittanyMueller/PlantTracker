@@ -168,7 +168,7 @@ public class PlantTrackerServer {
     }
 
     @Override
-    public void deletePlant(PlantId request, io.grpc.stub.StreamObserver<Result> responseObserver) {
+    public void deletePlant(DeletePlantRequest request, io.grpc.stub.StreamObserver<Result> responseObserver) {
       Result response = Result.newBuilder().setReturnCode(0).build();
 
       String deletePlantSql = "DELETE FROM plants WHERE plants.id = ?";
@@ -191,9 +191,9 @@ public class PlantTrackerServer {
            PreparedStatement deleteDataStmt = db.connection.prepareStatement(deleteDataSql);
            PreparedStatement updateSensorStmt = db.connection.prepareStatement(updateSensorSql);) {
         db.connection.setAutoCommit(false);
-        deletePlantStmt.setLong(1, request.getId());
-        deleteDataStmt.setLong(1, request.getId());
-        updateSensorStmt.setLong(1, request.getId());
+        deletePlantStmt.setLong(1, request.getPlantId());
+        deleteDataStmt.setLong(1, request.getPlantId());
+        updateSensorStmt.setLong(1, request.getPlantId());
 
         // Ignore return as we don't care if there is data associated with it.
         deleteDataStmt.executeUpdate();
@@ -201,24 +201,24 @@ public class PlantTrackerServer {
         int affectedRows = updateSensorStmt.executeUpdate();
         if (affectedRows != 1) {
           throw new SQLException(String.format(
-              "Error updating sensors for plant with id %d, %d rows affected.", request.getId(), affectedRows));
+              "Error updating sensors for plant with id %d, %d rows affected.", request.getPlantId(), affectedRows));
         }
         affectedRows = deletePlantStmt.executeUpdate();
         if (affectedRows != 1) {
           throw new SQLException(String.format(
-              "Error deleting plant for plant with id %d, %d rows affected.", request.getId(), affectedRows));
+              "Error deleting plant for plant with id %d, %d rows affected.", request.getPlantId(), affectedRows));
         }
         db.connection.commit();
-        logger.info(String.format("Successfully deleted plant with id %d.", request.getId()));
+        logger.info(String.format("Successfully deleted plant with id %d.", request.getPlantId()));
 
         // Notify Pi that the plant no longer exists
-        // ListenerRequest listenerRequest =
-        // ListenerRequest.newBuilder().setType(ListenerRequestType.DELETE_PLANT).setPlant(sensor).build();
-        // plantListener.addRequestForPi(request.getPid(), listenerRequest);
+        ListenerRequest listenerRequest =
+            ListenerRequest.newBuilder().setType(ListenerRequestType.DELETE_PLANT).build();
+        plantListener.addRequestForPi(request.getPid(), listenerRequest);
 
       } catch (SQLException e) {
         db.rollback();
-        String errStr = String.format("Failed to delete plant with id %d. %s", request.getId(), e.getMessage());
+        String errStr = String.format("Failed to delete plant with id %d. %s", request.getPlantId(), e.getMessage());
         logger.severe(errStr);
         response = Result.newBuilder().setReturnCode(1).setError(errStr).build();
       } finally {
@@ -505,14 +505,14 @@ public class PlantTrackerServer {
 
     @Override
     public void getAvailablePiSensors(
-        Empty request, io.grpc.stub.StreamObserver<GetAvailablePiResponse> responseObserver) {
+        GetAvailablePiRequest request, io.grpc.stub.StreamObserver<GetAvailablePiResponse> responseObserver) {
       ArrayList<Pi> piList = null;
       GetAvailablePiResponse response = null;
       Result.Builder res = Result.newBuilder();
 
       try {
         // Query for Pi with available sensor ports
-        piList = selectAvailablePi();
+        piList = selectAvailablePi(request);
         res.setReturnCode(0).build();
         response = GetAvailablePiResponse.newBuilder().setRes(res).addAllPiList(piList).build();
       } catch (PlantTrackerException e) {
@@ -526,17 +526,27 @@ public class PlantTrackerServer {
       }
     }
 
-    private ArrayList<Pi> selectAvailablePi() throws PlantTrackerException {
+    private ArrayList<Pi> selectAvailablePi(GetAvailablePiRequest request) throws PlantTrackerException {
       ArrayList<Pi> piList = new ArrayList<Pi>();
       Database db = Database.getInstance();
 
       String sql =
           "SELECT pi.id AS pid, pi.name AS pi_name, moisture_devices.id AS mid, moisture_devices.name AS device_name, sensor_port "
           + "FROM pi JOIN moisture_devices ON pid = pi.id "
-          + "JOIN sensors ON moisture_device_id = moisture_devices.id AND sensors.plant_id IS NULL;";
+          + "JOIN sensors ON moisture_device_id = moisture_devices.id"
+          + "WHERE sensors.plant_id IS NULL";
 
-      try (PreparedStatement stmt = db.connection.prepareStatement(sql); ResultSet resultSet = stmt.executeQuery()) {
+      if (request.hasPlantId()) {
+        sql += " OR sensors.plant_id = ?";
+      }
+
+      try (PreparedStatement stmt = db.connection.prepareStatement(sql);) {
+        if (request.hasPlantId()) {
+          stmt.setLong(1, request.getPlantId());
+        }
+
         Map<Long, Pi.Builder> piMap = new HashMap<>();
+        ResultSet resultSet = stmt.executeQuery();
 
         while (resultSet.next()) {
           // Available sensors found, build message for response
@@ -575,8 +585,8 @@ public class PlantTrackerServer {
         for (Pi.Builder piBuilder : piMap.values()) {
           piList.add(piBuilder.build());
         }
+        resultSet.close();
       } catch (SQLException e) {
-        System.out.println(e.getMessage());
         throw new PlantTrackerException(e);
       }
       return piList;

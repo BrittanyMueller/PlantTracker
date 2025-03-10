@@ -12,8 +12,6 @@
 
 syntax = "proto3";
 
-import "google/protobuf/empty.proto";
-
 option java_multiple_files = true;
 option java_package = "planttracker.server";
 package planttracker.grpc;
@@ -27,9 +25,13 @@ service PlantTracker {
   rpc updatePlant(PlantInfo) returns (Result);
 
   rpc getPlants(GetPlantsRequest) returns (GetPlantsResponse);
-  rpc getAvailablePiSensors(google.protobuf.Empty) returns (GetAvailablePiResponse);
+  rpc getAvailablePiSensors(GetAvailablePiRequest) returns (GetAvailablePiResponse);
 
   rpc getPlantSensorData(GetPlantDataRequest) returns (PlantSensorDataList);
+}
+
+message GetAvailablePiRequest {
+  optional int64 plant_id = 1;
 }
 
 message GetAvailablePiResponse {

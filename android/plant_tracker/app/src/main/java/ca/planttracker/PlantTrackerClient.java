@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import ca.planttracker.data.models.MoistureDevice;
@@ -25,13 +26,14 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import planttracker.server.AvailableMoistureDevice;
+import planttracker.server.DeletePlantRequest;
+import planttracker.server.GetAvailablePiRequest;
 import planttracker.server.GetAvailablePiResponse;
 import planttracker.server.GetPlantDataRequest;
 import planttracker.server.GetPlantsRequest;
 import planttracker.server.GetPlantsRequestType;
 import planttracker.server.GetPlantsResponse;
 import planttracker.server.LightLevel;
-import planttracker.server.PlantId;
 import planttracker.server.PlantSensorData;
 import planttracker.server.PlantSensorDataList;
 import planttracker.server.PlantTrackerGrpc;
@@ -93,12 +95,13 @@ public class PlantTrackerClient {
         return false;
     }
 
-    public List<Pi> getAvailablePiSensors() {
+    public List<Pi> getAvailablePiSensors(Optional<Long> plantId) {
         ArrayList<Pi> piList = new ArrayList<>();
 
         try {
-            Empty emptyRequest = Empty.newBuilder().build();
-            GetAvailablePiResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getAvailablePiSensors(emptyRequest);
+            GetAvailablePiRequest.Builder request = GetAvailablePiRequest.newBuilder();
+            plantId.ifPresent(request::setPlantId);
+            GetAvailablePiResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getAvailablePiSensors(request.build());
             Log.i("GetPiRequest", "Response received: " + res.getPiListList().toString());
 
             // Parse protobuf types into objects for dropdown
@@ -112,8 +115,10 @@ public class PlantTrackerClient {
                 Pi pi = new Pi(protoPi.getPid(), protoPi.getName(), deviceList);
                 piList.add(pi);
             }
+        } catch (StatusRuntimeException e) {
+            Log.e("GetPiRequest", "GRPC call failed with: " + e.getStatus().getDescription(), e);
         } catch (Exception e) {
-            Log.e("GetPiRequest", "Failed to retrieve pi: " + e.getMessage());
+            Log.e("GetPiRequest", "Failed to retrieve available pi: " + e.getMessage());
         }
         return piList;
     }
@@ -216,9 +221,22 @@ public class PlantTrackerClient {
     }
 
     public boolean updatePlant(PlantInfo plantInfo) {
-        // TODO make grpc call
         if (host.equals("0.0.0.0")) {
             return true;
+        }
+        try {
+            Result res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).updatePlant(plantInfo);
+            if (res.getReturnCode() == 0) {
+                Log.i("UpdatePlantClient", "Plant update successfully.");
+                return true;
+            } else {
+                // Non-zero return code, response has error
+                Log.e("UpdatePlantClient", "Server failed to update plant: " + res.getError());
+            }
+        } catch (StatusRuntimeException e) {
+            Log.e("UpdatePlantClient", "GRPC call failed with: " + e.getStatus().getDescription(), e);
+        } catch (Exception e) {
+            Log.e("UpdatePlantClient", e.getMessage(), e);
         }
         return false;
     }
@@ -227,16 +245,26 @@ public class PlantTrackerClient {
         if (host.equals("0.0.0.0")) {
             return true;
         }
-        PlantId id = PlantId.newBuilder().setId(plantId).build();
+        DeletePlantRequest id = DeletePlantRequest.newBuilder().setPlantId(plantId).build();
         try {
             Result res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).deletePlant(id);
-            return res.hasError();
+            if (res.getReturnCode() == 0) {
+                Log.i("DeletePlantClient", "Delete plant successfully.");
+                return true;
+            } else {
+                // Non-zero return code, response has error
+                Log.e("DeletePlantClient", "Server failed to delete plant: " + res.getError());
+            }
         } catch (StatusRuntimeException e) {
-            Log.e("GetPlantSensorData", "Failed to get sensor data for plantId=" + String.valueOf(plantId), e);
-            throw e;
+            Log.e("DeletePlantClient", "GRPC call failed with: " + e.getStatus().getDescription(), e);
+        } catch (Exception e) {
+            Log.e("DeletePlantClient", e.getMessage(), e);
         }
+        return false;
     }
 
+
+    // ******************* MOCK DATA *******************
     private List<Plant> getPlantData() {
         List<Plant> plantList = new ArrayList<>();
         try {
