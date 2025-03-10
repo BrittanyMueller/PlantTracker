@@ -124,7 +124,7 @@ public class ViewPlantActivity extends BaseActivity {
             Instant end = Instant.now();
             // get data in 6 hour increments
             long periodFactor = 6;
-            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end, TimePeriod.Hour, 6, 1000);
+            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end, TimePeriod.Hour, 6, 500);
 
             Calendar cal = Calendar.getInstance();
             cal.get(Calendar.DAY_OF_WEEK);
@@ -154,8 +154,14 @@ public class ViewPlantActivity extends BaseActivity {
                 LocalDate nowDay = LocalDate.now();
                 for (PlantSensorData d: sensorDataList) {
                     Instant curTs = Instant.ofEpochMilli(d.getEpochTs());
-                    int curDay = (int)(curTs.atZone(ZoneOffset.UTC).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
-                    int curHour = curTs.atZone(ZoneOffset.UTC).toLocalTime().getHour();
+                    int curDay = (int)(curTs.atZone(ZoneId.systemDefault()).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 7);
+                    int curHour = curTs.atZone(ZoneId.systemDefault()).toLocalTime().getHour();
+
+
+                    if (curDay >= lightData.size()) {
+                        Log.e("PlantActivity", "Timestamp curDay " + String.valueOf(curDay) + " Went out of bounds");
+                        continue;
+                    }
 
                     // Calculate how much each datapoint should count for
                     double lightDataPointFactor = d.getEpochTimeSpan() / (1000.0 * 60 * 60);
