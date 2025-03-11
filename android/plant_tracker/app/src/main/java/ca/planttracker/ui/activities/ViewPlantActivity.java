@@ -120,11 +120,11 @@ public class ViewPlantActivity extends BaseActivity {
 
         // Fetch and calculate the data in another thread.
         new Thread(() -> {
-            Instant start = LocalDate.now().minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant();
+            Instant start = LocalDate.now().minusDays(6).atStartOfDay().toInstant(ZoneOffset.UTC);
             Instant end = Instant.now();
             // get data in 6 hour increments
-            long periodFactor = 6;
-            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end, TimePeriod.Hour, 6, 500);
+            long periodFactor = 12;
+            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end, TimePeriod.Hour, periodFactor, 500);
 
             Calendar cal = Calendar.getInstance();
             cal.get(Calendar.DAY_OF_WEEK);
@@ -153,13 +153,15 @@ public class ViewPlantActivity extends BaseActivity {
             if (!sensorDataList.isEmpty()) {
                 LocalDate nowDay = LocalDate.now();
                 for (PlantSensorData d: sensorDataList) {
+
                     Instant curTs = Instant.ofEpochMilli(d.getEpochTs());
-                    int curDay = (int)(curTs.atZone(ZoneId.systemDefault()).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 7);
-                    int curHour = curTs.atZone(ZoneId.systemDefault()).toLocalTime().getHour();
+                    int curDay = (int)(curTs.atZone(ZoneOffset.UTC).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
+                    int curHour = curTs.atZone(ZoneOffset.UTC).toLocalTime().getHour();
 
+                    Log.e("PlantActivity", String.valueOf(curDay));
 
-                    if (curDay >= lightData.size()) {
-                        Log.e("PlantActivity", "Timestamp curDay " + String.valueOf(curDay) + " Went out of bounds");
+                    if (curDay < 0 || curDay >= lightData.size()) {
+                        Log.e("PlantActivity", "Timestamp curDay " + curDay + " Went out of bounds");
                         continue;
                     }
 
@@ -167,7 +169,7 @@ public class ViewPlantActivity extends BaseActivity {
                     double lightDataPointFactor = d.getEpochTimeSpan() / (1000.0 * 60 * 60);
                     lightData.get(curDay).value += lightDataPointFactor * ((double) d.getRequiredLightPoints() / d.getDataPoints());
 
-                    int i = (curDay*2 + ((curHour <= 12) ? 0 : 1));
+                    int i = (curDay*2 + ((curHour < 12) ? 0 : 1));
                     if (i >= moistureData.size()) {
                         Log.e("PlantActivity", "Timestamp curHour " + String.valueOf(curHour) + " Went out of bounds");
                         continue; // bad ts
