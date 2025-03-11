@@ -45,6 +45,8 @@ static const char* errorCodeToString(plantlistener::Error::Code code) {
       return "ERROR_NOT_INIT";
     case Code::ERROR_OUT_OF_RANGE:
       return "ERROR_OUT_OF_RANGE";
+    case Code::ERROR_TIMEOUT:
+      return "ERROR_TIMEOUT";
     default:
       return "UNKNOWN";
   }
