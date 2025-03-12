@@ -43,7 +43,7 @@ public class Plant implements Serializable {
         if (lastDataSet) {
             lastLight = data.getLastReport().getLight().getLumens();
             lastHumidity = data.getLastReport().getHumidity();
-            lastMoisture = data.getLastReport().getMoisture().getMoistureLevel() * 100;
+            lastMoisture = data.getLastReport().getMoisture().getMoistureLevel();
             lastTemp = data.getLastReport().getTemp();
         }
     }
