@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.List;
 
@@ -76,13 +77,12 @@ public class PlantListAdapter extends ArrayAdapter<Plant> {
                     status = Status.FINE;
                 }
             }
-            if (plant.getImageUrl() != null) {
-                // Use Glide to load the image from the URL
-                Glide.with(context)
-                        .load((plant.getStorageReference() != null) ?  plant.getStorageReference() : plant.getImageUrl())
-                        .placeholder(R.drawable.plant_placeholder) // Optional placeholder image? not sure if just while loading
-                        .into(holder.plantImage);
-            }
+
+            // Use Glide to load the image from Firebase
+            Glide.with(context)
+                    .load(plant.getStorageReference())
+                    .placeholder(R.drawable.plant_placeholder)
+                    .into(holder.plantImage);
         }
 
         switch(status) {

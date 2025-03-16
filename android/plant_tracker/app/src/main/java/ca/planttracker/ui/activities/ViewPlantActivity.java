@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.storage.StorageReference;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 
+import ca.planttracker.PlantTrackerClient;
 import ca.planttracker.ui.graph.BarGraph;
 import ca.planttracker.ui.graph.GraphBase;
 import ca.planttracker.ui.graph.LineGraph;
@@ -61,13 +63,12 @@ public class ViewPlantActivity extends BaseActivity {
         assert plant != null;
         initCustomToolbar(false, plant.getName(), Optional.of(R.menu.plant_menu));
 
-        if (plant.getImageUrl() != null) {
-            ImageView plantImage = findViewById(R.id.plant_image_view);
-            Glide.with(getBaseContext())
-                    .load((plant.getStorageReference() != null) ? plant.getStorageReference() : plant.getImageUrl())
-                    .placeholder(R.drawable.plant_placeholder) // Optional placeholder image? not sure if just while loading
-                    .into(plantImage);
-        }
+        // Use Glide to load the image from Firebase
+        ImageView plantImage = findViewById(R.id.plant_image_view);
+        Glide.with(getBaseContext())
+                .load(plant.getStorageReference())
+                .placeholder(R.drawable.plant_placeholder)  // Fallback image
+                .into(plantImage);
 
         lightText = findViewById(R.id.light_level);
         moistureText = findViewById(R.id.moisture_level);
@@ -217,7 +218,7 @@ public class ViewPlantActivity extends BaseActivity {
             finish();
         } else if (item.getItemId() == R.id.edit_menu_item) {
             // Pass intent to populate edit form
-            Intent intent = new Intent(this, PlantFormActivity.class);
+            Intent intent = new Intent(this, EditPlantActivity.class);
             intent.putExtra("plant", plant);
             startActivity(intent);
         }

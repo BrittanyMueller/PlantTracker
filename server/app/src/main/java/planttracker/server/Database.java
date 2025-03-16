@@ -56,7 +56,7 @@ public class Database {
         CREATE TABLE IF NOT EXISTS sensors (
         moisture_device_id INT,
         sensor_port INT,
-        plant_id INT NULL,
+        plant_id INT UNIQUE NULL,
         FOREIGN KEY (moisture_device_id) REFERENCES moisture_devices(id) ON DELETE CASCADE,
         FOREIGN KEY (plant_id) REFERENCES plants(id),
         PRIMARY KEY (moisture_device_id, sensor_port)
@@ -84,7 +84,7 @@ public class Database {
                 throw new PlantTrackerException("Database instance already initialized.");
             }
             instance = new Database();
-            // User required to create database beforehand
+            // User required to create database beforehand, we just connect to it
             logger.info("Connecting to Postgres database " + config.dbHost + config.dbName);
             instance.connection = DriverManager.getConnection(config.dbHost + config.dbName, config.dbUser, config.dbPass);
             logger.info("Successfully connected to Postgres database " + config.dbHost + config.dbName);
@@ -96,16 +96,15 @@ public class Database {
     public synchronized static Database getInstance() throws PlantTrackerException {
         if (instance == null) {
             // Instance should not be accessed until configured with init() 
-            throw new PlantTrackerException("Database instance not yet initialized. Must first configure connection with init()");
+            throw new PlantTrackerException("Database instance not yet initialized. Create the connection with init()");
         }
         return instance;
     }
 
     public void createTables() throws PlantTrackerException {
-        Statement st = null;
-        lockDatabase();
         try {
-            st = connection.createStatement();
+            lockDatabase();
+            Statement st = connection.createStatement();
             for (String sql : createTableQueries) {
                 st.execute(sql);
             }

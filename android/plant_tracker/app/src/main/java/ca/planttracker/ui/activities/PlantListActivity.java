@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import ca.planttracker.PlantTrackerClient;
 import ca.planttracker.data.models.Plant;
 import ca.planttracker.ui.adapters.PlantListAdapter;
 import ca.planttracker.R;
@@ -96,7 +97,7 @@ public class PlantListActivity extends BaseActivity {
             int serverPort = Integer.parseInt(pref.getString("server_port", "5050"));
             try {
                 client.connect(getApplicationContext(), serverAddress, serverPort);
-                plants = client.getPlants(false);
+                plants = client.getPlants();
             } catch (Exception e) {
                 Log.e("TAG", "Failed to connect to server with " + e);
                 error = true;

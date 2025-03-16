@@ -7,9 +7,9 @@ import androidx.annotation.NonNull;
 import java.util.List;
 
 public class Pi {
-    private long id;
-    private String name;
-    private List<MoistureDevice> moistureDevices;
+    private final long id;
+    private final String name;
+    private final List<MoistureDevice> moistureDevices;
 
     public Pi(long id, String name, List<MoistureDevice> moistureDevices) {
         this.id = id;

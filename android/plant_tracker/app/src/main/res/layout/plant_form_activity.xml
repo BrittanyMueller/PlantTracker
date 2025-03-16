@@ -149,6 +149,8 @@
                     android:id="@+id/select_sensor_port"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    app:cursorColor="@color/green"
                     android:inputType="none"
                     android:padding="15dp" />
             </com.google.android.material.textfield.TextInputLayout>

@@ -1,11 +1,13 @@
 package ca.planttracker.data.models;
 
+import androidx.annotation.NonNull;
+
 import java.util.List;
 
 public class MoistureDevice {
-    private long id;
-    private String name;
-    private List<Integer> availablePorts;
+    private final long id;
+    private final String name;
+    private final List<Integer> availablePorts;
 
     public MoistureDevice(long id, String name, List<Integer> availablePorts) {
         this.id = id;
@@ -25,8 +27,10 @@ public class MoistureDevice {
         return availablePorts;
     }
 
+    @NonNull
     @Override
     public String toString() {
-        return name;    // Name to be displayed in dropdown
+        // Name to be displayed in dropdown
+        return name;
     }
 }

@@ -1,5 +1,7 @@
 package ca.planttracker.data.models;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.storage.FirebaseStorage;
@@ -11,29 +13,32 @@ import planttracker.server.LightLevel;
 import planttracker.server.PlantInfo;
 
 public class Plant implements Serializable {
-        private long id;
+        private final long id;
         private String name;
-        private String imageUrl;
         private LightLevel lightLevel;
         private int minMoisture;
         private int minHumidity;
         private long pid;
+        private long moistureDeviceId;
+        private int sensorPort;
         private double lastMoisture;
         private double lastHumidity;
         private double lastLight;
         private double lastTemp;
-        private boolean mockData = false;
         private final boolean lastDataSet;
+        private final String imageUrl;
 
     public Plant(PlantInfo data) {
         this.id = data.getId();
         this.name = data.getName();
-        this.imageUrl = data.getImageUrl();
         this.lightLevel = data.getLightLevel();
         this.minMoisture = data.getMinMoisture();
         this.minHumidity = data.getMinHumidity();
         this.pid = data.getPid();
+        this.moistureDeviceId = data.getMoistureDeviceId();
+        this.sensorPort = data.getSensorPort();
         this.lastDataSet = data.hasLastReport();
+        this.imageUrl = data.getImageUrl();
 
         if (lastDataSet) {
             lastLight = data.getLastReport().getLight().getLumens();
@@ -44,41 +49,50 @@ public class Plant implements Serializable {
     }
 
     // Mock data model
-    public Plant(int id, @NonNull String name, String imageUrl, LightLevel level) {
-        this.name = name;
-        this.imageUrl = imageUrl;
+    public Plant(int id, @NonNull String name, LightLevel level) {
         this.id = id;
+        this.name = name;
         this.lightLevel = level;
         this.lastDataSet = true;
         this.lastMoisture = 40.2;
         this.lastLight = 200;
         this.lastHumidity = 30.2;
+        this.imageUrl = null;
         this.lastTemp = 20;
-        this.mockData = true;
     }
 
     public long getId() { return id; }
 
     public String getName() { return name; }
 
-    public String getImageUrl() { return imageUrl; }
-
     public LightLevel getLightLevel() { return lightLevel; };
 
     public int getMinMoisture() { return minMoisture; }
     public int getMinHumidity() { return minHumidity; }
 
+    public long getPid() { return pid; }
+
+    public long getMoistureDeviceId() { return  moistureDeviceId;}
+    public int getSensorPort() { return sensorPort;}
+
     public boolean hasLastData() { return lastDataSet; }
 
+    public String getImageUrl() { return imageUrl; }
+
     public StorageReference getStorageReference() {
-        if (mockData) return null;
-        if (imageUrl == null || imageUrl.isEmpty()) return null;
-        return FirebaseStorage.getInstance().getReference().child(imageUrl);
+        if (imageUrl != null) {
+            // TODO confirm what type of exceptions this can throw
+            return FirebaseStorage.getInstance().getReference().child(imageUrl);
+        }
+        Log.i("PlantStorageReference", "Image URL is null for plant with id " + id);
+        return null;
     }
     public double getLastMoisture() { return lastMoisture; }
     public double getLastHumidity() { return lastHumidity; }
     public double getLastLight() { return lastLight; }
     public double getLastTemp() { return lastTemp; }
+
+
 
 
 }

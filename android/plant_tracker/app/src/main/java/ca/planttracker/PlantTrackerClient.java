@@ -1,4 +1,4 @@
-package ca.planttracker.ui.activities;
+package ca.planttracker;
 
 import android.util.Log;
 
@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import ca.planttracker.data.models.MoistureDevice;
@@ -25,13 +26,14 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import planttracker.server.AvailableMoistureDevice;
+import planttracker.server.DeletePlantRequest;
+import planttracker.server.GetAvailablePiRequest;
 import planttracker.server.GetAvailablePiResponse;
 import planttracker.server.GetPlantDataRequest;
 import planttracker.server.GetPlantsRequest;
 import planttracker.server.GetPlantsRequestType;
 import planttracker.server.GetPlantsResponse;
 import planttracker.server.LightLevel;
-import planttracker.server.PlantId;
 import planttracker.server.PlantSensorData;
 import planttracker.server.PlantSensorDataList;
 import planttracker.server.PlantTrackerGrpc;
@@ -46,6 +48,7 @@ public class PlantTrackerClient {
     private static final int timeout = 15;
     private static PlantTrackerGrpc.PlantTrackerBlockingStub stub;
     private static ManagedChannel channel = null;
+    // TODO removing context will fix this leak, context only used for mock data
     private static final PlantTrackerClient instance = new PlantTrackerClient();
     private String host;
     private Context ctx;
@@ -93,12 +96,14 @@ public class PlantTrackerClient {
         return false;
     }
 
-    public List<Pi> getAvailablePiSensors() {
+    // TODO optional type is not to be used with parameters, only returns
+    public List<Pi> getAvailablePiSensors(Optional<Long> plantId) {
         ArrayList<Pi> piList = new ArrayList<>();
 
         try {
-            Empty emptyRequest = Empty.newBuilder().build();
-            GetAvailablePiResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getAvailablePiSensors(emptyRequest);
+            GetAvailablePiRequest.Builder request = GetAvailablePiRequest.newBuilder();
+            plantId.ifPresent(request::setPlantId);
+            GetAvailablePiResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getAvailablePiSensors(request.build());
             Log.i("GetPiRequest", "Response received: " + res.getPiListList().toString());
 
             // Parse protobuf types into objects for dropdown
@@ -112,19 +117,21 @@ public class PlantTrackerClient {
                 Pi pi = new Pi(protoPi.getPid(), protoPi.getName(), deviceList);
                 piList.add(pi);
             }
+        } catch (StatusRuntimeException e) {
+            Log.e("GetPiRequest", "GRPC call failed with: " + e.getStatus().getDescription(), e);
         } catch (Exception e) {
-            Log.e("GetPiRequest", "Failed to retrieve pi: " + e.getMessage());
+            Log.e("GetPiRequest", "Failed to retrieve available pi: " + e.getMessage());
         }
         return piList;
     }
 
-    public Plant getPlant(long id, boolean fetchImage) {
+    public Plant getPlant(long id) {
         if (host.equals("0.0.0.0")) {
             return getPlantData().get(0);
         }
 
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
-                .setType(GetPlantsRequestType.GET_PLANT).setId(id).setFetchImages(fetchImage).build();
+                .setType(GetPlantsRequestType.GET_PLANT).setId(id).build();
         GetPlantsResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlants(request);
 
         Plant plant = null;
@@ -139,12 +146,12 @@ public class PlantTrackerClient {
         return plant;
     }
 
-    public List<Plant> getPlantsByPi(long pid, boolean fetchImage) {
+    public List<Plant> getPlantsByPi(long pid) {
         if (host.equals("0.0.0.0")) {
             return getPlantData();
         }
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
-                .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setId(pid).setFetchImages(fetchImage).build();
+                .setType(GetPlantsRequestType.GET_PLANTS_BY_PI).setId(pid).build();
         GetPlantsResponse res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlants(request);
 
         ArrayList<Plant> plants = new ArrayList<>();
@@ -162,7 +169,7 @@ public class PlantTrackerClient {
         return plants;
     }
 
-    public List<Plant> getPlants(boolean fetchImage) {
+    public List<Plant> getPlants() {
         if (host.equals("0.0.0.0")) {
             return getPlantData();
         }
@@ -170,7 +177,6 @@ public class PlantTrackerClient {
         ArrayList<Plant> plants = new ArrayList<>();
         GetPlantsRequest request = GetPlantsRequest.newBuilder()
                 .setType(GetPlantsRequestType.GET_ALL_PLANTS)
-                .setFetchImages(fetchImage)
                 .build();
 
         try {
@@ -199,10 +205,9 @@ public class PlantTrackerClient {
 
     public List<PlantSensorData> getPlantSensorData(long plantId, Instant start, Instant end, TimePeriod period, long periodFactor, long minLight) {
         if (host.equals("0.0.0.0")) {
-            return new ArrayList<PlantSensorData>();
+            return new ArrayList<>();
         }
 
-        // TODO might be nice to no have to specify end date if you want most recent data.
         GetPlantDataRequest req = GetPlantDataRequest.newBuilder()
                 .setPlantId(plantId).setStartDate(start.toEpochMilli())
                 .setEndDate(end.toEpochMilli())
@@ -219,9 +224,22 @@ public class PlantTrackerClient {
     }
 
     public boolean updatePlant(PlantInfo plantInfo) {
-        // TODO make grpc call
         if (host.equals("0.0.0.0")) {
             return true;
+        }
+        try {
+            Result res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).updatePlant(plantInfo);
+            if (res.getReturnCode() == 0) {
+                Log.i("UpdatePlantClient", "Plant update successfully.");
+                return true;
+            } else {
+                // Non-zero return code, response has error
+                Log.e("UpdatePlantClient", "Server failed to update plant: " + res.getError());
+            }
+        } catch (StatusRuntimeException e) {
+            Log.e("UpdatePlantClient", "GRPC call failed with: " + e.getStatus().getDescription(), e);
+        } catch (Exception e) {
+            Log.e("UpdatePlantClient", e.getMessage(), e);
         }
         return false;
     }
@@ -230,16 +248,26 @@ public class PlantTrackerClient {
         if (host.equals("0.0.0.0")) {
             return true;
         }
-        PlantId id = PlantId.newBuilder().setId(plantId).build();
+        DeletePlantRequest id = DeletePlantRequest.newBuilder().setPlantId(plantId).build();
         try {
             Result res = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).deletePlant(id);
-            return res.hasError();
+            if (res.getReturnCode() == 0) {
+                Log.i("DeletePlantClient", "Delete plant successfully.");
+                return true;
+            } else {
+                // Non-zero return code, response has error
+                Log.e("DeletePlantClient", "Server failed to delete plant: " + res.getError());
+            }
         } catch (StatusRuntimeException e) {
-            Log.e("GetPlantSensorData", "Failed to get sensor data for plantId=" + String.valueOf(plantId), e);
-            throw e;
+            Log.e("DeletePlantClient", "GRPC call failed with: " + e.getStatus().getDescription(), e);
+        } catch (Exception e) {
+            Log.e("DeletePlantClient", e.getMessage(), e);
         }
+        return false;
     }
 
+
+    // ******************* MOCK DATA *******************
     private List<Plant> getPlantData() {
         List<Plant> plantList = new ArrayList<>();
         try {
@@ -248,7 +276,7 @@ public class PlantTrackerClient {
                 for (int i = 0; i < objArray.length(); i++) {
                     JSONObject plantObj = objArray.getJSONObject(i);
                     Log.i("TAG", plantObj.getString("name"));
-                    Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), plantObj.getString("imageUrl"), LightLevel.MED);
+                    Plant plant = new Plant(plantObj.getInt("id"), plantObj.getString("name"), LightLevel.MED);
                     plantList.add(plant);
                 }
             }

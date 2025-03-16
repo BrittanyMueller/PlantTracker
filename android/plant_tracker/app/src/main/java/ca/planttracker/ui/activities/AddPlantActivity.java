@@ -1,7 +1,6 @@
 package ca.planttracker.ui.activities;
 
 
-import android.content.Context;
 import android.os.Bundle;
 
 import android.util.Log;
@@ -11,6 +10,7 @@ import android.widget.Toast;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import ca.planttracker.PlantTrackerClient;
 import ca.planttracker.R;
 import planttracker.server.PlantInfo;
 
@@ -24,8 +24,9 @@ public class AddPlantActivity extends PlantFormActivity {
     }
 
     @Override
-    protected CompletableFuture<Void> handleSubmit(String uploadUrl) {
-        return addPlant(uploadUrl);
+    protected CompletableFuture<Void> handleSubmit() {
+        // Waits for successful firebase upload before proceeding with GRPC
+        return uploadImage().thenCompose(this::addPlant);
     }
 
     private CompletableFuture<Void> addPlant(String uploadUrl) {
