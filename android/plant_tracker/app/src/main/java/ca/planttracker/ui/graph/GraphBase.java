@@ -44,6 +44,7 @@ public class GraphBase extends View {
     protected String title= "";
     protected List<DataPoint> data = new ArrayList<>();
     protected int dataTarget = 30;
+    protected boolean showDataTarget = true;
     protected float dataMax = 100;
     protected float dataMin = 0;
 
@@ -88,7 +89,7 @@ public class GraphBase extends View {
         canvasWidth = getWidth();
         canvasHeight = getHeight();
         xAxisBottom = canvasHeight * 8/10;
-        yAxisTop = canvasHeight/10;
+        yAxisTop = 2 * canvasHeight/10;
         yAxisSize = xAxisBottom - yAxisTop;
 
         calculateHitBoxes();
@@ -125,6 +126,7 @@ public class GraphBase extends View {
         invalidate();
     }
     public void setDataTarget(int dataTarget) { this.dataTarget = dataTarget; }
+    public void showDataTarget(boolean show) { this.showDataTarget = show;}
     public void setDataMax(int dataMax) { this.dataMax = dataMax; }
     public void setDataMin(int dataMin) { this.dataMin = dataMin; }
 
@@ -145,13 +147,17 @@ public class GraphBase extends View {
         // Title
         textPaint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText(title, (float) 20, 50, textPaint);
-        // Draws dashed line dataTarget
-        int dashLength = (canvasWidth - 100) / 30;
-        int dataTargetY = calculateAbsY(dataTarget);
-        canvas.drawText(String.valueOf(dataTarget), 25, dataTargetY + 10, textPaint);
-        for (int i = 75; i < canvasWidth - 50; i += dashLength*1.5) {
-            canvas.drawLine(i, dataTargetY, min(i + dashLength, canvasWidth - 50), dataTargetY, textPaint);
+
+        if (showDataTarget) {
+            // Draws dashed line dataTarget
+            int dashLength = (canvasWidth - 100) / 30;
+            int dataTargetY = calculateAbsY(dataTarget);
+            canvas.drawText(String.valueOf(dataTarget), 25, dataTargetY + 10, textPaint);
+            for (int i = 75; i < canvasWidth - 50; i += dashLength*1.5) {
+                canvas.drawLine(i, dataTargetY, min(i + dashLength, canvasWidth - 50), dataTargetY, textPaint);
+            }
         }
+
 
         // Draw graph labels
         textPaint.setTextAlign(Paint.Align.CENTER);
@@ -165,7 +171,7 @@ public class GraphBase extends View {
 
         // TODO make fancy with dotted lines and value at top of dotted line
         if (infoText != null) {
-            canvas.drawText(infoText, (float) canvasWidth /2, yAxisTop, textPaint);
+            canvas.drawText(infoText, (float) canvasWidth /2, yAxisTop - 10, textPaint);
         }
 
     }

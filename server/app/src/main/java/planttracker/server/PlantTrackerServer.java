@@ -104,6 +104,7 @@ public class PlantTrackerServer {
           if (resultSet.next()) {
             name = resultSet.getString("name");
           } else {
+            // Device not found
             throw new PlantTrackerException(
                 "Failed to get device name. Device with ID " + deviceId + " does not exist.");
           }
@@ -450,14 +451,45 @@ public class PlantTrackerServer {
       return plant.build();
     }
 
+    private static String timePeriodToSqlInterval(TimePeriod period, long factor) {
+      String sqlInterval = String.valueOf(factor) + " ";
+
+      switch (period) {
+        case Day:
+          return sqlInterval + "days";
+        case Hour:
+          return sqlInterval + "hours";
+        case Minute:
+          return sqlInterval + "minutes";
+        case Week:
+          return sqlInterval + "weeks";
+        default:
+          throw new RuntimeException("Unexpected Interval");
+      }
+    }
+
     @Override
     public void getPlantSensorData(GetPlantDataRequest request, StreamObserver<PlantSensorDataList> responseObserver) {
       PlantSensorDataList.Builder data = PlantSensorDataList.newBuilder();
 
-      String sql = "SELECT * FROM plant_sensor_data "
-          + "WHERE plant_id = ? AND ts BETWEEN ? and ? "
-          + "ORDER BY ts ASC";
+      // clang-format off
+      String sql = """
+        SELECT DATE_BIN(?::INTERVAL, ts, '1970-01-01 00:00:0 UTC') AS start_ts,
+          AVG(moisture) AS moisture,
+          AVG(light) AS light,
+          AVG(temp) AS temp,
+          AVG(humidity) AS humidity,
+          COUNT(*) AS data_points,
+          COUNT(CASE WHEN light >= ? THEN 1 END) AS required_light_points,
+          MAX(ts) - MIN(ts) as timespan
+        FROM plant_sensor_data WHERE plant_id = ? AND ts BETWEEN ? AND ? 
+        GROUP BY start_ts
+        ORDER BY start_ts ASC;
+      """;
+
       Database db = null;
+      // clang-format on
+
       try {
         db = Database.getInstance();
       } catch (PlantTrackerException e) {
@@ -468,10 +500,11 @@ public class PlantTrackerServer {
       try (PreparedStatement selectStmt = db.connection.prepareStatement(sql);) {
         db.lockDatabase();
 
-        selectStmt.setLong(1, request.getPlantId());
-        selectStmt.setTimestamp(2, new Timestamp(request.getStartDate()));
-        selectStmt.setTimestamp(3, new Timestamp(request.getEndDate()));
-
+        selectStmt.setString(1, timePeriodToSqlInterval(request.getTimePeriod(), request.getTimePeriodFactor()));
+        selectStmt.setLong(2, request.getMinimumLight());
+        selectStmt.setLong(3, request.getPlantId());
+        selectStmt.setTimestamp(4, new Timestamp(request.getStartDate()));
+        selectStmt.setTimestamp(5, new Timestamp(request.getEndDate()));
         logger.finest("Getting Sensor data for " + request.toString() + " QUERY " + selectStmt.toString());
 
         selectStmt.executeQuery();
@@ -480,7 +513,10 @@ public class PlantTrackerServer {
         while (resultSet.next()) {
           data.addData(
                   PlantSensorData.newBuilder()
-                      .setEpochTs(resultSet.getTimestamp("ts").getTime())
+                      .setEpochTs(resultSet.getTimestamp("start_ts").getTime())
+                      .setDataPoints(resultSet.getLong("data_points"))
+                      .setRequiredLightPoints(resultSet.getLong("required_light_points"))
+                      .setEpochTimeSpan(resultSet.getTimestamp("timespan").getTime())
                       .setHumidity(resultSet.getFloat("humidity"))
                       .setTemp(resultSet.getFloat("temp"))
                       .setLight(LightSensorData.newBuilder().setLumens(resultSet.getFloat("light")).build())
@@ -545,6 +581,7 @@ public class PlantTrackerServer {
           stmt.setLong(1, request.getPlantId());
         }
 
+      try (PreparedStatement stmt = db.connection.prepareStatement(sql); ResultSet resultSet = stmt.executeQuery()) {
         Map<Long, Pi.Builder> piMap = new HashMap<>();
         ResultSet resultSet = stmt.executeQuery();
 

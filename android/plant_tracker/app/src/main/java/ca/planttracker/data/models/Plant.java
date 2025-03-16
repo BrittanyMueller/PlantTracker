@@ -24,6 +24,7 @@ public class Plant implements Serializable {
         private double lastMoisture;
         private double lastHumidity;
         private double lastLight;
+        private double lastTemp;
         private final boolean lastDataSet;
         private final String imageUrl;
 
@@ -43,6 +44,7 @@ public class Plant implements Serializable {
             lastLight = data.getLastReport().getLight().getLumens();
             lastHumidity = data.getLastReport().getHumidity();
             lastMoisture = data.getLastReport().getMoisture().getMoistureLevel() * 100;
+            lastTemp = data.getLastReport().getTemp();
         }
     }
 
@@ -56,6 +58,7 @@ public class Plant implements Serializable {
         this.lastLight = 200;
         this.lastHumidity = 30.2;
         this.imageUrl = null;
+        this.lastTemp = 20;
     }
 
     public long getId() { return id; }
@@ -68,6 +71,9 @@ public class Plant implements Serializable {
     public int getMinHumidity() { return minHumidity; }
 
     public long getPid() { return pid; }
+
+    public long getMoistureDeviceId() { return  moistureDeviceId;}
+    public int getSensorPort() { return sensorPort;}
 
     public boolean hasLastData() { return lastDataSet; }
 
@@ -86,6 +92,9 @@ public class Plant implements Serializable {
     public double getLastMoisture() { return lastMoisture; }
     public double getLastHumidity() { return lastHumidity; }
     public double getLastLight() { return lastLight; }
-    public long getMoistureDeviceId() { return  moistureDeviceId;}
-    public int getSensorPort() { return sensorPort;}
+    public double getLastTemp() { return lastTemp; }
+
+
+
+
 }

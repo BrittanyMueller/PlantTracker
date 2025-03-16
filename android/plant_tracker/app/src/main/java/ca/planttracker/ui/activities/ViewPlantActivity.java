@@ -32,6 +32,7 @@ import ca.planttracker.ui.graph.LineGraph;
 import ca.planttracker.data.models.Plant;
 import ca.planttracker.R;
 import planttracker.server.PlantSensorData;
+import planttracker.server.TimePeriod;
 
 public class ViewPlantActivity extends BaseActivity {
 
@@ -40,10 +41,15 @@ public class ViewPlantActivity extends BaseActivity {
     private TextView lightText;
     private TextView moistureText;
     private TextView humidityText;
+    private TextView tempText;
+
 
     // graphs
     private BarGraph lightGraph;
     private LineGraph moistureGraph;
+    private LineGraph humidityGraph;
+    private LineGraph tempGraph;
+
 
     private List<BarGraph.DataPoint> lightData = new ArrayList<>();
 
@@ -67,8 +73,12 @@ public class ViewPlantActivity extends BaseActivity {
         lightText = findViewById(R.id.light_level);
         moistureText = findViewById(R.id.moisture_level);
         humidityText = findViewById(R.id.humidity_level);
+        tempText = findViewById(R.id.temp_level);
         lightGraph = findViewById(R.id.light_bar_graph);
         moistureGraph = findViewById(R.id.moisture_graph);
+        humidityGraph = findViewById(R.id.humidity_graph);
+        tempGraph = findViewById(R.id.temp_graph);
+
 
         refreshData();
     }
@@ -84,12 +94,14 @@ public class ViewPlantActivity extends BaseActivity {
             // float lux = 100 * 1/(Rout/ 100000);
 
             lightText.setText(String.format("%d \nLux", (int)max(0, plant.getLastLight())));
-            moistureText.setText(String.format("%.2f%%\nMoisture", plant.getLastMoisture()));
-            humidityText.setText(String.format("%.2f%%\nHumidity", plant.getLastHumidity()));
+            moistureText.setText(String.format("%.1f%%\nMoisture", plant.getLastMoisture()));
+            humidityText.setText(String.format("%.1f%%\nHumidity", plant.getLastHumidity()));
+            tempText.setText(String.format("%.1fC", plant.getLastTemp()));
         } else {
             lightText.setText("Unknown\nLumens");
             moistureText.setText("Unknown\nMoisture");
             humidityText.setText("Unknown\nHumidity");
+            tempText.setText("Unknown\n Temperature");
         }
 
         switch(plant.getLightLevel()) {
@@ -103,13 +115,17 @@ public class ViewPlantActivity extends BaseActivity {
                 lightGraph.setDataTarget(8);
                 break;
         }
-
+        tempGraph.showDataTarget(false);
+        moistureGraph.setDataTarget(plant.getMinMoisture() * 10);
+        humidityGraph.setDataTarget(plant.getMinHumidity());
 
         // Fetch and calculate the data in another thread.
         new Thread(() -> {
-            Instant start = LocalDate.now().minusDays(6).atStartOfDay(ZoneId.systemDefault()).toInstant();
+            Instant start = LocalDate.now().minusDays(6).atStartOfDay().toInstant(ZoneOffset.UTC);
             Instant end = Instant.now();
-            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end);
+            // get data in 6 hour increments
+            long periodFactor = 12;
+            List<PlantSensorData> sensorDataList = PlantTrackerClient.getInstance().getPlantSensorData(plant.getId(), start, end, TimePeriod.Hour, periodFactor, 500);
 
             Calendar cal = Calendar.getInstance();
             cal.get(Calendar.DAY_OF_WEEK);
@@ -117,6 +133,9 @@ public class ViewPlantActivity extends BaseActivity {
 
             List<BarGraph.DataPoint> lightData = new ArrayList<>();
             List<LineGraph.DataPoint> moistureData = new ArrayList<>();
+            List<LineGraph.DataPoint> humidityData = new ArrayList<>();
+            List<LineGraph.DataPoint> tempData = new ArrayList<>();
+
 
             for (int i = 0; i < 7; i++) {
                 days.add(day.getDayOfWeek().name().substring(0, 1));
@@ -126,45 +145,39 @@ public class ViewPlantActivity extends BaseActivity {
                 // Have a data point every 12 hours, so 2 points per day
                 moistureData.add(new GraphBase.DataPoint(days.get(days.size() -1), 0));
                 moistureData.add(new GraphBase.DataPoint(days.get(days.size() -1) + ".5", 0));
+                humidityData.add(new GraphBase.DataPoint(days.get(days.size() -1), 0));
+                humidityData.add(new GraphBase.DataPoint(days.get(days.size() -1) + ".5", 0));
+                tempData.add(new GraphBase.DataPoint(days.get(days.size() -1), 0));
+                tempData.add(new GraphBase.DataPoint(days.get(days.size() -1) + ".5", 0));
             }
 
             if (!sensorDataList.isEmpty()) {
-                // First we need to figure out how many data pointer were above our threshold
-                // and what the average time between the data points is.
-                long averageSum = 0;
-                long lastTs = sensorDataList.get(0).getEpochTs();
                 LocalDate nowDay = LocalDate.now();
                 for (PlantSensorData d: sensorDataList) {
-                    averageSum += d.getEpochTs() - lastTs;
-                    lastTs = d.getEpochTs();
 
                     Instant curTs = Instant.ofEpochMilli(d.getEpochTs());
+                    int curDay = (int)(curTs.atZone(ZoneOffset.UTC).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
+                    int curHour = curTs.atZone(ZoneOffset.UTC).toLocalTime().getHour();
 
-                    // todo change to UTC when server is updated
-                    int curDay = (int)(curTs.atZone(ZoneOffset.systemDefault()).toLocalDate().toEpochDay() - nowDay.toEpochDay() + 6);
-                    int curHour = curTs.atZone(ZoneOffset.systemDefault()).toLocalTime().getHour();
-                    // TODO get threshold based on light level.
-                    if (d.getLight().getLumens() > 500) {
-                        lightData.get(curDay).value += 1;
+                    Log.e("PlantActivity", String.valueOf(curDay));
+
+                    if (curDay < 0 || curDay >= lightData.size()) {
+                        Log.e("PlantActivity", "Timestamp curDay " + curDay + " Went out of bounds");
+                        continue;
                     }
 
-                    // To ensure we don't error out be careful with incoming TS as timestamps are annoying
-                    int i = (int)(curDay*2 + ((curHour <= 12) ? 0 : 1));
+                    // Calculate how much each datapoint should count for
+                    double lightDataPointFactor = d.getEpochTimeSpan() / (1000.0 * 60 * 60);
+                    lightData.get(curDay).value += lightDataPointFactor * ((double) d.getRequiredLightPoints() / d.getDataPoints());
+
+                    int i = (curDay*2 + ((curHour < 12) ? 0 : 1));
                     if (i >= moistureData.size()) {
                         Log.e("PlantActivity", "Timestamp curHour " + String.valueOf(curHour) + " Went out of bounds");
                         continue; // bad ts
                     }
                     moistureData.get(i).value = d.getMoisture().getMoistureLevel() * 100;
-                }
-
-                // Now calculate how many milliseconds each data point above the threshold is worth.
-                long timeMilliModifier = averageSum / sensorDataList.size();
-                Log.i("averageSum", String.valueOf(timeMilliModifier));
-
-                // Finally multiply the data by the lightModify and convert it into hours
-                for (int i = 0; i < lightData.size(); i++) {
-                    // 1 hours = 3600000 milli
-                    lightData.get(i).value = (lightData.get(i).value * timeMilliModifier) / 3600000.0;
+                    humidityData.get(i).value = d.getHumidity();
+                    tempData.get(i).value = d.getTemp();
 
                 }
             }
@@ -173,11 +186,16 @@ public class ViewPlantActivity extends BaseActivity {
             // maybe this should be in the graph code...
             if (LocalDateTime.now().getHour() < 12) {
                 moistureData.remove(moistureData.size()-1);
+                humidityData.remove(humidityData.size()-1);
+                tempData.remove(tempData.size()-1);
+
             }
 
             runOnUiThread(() -> {
                 lightGraph.setData(lightData);
                 moistureGraph.setData(moistureData);
+                humidityGraph.setData(humidityData);
+                tempGraph.setData(tempData);
             });
         }).start();
     }

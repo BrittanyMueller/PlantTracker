@@ -40,6 +40,7 @@ import planttracker.server.PlantTrackerGrpc;
 
 import planttracker.server.PlantInfo;
 import planttracker.server.Result;
+import planttracker.server.TimePeriod;
 
 
 public class PlantTrackerClient {
@@ -201,7 +202,7 @@ public class PlantTrackerClient {
         return plants;
     }
 
-    public List<PlantSensorData> getPlantSensorData(long plantId, Instant start, Instant end) {
+    public List<PlantSensorData> getPlantSensorData(long plantId, Instant start, Instant end, TimePeriod period, long periodFactor, long minLight) {
         if (host.equals("0.0.0.0")) {
             return new ArrayList<PlantSensorData>();
         }
@@ -209,8 +210,10 @@ public class PlantTrackerClient {
         // TODO might be nice to no have to specify end date if you want most recent data.
         GetPlantDataRequest req = GetPlantDataRequest.newBuilder()
                 .setPlantId(plantId).setStartDate(start.toEpochMilli())
-                .setEndDate(end.toEpochMilli()
-                ).build();
+                .setEndDate(end.toEpochMilli())
+                .setTimePeriod(period)
+                .setTimePeriodFactor(periodFactor)
+                .setMinimumLight(minLight).build();
         try {
             PlantSensorDataList list = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlantSensorData(req);
             return list.getDataList();
