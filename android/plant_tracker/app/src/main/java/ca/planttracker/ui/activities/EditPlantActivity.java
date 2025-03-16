@@ -48,7 +48,10 @@ public class EditPlantActivity extends PlantFormActivity {
 
     @Override
     protected CompletableFuture<Void> handleSubmit() {
-        if (existingPlant.getStorageReference() != null && imageUri == null) {
+        // TODO on save, stored image url is replaced with null...
+        // imageUri null means local image ref, meaning they selected an image from picker to upload
+        if (existingPlant.getStorageReference() != null && imageUri != null) {
+            Log.d(this.toString(), "Deleting stored image.");
             existingPlant.getStorageReference().delete().addOnSuccessListener(_void -> {
                 Log.d("FirebaseStorage", "Image successfully deleted.");
             }).addOnFailureListener((e) -> Log.e("FirebaseStorage", "Failed to delete image.", e));
@@ -69,7 +72,6 @@ public class EditPlantActivity extends PlantFormActivity {
             }
         }
         if (selectedPi == null) return;
-//        piTextView.setListSelection(piList.indexOf(selectedPi));
         setDeviceDropdown();
 
         selectedDevice = null;
@@ -80,10 +82,8 @@ public class EditPlantActivity extends PlantFormActivity {
             }
         }
         if (selectedDevice == null) return;
-//        deviceTextView.setListSelection(selectedPi.getMoistureDevices().indexOf(selectedDevice));
         selectedPort = existingPlant.getSensorPort();
         setPortDropdown();
-//        portTextView.setListSelection(selectedDevice.getAvailablePorts().indexOf(selectedPort));
 
         // Show selected items in dropdown
         piTextView.setText(selectedPi.getName(), false);
@@ -92,18 +92,19 @@ public class EditPlantActivity extends PlantFormActivity {
     }
 
     private CompletableFuture<Void> updatePlant(String uploadUrl) {
+
+        Log.d(this.toString(), "New image url: " + uploadUrl);
+
         PlantInfo.Builder plant = PlantInfo.newBuilder()
+                .setId(existingPlant.getId())
                 .setName(plantNameField.getText().toString())
+                .setImageUrl(uploadUrl != null ? uploadUrl : existingPlant.getImageUrl())
                 .setLightLevelValue((int) lightSlider.getValue())
                 .setMinMoisture((int) moistureSlider.getValue())
                 .setMinHumidity((int) humiditySlider.getValue())
                 .setPid(selectedPi.getId())
                 .setMoistureDeviceId(selectedDevice.getId())
                 .setSensorPort(selectedPort);
-
-        if (uploadUrl != null) {
-            plant.setImageUrl(uploadUrl);
-        }
 
         return updatePlantGRPC(plant.build()).thenAccept(success -> runOnUiThread(() -> {
             if (success) {
@@ -127,5 +128,4 @@ public class EditPlantActivity extends PlantFormActivity {
     private CompletableFuture<Boolean> updatePlantGRPC(PlantInfo plant) {
         return CompletableFuture.supplyAsync(() -> PlantTrackerClient.getInstance().updatePlant(plant), executorService);
     }
-
 }

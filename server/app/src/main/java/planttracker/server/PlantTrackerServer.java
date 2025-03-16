@@ -238,7 +238,7 @@ public class PlantTrackerServer {
         ArrayList<PlantInfo> plantList = selectPlants(sql, request.getId());
 
         if (plantList.size() != 1) {
-          throw new PlantTrackerException("Failed to retrieve existing plant with id %d.");
+          throw new PlantTrackerException("Failed to retrieve existing plant.");
         }
 
         PlantInfo oldPlant = plantList.get(0);
@@ -309,7 +309,7 @@ public class PlantTrackerServer {
         }
 
         if (newPlant.getMoistureDeviceId() != oldPlant.getMoistureDeviceId()
-            || oldPlant.getSensorPort() != oldPlant.getSensorPort()) {
+            || newPlant.getSensorPort() != oldPlant.getSensorPort()) {
           // Reset previous sensor to null
           resetSensorStmt.setLong(1, newPlant.getId());
 

@@ -1,5 +1,7 @@
 package ca.planttracker.data.models;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.storage.FirebaseStorage;
@@ -69,9 +71,15 @@ public class Plant implements Serializable {
 
     public boolean hasLastData() { return lastDataSet; }
 
+    public String getImageUrl() { return imageUrl; }
+
     public StorageReference getStorageReference() {
         if (imageUrl != null) {
-            return FirebaseStorage.getInstance().getReference().child(imageUrl);
+            try {
+                return FirebaseStorage.getInstance().getReference().child(imageUrl);
+            } catch (Exception e) {
+                Log.e("PlantStorageReference", "failed to get image ref");
+            }
         }
         return null;
     }
