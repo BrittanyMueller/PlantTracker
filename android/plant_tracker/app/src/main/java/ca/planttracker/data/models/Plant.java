@@ -11,7 +11,7 @@ import planttracker.server.LightLevel;
 import planttracker.server.PlantInfo;
 
 public class Plant implements Serializable {
-        private long id;
+        private final long id;
         private String name;
         private LightLevel lightLevel;
         private int minMoisture;

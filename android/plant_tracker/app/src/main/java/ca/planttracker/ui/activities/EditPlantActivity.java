@@ -2,13 +2,10 @@ package ca.planttracker.ui.activities;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.storage.StorageReference;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -32,19 +29,15 @@ public class EditPlantActivity extends PlantFormActivity {
         super.onCreate(savedInstanceState);
         initCustomToolbar(false, getString(R.string.edit_plant), Optional.empty());
 
-
-        ImageView imageView = findViewById(R.id.plant_image_view);
-
         Glide.with(getBaseContext())
                 .load(existingPlant.getStorageReference())
                 .placeholder(R.drawable.plant_placeholder) // Fallback image
-                .into(imageView);
+                .into(plantImageView);
 
         plantNameField.setText(existingPlant.getName());
-
-
-        // TODO populate form with existing plant info
-        // TODO pass list of available pi sensors, including currently selected
+        lightSlider.setValue((float)existingPlant.getLightLevel().getNumber());
+        moistureSlider.setValue((float)existingPlant.getMinMoisture());
+        humiditySlider.setValue((float)existingPlant.getMinHumidity());
     }
 
     @Override
@@ -62,6 +55,40 @@ public class EditPlantActivity extends PlantFormActivity {
         }
         // Waits for successful firebase upload before proceeding with GRPC
         return uploadImage().thenCompose(this::updatePlant);
+    }
+
+    @Override
+    protected void setPiDropdown() {
+        super.setPiDropdown();
+
+        selectedPi = null;
+        for (Pi pi : piList) {
+            if (pi.getId() == existingPlant.getPid()) {
+                selectedPi = pi;
+                break;
+            }
+        }
+        if (selectedPi == null) return;
+//        piTextView.setListSelection(piList.indexOf(selectedPi));
+        setDeviceDropdown();
+
+        selectedDevice = null;
+        for (MoistureDevice dev : selectedPi.getMoistureDevices()) {
+            if (dev.getId() == existingPlant.getMoistureDeviceId()) {
+                selectedDevice = dev;
+                break;
+            }
+        }
+        if (selectedDevice == null) return;
+//        deviceTextView.setListSelection(selectedPi.getMoistureDevices().indexOf(selectedDevice));
+        selectedPort = existingPlant.getSensorPort();
+        setPortDropdown();
+//        portTextView.setListSelection(selectedDevice.getAvailablePorts().indexOf(selectedPort));
+
+        // Show selected items in dropdown
+        piTextView.setText(selectedPi.getName(), false);
+        deviceTextView.setText(selectedDevice.getName(), false);
+        portTextView.setText(String.valueOf(selectedPort), false);
     }
 
     private CompletableFuture<Void> updatePlant(String uploadUrl) {
