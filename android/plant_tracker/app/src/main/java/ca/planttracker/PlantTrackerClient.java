@@ -96,6 +96,7 @@ public class PlantTrackerClient {
         return false;
     }
 
+    // TODO optional type is not to be used with parameters, only returns
     public List<Pi> getAvailablePiSensors(Optional<Long> plantId) {
         ArrayList<Pi> piList = new ArrayList<>();
 
@@ -204,10 +205,9 @@ public class PlantTrackerClient {
 
     public List<PlantSensorData> getPlantSensorData(long plantId, Instant start, Instant end, TimePeriod period, long periodFactor, long minLight) {
         if (host.equals("0.0.0.0")) {
-            return new ArrayList<PlantSensorData>();
+            return new ArrayList<>();
         }
 
-        // TODO might be nice to no have to specify end date if you want most recent data.
         GetPlantDataRequest req = GetPlantDataRequest.newBuilder()
                 .setPlantId(plantId).setStartDate(start.toEpochMilli())
                 .setEndDate(end.toEpochMilli())

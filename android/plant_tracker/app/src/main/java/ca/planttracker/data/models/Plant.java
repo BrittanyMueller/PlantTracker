@@ -81,12 +81,10 @@ public class Plant implements Serializable {
 
     public StorageReference getStorageReference() {
         if (imageUrl != null) {
-            try {
-                return FirebaseStorage.getInstance().getReference().child(imageUrl);
-            } catch (Exception e) {
-                Log.e("PlantStorageReference", "failed to get image ref");
-            }
+            // TODO confirm what type of exceptions this can throw
+            return FirebaseStorage.getInstance().getReference().child(imageUrl);
         }
+        Log.i("PlantStorageReference", "Image URL is null for plant with id " + id);
         return null;
     }
     public double getLastMoisture() { return lastMoisture; }

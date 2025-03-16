@@ -18,6 +18,7 @@ import ca.planttracker.data.models.Plant;
 import planttracker.server.PlantInfo;
 
 public class EditPlantActivity extends PlantFormActivity {
+    private static final String TAG = EditPlantActivity.class.getSimpleName();
     private Plant existingPlant;
 
     @Override
@@ -48,13 +49,12 @@ public class EditPlantActivity extends PlantFormActivity {
 
     @Override
     protected CompletableFuture<Void> handleSubmit() {
-        // TODO on save, stored image url is replaced with null...
         // imageUri null means local image ref, meaning they selected an image from picker to upload
         if (existingPlant.getStorageReference() != null && imageUri != null) {
-            Log.d(this.toString(), "Deleting stored image.");
+            Log.d(TAG, "Deleting stored image.");
             existingPlant.getStorageReference().delete().addOnSuccessListener(_void -> {
-                Log.d("FirebaseStorage", "Image successfully deleted.");
-            }).addOnFailureListener((e) -> Log.e("FirebaseStorage", "Failed to delete image.", e));
+                Log.d(TAG, "Image successfully deleted.");
+            }).addOnFailureListener((e) -> Log.e(TAG, "Failed to delete image.", e));
         }
         // Waits for successful firebase upload before proceeding with GRPC
         return uploadImage().thenCompose(this::updatePlant);
@@ -71,7 +71,10 @@ public class EditPlantActivity extends PlantFormActivity {
                 break;
             }
         }
-        if (selectedPi == null) return;
+        if (selectedPi == null) {
+            Log.e(TAG, "Failed to find existing Pi for plant " + existingPlant.getId());
+            return;
+        }
         setDeviceDropdown();
 
         selectedDevice = null;
@@ -81,7 +84,10 @@ public class EditPlantActivity extends PlantFormActivity {
                 break;
             }
         }
-        if (selectedDevice == null) return;
+        if (selectedDevice == null) {
+            Log.e(TAG, "Failed to find existing Moisture Device for plant " + existingPlant.getId());
+            return;
+        }
         selectedPort = existingPlant.getSensorPort();
         setPortDropdown();
 
@@ -92,8 +98,6 @@ public class EditPlantActivity extends PlantFormActivity {
     }
 
     private CompletableFuture<Void> updatePlant(String uploadUrl) {
-
-        Log.d(this.toString(), "New image url: " + uploadUrl);
 
         PlantInfo.Builder plant = PlantInfo.newBuilder()
                 .setId(existingPlant.getId())
