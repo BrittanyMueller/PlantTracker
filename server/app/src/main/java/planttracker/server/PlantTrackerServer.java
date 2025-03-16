@@ -581,7 +581,6 @@ public class PlantTrackerServer {
           stmt.setLong(1, request.getPlantId());
         }
 
-      try (PreparedStatement stmt = db.connection.prepareStatement(sql); ResultSet resultSet = stmt.executeQuery()) {
         Map<Long, Pi.Builder> piMap = new HashMap<>();
         ResultSet resultSet = stmt.executeQuery();
 
