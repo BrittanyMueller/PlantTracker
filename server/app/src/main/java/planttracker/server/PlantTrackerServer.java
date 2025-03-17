@@ -19,13 +19,13 @@ import planttracker.server.exceptions.PlantTrackerException;
 
 public class PlantTrackerServer {
   private final static Logger logger = Logger.getGlobal();
-  private static PlantListenerServer plantListener;
+  private static PlantListenerServerImpl plantListener;
   private Server server;
 
   /* The port on which the server should run */
   private int port;
 
-  public PlantTrackerServer(PlantTrackerConfig config, PlantListenerServer listener) {
+  public PlantTrackerServer(PlantTrackerConfig config, PlantListenerServerImpl listener) {
     server = null;
     plantListener = listener;
     port = config.trackerPort;
@@ -81,6 +81,8 @@ public class PlantTrackerServer {
             ListenerRequest.newBuilder().setType(ListenerRequestType.NEW_PLANT).setPlant(sensor).build();
         plantListener.addRequestForPi(request.getPid(), listenerRequest);
 
+        // Add the notification record for the new plant.
+        plantListener.updateNotificationRecord(request);
       } catch (PlantTrackerException e) {
         res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();
         logger.severe("Failed to add new plant with: " + e);
@@ -269,6 +271,10 @@ public class PlantTrackerServer {
               ListenerRequest.newBuilder().setType(ListenerRequestType.UPDATE_PLANT).setPlant(sensor).build();
           plantListener.addRequestForPi(request.getPid(), listenerRequest);
         }
+
+        // Update the notification record with the new info.
+        plantListener.updateNotificationRecord(request);
+
       } catch (PlantTrackerException e) {
         logger.severe(String.format("Request to update plant with id %d failed." + e.getMessage(), request.getId()));
         res = Result.newBuilder().setReturnCode(1).setError(e.getMessage()).build();

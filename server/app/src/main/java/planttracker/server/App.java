@@ -91,7 +91,7 @@ public class App {
             PlantListenerServer listener = new PlantListenerServer(config);
             listener.start();
             
-            PlantTrackerServer tracker = new PlantTrackerServer(config, listener);
+            PlantTrackerServer tracker = new PlantTrackerServer(config, listener.getImpl());
             tracker.start();
 
             tracker.blockUntilShutdown();
