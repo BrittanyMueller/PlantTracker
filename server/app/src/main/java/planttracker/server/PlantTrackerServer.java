@@ -1,6 +1,5 @@
 package planttracker.server;
 
-import com.google.protobuf.Empty;
 import io.grpc.Grpc;
 import io.grpc.InsecureServerCredentials;
 import io.grpc.Server;
