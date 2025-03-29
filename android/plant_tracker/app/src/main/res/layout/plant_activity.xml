@@ -46,9 +46,10 @@
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="90dp"
                 android:layout_margin="10dp"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                app:cardCornerRadius="7dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -57,10 +58,25 @@
                     android:orientation="horizontal">
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/moisture_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1.25"
+                            android:gravity="center"
+                            android:text="moisture" />
+
+                        <ImageView
+                            android:id="@+id/plant_moisture_icon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            app:srcCompat="@drawable/baseline_water_drop_24" />
 
                         <TextView
                             android:id="@+id/moisture_level"
@@ -68,8 +84,31 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="60%\nMoisture"
+                            android:text="60%"
                             android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tempature_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1.25"
+                            android:gravity="center"
+                            android:text="tempature" />
+
+                        <ImageView
+                            android:id="@+id/plant_temp_icon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            app:srcCompat="@drawable/baseline_thermostat_24" />
 
                         <TextView
                             android:id="@+id/temp_level"
@@ -83,31 +122,25 @@
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/plant_moisture_icon"
-                            android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_weight="1"
-                            app:srcCompat="@drawable/baseline_water_drop_24" />
-
-                        <ImageView
-                            android:id="@+id/plant_temp_icon"
-                            android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_weight="1"
-                            app:srcCompat="@drawable/baseline_thermostat_24" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/humidity_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1.25"
+                            android:gravity="center"
+                            android:text="humidity" />
+
+                        <ImageView
+                            android:id="@+id/plant_humidity_icon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            app:srcCompat="@drawable/baseline_waves_24" />
 
                         <TextView
                             android:id="@+id/humidity_level"
@@ -115,8 +148,31 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="44%\nHumidity"
+                            android:text="44%"
                             android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/light_label"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1.25"
+                            android:gravity="center"
+                            android:text="light" />
+
+                        <ImageView
+                            android:id="@+id/plant_light_icon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            app:srcCompat="@drawable/baseline_sunny_24" />
 
                         <TextView
                             android:id="@+id/light_level"
@@ -124,28 +180,8 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:gravity="center"
-                            android:text="100\nLumens"
+                            android:text="100 Lux"
                             android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <ImageView
-                            android:id="@+id/plant_humidity_icon"
-                            android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            app:srcCompat="@drawable/baseline_waves_24" />
-
-                        <ImageView
-                            android:id="@+id/plant_light_icon"
-                            android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            app:srcCompat="@drawable/baseline_sunny_24" />
 
                     </LinearLayout>
 
@@ -215,7 +251,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 app:cardCornerRadius="7dp">
 
@@ -272,7 +308,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 app:cardCornerRadius="7dp">
 

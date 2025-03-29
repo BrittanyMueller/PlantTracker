@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
@@ -36,22 +37,18 @@ import planttracker.server.TimePeriod;
 
 public class ViewPlantActivity extends BaseActivity {
 
-    private List<String> days = new ArrayList<>();
+    private final List<String> days = new ArrayList<>();
     private Plant plant;
     private TextView lightText;
     private TextView moistureText;
     private TextView humidityText;
     private TextView tempText;
 
-
     // graphs
     private BarGraph lightGraph;
     private LineGraph moistureGraph;
     private LineGraph humidityGraph;
     private LineGraph tempGraph;
-
-
-    private List<BarGraph.DataPoint> lightData = new ArrayList<>();
 
     @SuppressLint("DefaultLocale")
     @Override
@@ -79,10 +76,11 @@ public class ViewPlantActivity extends BaseActivity {
         humidityGraph = findViewById(R.id.humidity_graph);
         tempGraph = findViewById(R.id.temp_graph);
 
-
         refreshData();
     }
 
+
+    @SuppressLint("DefaultLocale")
     private void refreshData() {
         if (plant.hasLastData()) {
             // Needed for v1. v2 is actually good lol
@@ -93,15 +91,14 @@ public class ViewPlantActivity extends BaseActivity {
             // float Rout = R * (Vin / Vout - 1);
             // float lux = 100 * 1/(Rout/ 100000);
 
-            lightText.setText(String.format("%d \nLux", (int)max(0, plant.getLastLight())));
-            moistureText.setText(String.format("%.1f%%\nMoisture", plant.getLastMoisture()));
-            humidityText.setText(String.format("%.1f%%\nHumidity", plant.getLastHumidity()));
+            lightText.setText(String.format("%d Lux", (int)max(0, plant.getLastLight())));
+            moistureText.setText(String.format("%.1f%%", plant.getLastMoisture()));
+            humidityText.setText(String.format("%.1f%%", plant.getLastHumidity()));
             tempText.setText(String.format("%.1fC", plant.getLastTemp()));
         } else {
-            lightText.setText("Unknown\nLumens");
-            moistureText.setText("Unknown\nMoisture");
-            humidityText.setText("Unknown\nHumidity");
-            tempText.setText("Unknown\n Temperature");
+            for (TextView textView : Arrays.asList(lightText, moistureText, humidityText, tempText)) {
+                textView.setText("Unknown");
+            }
         }
 
         switch(plant.getLightLevel()) {
@@ -175,7 +172,7 @@ public class ViewPlantActivity extends BaseActivity {
                         Log.e("PlantActivity", "Timestamp curHour " + String.valueOf(curHour) + " Went out of bounds");
                         continue; // bad ts
                     }
-                    moistureData.get(i).value = d.getMoisture().getMoistureLevel() * 100;
+                    moistureData.get(i).value = d.getMoisture().getMoistureLevel();
                     humidityData.get(i).value = d.getHumidity();
                     tempData.get(i).value = d.getTemp();
 

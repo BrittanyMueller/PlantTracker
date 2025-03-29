@@ -450,12 +450,12 @@ public class PlantListenerServerImpl extends PlantListenerGrpc.PlantListenerImpl
     Calendar notificationTimeout = Calendar.getInstance();
     notificationTimeout.add(Calendar.HOUR, -24);
 
-    // Multiple by 10 to convert [0-1.0] percent to [1..10] integer range. Do a ceil so it won't trigger
+    // Divide by 10 to convert [0-100] percent to [1..10] integer range. Do a ceil so it won't trigger
     // until until it is exactly the number or lower.
-    int moistureValue = (int) Math.ceil(data.getMoisture().getMoistureLevel() * 10);
+    int moistureValue = (int)Math.ceil(data.getMoisture().getMoistureLevel() / 10);
 
     // Humidity is already in a range 0-100 so just leave it.
-    int humidityValue = (int) (data.getHumidity());
+    int humidityValue = (int)(data.getHumidity());
 
     String topic = String.format("plant-id-%d", data.getPlantId());
     String title = notificationInfo.name + " needs your attention";
@@ -467,7 +467,7 @@ public class PlantListenerServerImpl extends PlantListenerGrpc.PlantListenerImpl
                             .setNotification(Notification.builder()
                                                  .setTitle(title)
                                                  .setBody(String.format("Moisture level at %d%%",
-                                                     (int) (data.getMoisture().getMoistureLevel() * 100)))
+                                                     (int) (data.getMoisture().getMoistureLevel())))
                                                  .build())
                             .setTopic(topic)
                             .build();
@@ -494,7 +494,7 @@ public class PlantListenerServerImpl extends PlantListenerGrpc.PlantListenerImpl
         logger.fine("Sending notification for humidity: " + topic);
         FirebaseMessaging.getInstance().send(message);
         // Only set on valid notification
-        notificationInfo.moisture.lastNotification = Calendar.getInstance();
+        notificationInfo.humidity.lastNotification = Calendar.getInstance();
       } catch (FirebaseMessagingException e) {
         // TODO(qawse3dr) RETHROW
       }

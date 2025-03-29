@@ -218,7 +218,7 @@ public class PlantTrackerClient {
             PlantSensorDataList list = stub.withDeadlineAfter(timeout, TimeUnit.SECONDS).getPlantSensorData(req);
             return list.getDataList();
         } catch (StatusRuntimeException e) {
-            Log.e("GetPlantSensorData", "Failed to get sensor data for plantId=" + String.valueOf(plantId), e);
+            Log.e("GetPlantSensorData", "Failed to get sensor data for plantId=" + plantId, e);
             throw e;
         }
     }

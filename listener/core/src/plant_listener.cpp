@@ -284,7 +284,7 @@ Error PlantListener::start() {
         plant_data->set_temp(data.temp_data);
 
         float lumens = data.light_data;
-        float moisture = 1 - (data.moisture_data / 255.0f);  // needs to be in a separate var due to rpi.
+        float moisture = (1 - (data.moisture_data / 255.0f)) * 100.0f;
     
         LightSensorData* lightData = new LightSensorData;
         lightData->set_sensor_value(std::max(static_cast<int64_t>(data.light_data), static_cast<int64_t>(0)));
