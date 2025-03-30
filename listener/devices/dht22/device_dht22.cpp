@@ -12,27 +12,23 @@
 
 #include "device_dht22.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <cerrno>
 #include <chrono>
 #include <thread>
-
-#include <spdlog/spdlog.h>
 
 using plantlistener::device::Device;
 using plantlistener::device::DeviceDHT22;
 using plantlistener::device::DeviceType;
 
-DeviceDHT22::DeviceDHT22(const nlohmann::json& j, const std::string& name, const DeviceType type,
-                             const uint8_t ports)
+DeviceDHT22::DeviceDHT22(const nlohmann::json& j, const std::string& name, const DeviceType type, const uint8_t ports)
     : Device(name, type, ports) {
-      // TODO add check that this exists
-      dev_ = init_dht22(j["pin"].get<int>());
-    }
-
-DeviceDHT22::~DeviceDHT22() {
-  free_dht22(&dev_);
+  // TODO add check that this exists
+  dev_ = init_dht22(j["pin"].get<int>());
 }
 
+DeviceDHT22::~DeviceDHT22() { free_dht22(&dev_); }
 
 double DeviceDHT22::readPort(const uint8_t port) {
   for (int i = 0; i < 5; i++) {

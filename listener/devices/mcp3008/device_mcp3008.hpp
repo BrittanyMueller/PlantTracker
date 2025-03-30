@@ -20,7 +20,7 @@ namespace plantlistener::device {
 class DeviceMCP3008 : public Device {
  private:
   int handle_ = 0;
-  MCP3008 dev_{}; // TODO probably need to get the bus and address from config.
+  MCP3008 dev_{};  // TODO probably need to get the bus and address from config.
 
  public:
   DeviceMCP3008(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);

@@ -32,7 +32,7 @@ void sigHandler(sigset_t sig_mask, plantlistener::core::PlantListener* plant_lis
     auto res = plant_listener->stop();
     if (res.isError()) {
       spdlog::error("Failed to stop PlantListener with {}", res.toStr());
-      exit(-1); // Not much we can do here now just bork out and let the OS clean stuff up.
+      exit(-1);  // Not much we can do here now just bork out and let the OS clean stuff up.
     }
     return;
   }

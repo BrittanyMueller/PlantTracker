@@ -3,8 +3,8 @@ Description=Plant Listener service
 After=network.target
 
 [Service]
-WorkingDirectory=/home/larryzero/listener/
-ExecStart=/home/larryzero/listener/bin/plant_listener -c ./config.json
+WorkingDirectory=/
+ExecStart=/usr/bin/plant_listener -c /etc/plant_listener.json
 Restart=always
 RestartSec=10
 

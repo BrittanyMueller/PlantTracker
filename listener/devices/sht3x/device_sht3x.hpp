@@ -20,9 +20,8 @@ namespace plantlistener::device {
 class DeviceSHT3X : public Device {
  private:
   int handle_ = 0;
-  SHT3X dev_ {};
+  SHT3X dev_{};
   SHT3X::SHT3XData data_{};
-
 
   std::chrono::steady_clock::time_point lastRead_ = {};
 

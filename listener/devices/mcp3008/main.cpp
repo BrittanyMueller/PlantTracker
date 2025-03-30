@@ -10,8 +10,8 @@
  * @author: BrittanyMueller
  */
 
-#include <mcp3008.hpp>
 #include <iostream>
+#include <mcp3008.hpp>
 
 int main() {
   MCP3008 adc;

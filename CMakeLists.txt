@@ -11,7 +11,6 @@
 #
 cmake_minimum_required(VERSION 3.13)
 
-# set(CMAKE_CXX_COMPILER "g++")
 Project("Plant Tracker")
 
 set(CMAKE_CONFIGURATION_TYPES
@@ -46,7 +45,7 @@ add_custom_target(PlantTracker
     COMMAND cp ${CMAKE_SOURCE_DIR}/android/plant_tracker/app/build/outputs/apk/debug/app-debug.apk ${CMAKE_BINARY_DIR}/PlantTracker.apk
 )
 
-set(FORMAT_SUFFIXES .h .hpp .c .cpp .java .proto)
+set(FORMAT_SUFFIXES .h .hpp .c .cpp .proto)
 string(JOIN "' -o -name '*" FORMAT_SUFFIXES_OUT ${FORMAT_SUFFIXES})
 string(PREPEND FORMAT_SUFFIXES_OUT " -name '*")
 string(APPEND FORMAT_SUFFIXES_OUT "'")

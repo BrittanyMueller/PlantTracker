@@ -1,7 +1,8 @@
-#include <sht3x.hpp>
 #include <pigpio.h>
 #include <stdio.h>
 #include <unistd.h>
+
+#include <sht3x.hpp>
 
 int main() {
   if (gpioInitialise() < 0) return 1;

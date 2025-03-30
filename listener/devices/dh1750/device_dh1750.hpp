@@ -20,7 +20,7 @@ namespace plantlistener::device {
 class DeviceDH1750 : public Device {
  private:
   int handle_ = 0;
-  DH1750 dev_{}; // TODO probably need to get the bus and address from config.
+  DH1750 dev_{};  // TODO probably need to get the bus and address from config.
 
  public:
   DeviceDH1750(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);

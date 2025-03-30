@@ -20,9 +20,7 @@ DeviceMCP3008::DeviceMCP3008(const nlohmann::json& json, const std::string& name
                              const uint8_t ports)
     : Device(name, type, ports) {}
 
-double DeviceMCP3008::readPort(const uint8_t port) {
-  return static_cast<double>(dev_.read(port))/1024.0*256.0;
-}
+double DeviceMCP3008::readPort(const uint8_t port) { return static_cast<double>(dev_.read(port)) / 1024.0 * 256.0; }
 
 /**
  * Device loader function

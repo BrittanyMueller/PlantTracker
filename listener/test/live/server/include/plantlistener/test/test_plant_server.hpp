@@ -99,7 +99,6 @@ class TestPlantServer {
    * This won't return until stop is called.
    */
   Error wait();
-
 };
 
 }  // namespace plantlistener::test

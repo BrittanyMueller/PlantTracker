@@ -1,12 +1,11 @@
 {
   "name": "Dev Pi",
   "server": {
-    "address": "10.0.0.150",
+    "address": "10.0.0.29",
     "port": 5051,
-    "log_level": "DBG",
+    "log_level": "INFO",
     "retry_count": -1,
-    "retry_timeout": 5,
-    "uuid": "a6817b8d-e833-419c-a055-c72e85527cb8"
+    "retry_timeout": 5
   },
   "sensors": [
     {
@@ -56,15 +55,15 @@
     "libs": [
       {
         "name": "mcp3008",
-        "lib_path": "lib/libplantlistener-device-mcp3008-adc-dev.so"
+        "lib_path": "/usr/lib/libplantlistener-device-mcp3008-adc-dev.so"
       },
       {
         "name": "dh1750",
-        "lib_path": "lib/libplantlistener-device-dh1750-light-dev.so"
+        "lib_path": "/usr/lib/libplantlistener-device-dh1750-light-dev.so"
       },
       {
         "name": "dht22",
-        "lib_path": "lib/libplantlistener-device-dht22-temp-dev.so"
+        "lib_path": "/usr/lib/libplantlistener-device-dht22-temp-dev.so"
       }
     ]
   }
