@@ -12,10 +12,12 @@ stages:
 Lint:
   extends: .base_job
   stage: lint
+  variables:
+    BUILD_PLANT_LISTENER: 0
   script:
     - mkdir build
     - cd build
-    - cmake ..
+    - cmake .. -DCMAKE_BUILD_TYPE=
     - make test-format
   allow_failure: true
   
@@ -105,13 +107,15 @@ Build Plant Listener:
     - cd build
     - cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=/home/develop/opt/x-tools/armv6-rpi-linux-gnueabihf/armv6-rpi-linux-gnueabihf.toolchain.cmake ..
     - make -j4
+    - cpack -G DEB
     - mkdir -p ../out/listener
     - mv ./bin ../out/listener
     - mv ./lib ../out/listener
     - mv ../listener/data/config.json ../out/listener
+    - mv _packages/* ../out
   artifacts:
     paths:
-      - out/listener
+      - out/
     expire_in: 1 week
 
 

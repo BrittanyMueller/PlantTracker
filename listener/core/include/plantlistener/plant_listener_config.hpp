@@ -12,6 +12,7 @@
 #pragma once
 
 #include <spdlog/spdlog.h>
+#include <uuid/uuid.h>
 
 #include <chrono>
 #include <nlohmann/json.hpp>
@@ -22,7 +23,6 @@
 #include <plantlistener/sensor/sensor_config.hpp>
 #include <string>
 #include <vector>
-#include <uuid/uuid.h>
 
 namespace plantlistener::core {
 
@@ -69,7 +69,7 @@ class PlantListenerConfig {
   static void parseValue(const nlohmann::json& j, const std::string& key, T& value, bool optional = false) {
     auto it = j.find(key);
     if (it == j.end()) {
-      if (optional) return; // optional ignore missing.
+      if (optional) return;  // optional ignore missing.
       throw ParseException(Error::Code::ERROR_NOT_FOUND, fmt::format("Missing key {}", key));
     }
 

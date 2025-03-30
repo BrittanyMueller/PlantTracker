@@ -20,9 +20,7 @@ DeviceADS7830::DeviceADS7830(const nlohmann::json& json, const std::string& name
                              const uint8_t ports)
     : Device(name, type, ports) {}
 
-double DeviceADS7830::readPort(const uint8_t port) {
-  return static_cast<double>(dev_.read(port));
-}
+double DeviceADS7830::readPort(const uint8_t port) { return static_cast<double>(dev_.read(port)); }
 
 /**
  * Device loader function

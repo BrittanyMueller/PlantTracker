@@ -10,10 +10,9 @@
  * @author: BrittanyMueller
  */
 
-#include <memory>
 #include <cstdlib>
 #include <ctime>
-
+#include <memory>
 #include <plantlistener/plant_listener.hpp>
 #include <plantlistener/sensor/humidity_sensor.hpp>
 #include <plantlistener/sensor/light_sensor.hpp>
@@ -224,7 +223,7 @@ Error PlantListener::start() {
 
     // Init the data with the server
     client_ = std::move(makeClientFtn_(cfg_.address, cfg_.port, grpc::InsecureChannelCredentials()));
-    
+
     grpc::ClientContext client_context;
     planttracker::grpc::InitializeResponse response;
 
@@ -251,7 +250,6 @@ Error PlantListener::start() {
     }
 
     if (res.isError()) break;
-    
 
     grpc::ClientContext event_thread_client_context;
     plant_event_thread = std::thread(&PlantListener::plantEventWorkLoop, this, std::ref(event_thread_client_context));
@@ -285,10 +283,10 @@ Error PlantListener::start() {
 
         float lumens = data.light_data;
         float moisture = (1 - (data.moisture_data / 255.0f)) * 100.0f;
-    
+
         LightSensorData* lightData = new LightSensorData;
         lightData->set_sensor_value(std::max(static_cast<int64_t>(data.light_data), static_cast<int64_t>(0)));
-        lightData->set_lumens(std::max(lumens, 0.0f));  
+        lightData->set_lumens(std::max(lumens, 0.0f));
 
         MoistureSensorData* moistureData = new MoistureSensorData;
         moistureData->set_sensor_value(data.moisture_data);
@@ -303,7 +301,8 @@ Error PlantListener::start() {
         grpc::ClientContext client_context;
         auto status = client_->reportSensor(&client_context, plant_data_list, &report_res);
         if (!status.ok()) {
-          res = {Error::Code::ERROR_NETWORKING, fmt::format("Failed to report sensor with: {}", status.error_message())};
+          res = {Error::Code::ERROR_NETWORKING,
+                 fmt::format("Failed to report sensor with: {}", status.error_message())};
           break;
         }
       }
@@ -334,7 +333,7 @@ Error PlantListener::start() {
       spdlog::info("Starting reconnection.");
       continue;
     }
-  } while(false);
+  } while (false);
 
   // We are no longer running so notify whoever is stopping us we are finished.
   state_ = State::INITALIZED;

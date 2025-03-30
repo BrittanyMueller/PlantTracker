@@ -17,12 +17,10 @@ using plantlistener::device::DeviceDH1750;
 using plantlistener::device::DeviceType;
 
 DeviceDH1750::DeviceDH1750(const nlohmann::json& json, const std::string& name, const DeviceType type,
-                             const uint8_t ports)
+                           const uint8_t ports)
     : Device(name, type, ports) {}
 
-double DeviceDH1750::readPort(const uint8_t port) {
-  return static_cast<double>(dev_.read());
-}
+double DeviceDH1750::readPort(const uint8_t port) { return static_cast<double>(dev_.read()); }
 
 /**
  * Device loader function

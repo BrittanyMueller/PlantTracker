@@ -10,11 +10,11 @@
  * @author: BrittanyMueller
  */
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <stdint.h>
 
 class DH1750 {
  private:

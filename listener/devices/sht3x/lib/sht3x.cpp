@@ -37,7 +37,7 @@ SHT3X::SHT3X(uint8_t bus, uint8_t address) {
   }
 
   const char* startCmds[] = {{SHT3X_BREAK_CMD}, {SHT3X_SRESET_CMD}};
-  for (int i =0; i < 2; i++) {
+  for (int i = 0; i < 2; i++) {
     auto res = i2cWriteDevice(handle_, (char*)startCmds[i], 2);
     if (res == PI_BAD_HANDLE) {
       std::cout << "Failed to write BAD_HANDLE" << std::endl;
@@ -73,8 +73,8 @@ SHT3X::SHT3XData SHT3X::read() const {
     return data;
   }
 
-  data.temp = -45 + 175.0f * static_cast<float>((rawData[0] << 8) | rawData[1])/(UINT16_MAX);
-  data.humidity = 100.0f * static_cast<float>((rawData[3] << 8) | rawData[5])/(UINT16_MAX);
+  data.temp = -45 + 175.0f * static_cast<float>((rawData[0] << 8) | rawData[1]) / (UINT16_MAX);
+  data.humidity = 100.0f * static_cast<float>((rawData[3] << 8) | rawData[5]) / (UINT16_MAX);
   data.crc = (rawData[2] << 8) | rawData[5];
   return data;
 }

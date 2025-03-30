@@ -49,6 +49,5 @@ double DH1750::read() const {
   int lux = val[0] << 8;
   lux |= val[1];
 
-  return lux /  1.2;
+  return lux / 1.2;
 }
-

@@ -158,10 +158,10 @@ Error PlantListenerConfig::load() {
 }
 
 Error PlantListenerConfig::setUUID(uuid_t uu) {
-  uuid.resize(UUID_STR_LEN-1); // minus 1 as c++ strings will account for the null term
+  uuid.resize(UUID_STR_LEN - 1);  // minus 1 as c++ strings will account for the null term
   uuid_unparse(uu, uuid.data());
   spdlog::info("Generated UUID: {}", uuid);
-  
+
   // Now save it to the config.
   nlohmann::ordered_json cfg;
 
