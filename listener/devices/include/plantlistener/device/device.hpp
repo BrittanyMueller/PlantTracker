@@ -41,17 +41,16 @@ class Device {
    * @param min_value The min value expected out of this device. This should
    * normally be left as 0.
    */
-  Device(const std::string& name, const DeviceType type, const uint8_t ports, uint64_t max_value = 255,
-         uint64_t min_value = 0);
+  Device(const DeviceConfig& cfg);
   virtual ~Device(){};
 
   inline const std::string& getName() const { return name_; }
-  inline std::tuple<uint64_t, uint64_t> getRange() const { return {min_value_, max_value_}; }
+  inline std::pair<uint64_t, uint64_t> getRange() const { return {min_value_, max_value_}; }
   inline uint8_t getPortCount() const { return ports_; }
   inline const DeviceType getType() const { return type_; }
 
   /**
-   * Reads the value from a specfic port. If the read fails for any reason -1
+   * Reads the value from a specific port. If the read fails for any reason -1
    * will be returned instead.
    *
    * @param port The port to be read.
@@ -65,9 +64,7 @@ class Device {
 }  // namespace plantlistener::device
 
 extern "C" {
-typedef std::shared_ptr<plantlistener::device::Device> (*createDeviceftn)(const nlohmann::json&,
-                                                                          const std::string& name,
-                                                                          const plantlistener::device::DeviceType type,
-                                                                          const uint8_t ports);
+typedef std::shared_ptr<plantlistener::device::Device> (*createDeviceftn)(
+    const plantlistener::device::DeviceConfig& cfg);
 }
 #define PLANTLISTENER_CREATE_DEVICE_NAME "createDevice"

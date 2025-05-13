@@ -23,7 +23,7 @@ class DeviceDH1750 : public Device {
   DH1750 dev_{};  // TODO probably need to get the bus and address from config.
 
  public:
-  DeviceDH1750(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
+  DeviceDH1750(const DeviceConfig& cfg);
   ~DeviceDH1750() = default;
 
   /**

@@ -26,7 +26,7 @@ class DeviceSHT3X : public Device {
   std::chrono::steady_clock::time_point lastRead_ = {};
 
  public:
-  DeviceSHT3X(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
+  DeviceSHT3X(const DeviceConfig& cfg);
 
   /**
    * Reads the value from a specific port. If the read fails for any reason -1

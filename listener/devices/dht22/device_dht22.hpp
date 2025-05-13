@@ -29,7 +29,7 @@ class DeviceDHT22 : public Device {
   double temp_ = 0;
 
  public:
-  DeviceDHT22(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
+  DeviceDHT22(const DeviceConfig& cfg);
   ~DeviceDHT22();
 
   /**

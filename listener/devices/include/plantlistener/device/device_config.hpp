@@ -33,6 +33,8 @@ struct DeviceConfig {
   DeviceType type;
   std::string lib;
   uint32_t ports;
+  int64_t min_value = 0;
+  int64_t max_value = 256;
   nlohmann::json cfg;
 };
 

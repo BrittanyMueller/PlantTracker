@@ -29,20 +29,19 @@
         "type": "ADC",
         "lib": "mcp3008",
         "ports": 8,
-        "cfg": {
-          "min": 0,
-          "max": 255
-        }
+        "min": 50,
+        "max": 172,
+        "cfg": {}
       },
       {
         "name": "temp_and_hum_dev",
         "type": "TEMP_AND_HUMIDITY",
         "lib": "dht22",
         "ports": 2,
+        "min": 0,
+        "max": 100,
         "cfg": {
-          "pin": 4,
-          "min": 0,
-          "max": 100
+          "pin": 4
         }
       },
       {

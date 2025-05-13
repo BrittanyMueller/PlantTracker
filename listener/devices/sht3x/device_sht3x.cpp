@@ -17,11 +17,11 @@
 #include <thread>
 
 using plantlistener::device::Device;
+using plantlistener::device::DeviceConfig;
 using plantlistener::device::DeviceSHT3X;
 using plantlistener::device::DeviceType;
 
-DeviceSHT3X::DeviceSHT3X(const nlohmann::json& j, const std::string& name, const DeviceType type, const uint8_t ports)
-    : Device(name, type, ports) {}
+DeviceSHT3X::DeviceSHT3X(const DeviceConfig& cfg) : Device(cfg) {}
 
 double DeviceSHT3X::readPort(const uint8_t port) {
   auto now = std::chrono::steady_clock::now();
@@ -42,7 +42,6 @@ double DeviceSHT3X::readPort(const uint8_t port) {
 /**
  * Device loader function
  */
-extern "C" std::shared_ptr<Device> createDevice(const nlohmann::json& j, const std::string& name, const DeviceType type,
-                                                const uint8_t ports) {
-  return std::shared_ptr<Device>(new DeviceSHT3X(j, name, type, ports));
+extern "C" std::shared_ptr<Device> createDevice(const DeviceConfig& cfg) {
+  return std::shared_ptr<Device>(new DeviceSHT3X(cfg));
 }

@@ -23,7 +23,7 @@ class DeviceADS7830 : public Device {
   ADS7830 dev_{};  // TODO probably need to get the bus and address from config.
 
  public:
-  DeviceADS7830(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
+  DeviceADS7830(const DeviceConfig& cfg);
   ~DeviceADS7830() = default;
 
   /**

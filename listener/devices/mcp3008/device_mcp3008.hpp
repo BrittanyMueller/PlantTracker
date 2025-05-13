@@ -23,7 +23,7 @@ class DeviceMCP3008 : public Device {
   MCP3008 dev_{};  // TODO probably need to get the bus and address from config.
 
  public:
-  DeviceMCP3008(const nlohmann::json& json, const std::string& name, const DeviceType type, const uint8_t ports);
+  DeviceMCP3008(const DeviceConfig& cfg);
   ~DeviceMCP3008() = default;
 
   /**

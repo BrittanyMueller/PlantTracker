@@ -13,19 +13,17 @@
 #include "device_dh1750.hpp"
 
 using plantlistener::device::Device;
+using plantlistener::device::DeviceConfig;
 using plantlistener::device::DeviceDH1750;
 using plantlistener::device::DeviceType;
 
-DeviceDH1750::DeviceDH1750(const nlohmann::json& json, const std::string& name, const DeviceType type,
-                           const uint8_t ports)
-    : Device(name, type, ports) {}
+DeviceDH1750::DeviceDH1750(const DeviceConfig& cfg) : Device(cfg) {}
 
 double DeviceDH1750::readPort(const uint8_t port) { return static_cast<double>(dev_.read()); }
 
 /**
  * Device loader function
  */
-extern "C" std::shared_ptr<Device> createDevice(const nlohmann::json& j, const std::string& name, const DeviceType type,
-                                                const uint8_t ports) {
-  return std::shared_ptr<Device>(new DeviceDH1750(j, name, type, ports));
+extern "C" std::shared_ptr<Device> createDevice(const DeviceConfig& cfg) {
+  return std::shared_ptr<Device>(new DeviceDH1750(cfg));
 }
