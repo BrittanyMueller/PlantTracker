@@ -25,7 +25,6 @@ class Sensor {
  private:
   // ID is sensor specific and set to -1 if it has no meaning.
   int64_t id_;
-  std::shared_ptr<plantlistener::device::Device> dev_;
   uint64_t dev_port_;
   SensorType type_;
 
@@ -35,6 +34,7 @@ class Sensor {
  protected:
   // Holds map of plant_id to plant.
   std::unordered_map<int64_t, std::shared_ptr<Plant>> plants_;
+  std::shared_ptr<plantlistener::device::Device> dev_;
 
  public:
   Sensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev);

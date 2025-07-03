@@ -19,7 +19,13 @@ class MoistureSensor : public Sensor {
   MoistureSensor(const SensorConfig& cfg, std::shared_ptr<plantlistener::device::Device> dev) : Sensor(cfg, dev){};
 
   void updatePlant(const std::shared_ptr<Plant>& plant, double data) override {
-    plant->setMoisture(static_cast<uint64_t>(data));
+    auto raw_value = static_cast<uint64_t>(data);
+    const auto range = dev_->getRange();
+    auto percent_value =
+        (1 - static_cast<float>(raw_value - range.first) / static_cast<float>(range.second - range.first)) * 100.0f;
+
+    // In order to get a good range we have a min and a max value that we see during calibration
+    plant->setMoisture(std::min(std::max(percent_value, 0.0f), 100.0f));
   }
 };
 }  // namespace plantlistener::core

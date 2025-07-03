@@ -14,18 +14,16 @@
 
 using plantlistener::device::Device;
 using plantlistener::device::DeviceADS7830;
+using plantlistener::device::DeviceConfig;
 using plantlistener::device::DeviceType;
 
-DeviceADS7830::DeviceADS7830(const nlohmann::json& json, const std::string& name, const DeviceType type,
-                             const uint8_t ports)
-    : Device(name, type, ports) {}
+DeviceADS7830::DeviceADS7830(const DeviceConfig& cfg) : Device(cfg) {}
 
 double DeviceADS7830::readPort(const uint8_t port) { return static_cast<double>(dev_.read(port)); }
 
 /**
  * Device loader function
  */
-extern "C" std::shared_ptr<Device> createDevice(const nlohmann::json& j, const std::string& name, const DeviceType type,
-                                                const uint8_t ports) {
-  return std::shared_ptr<Device>(new DeviceADS7830(j, name, type, ports));
+extern "C" std::shared_ptr<Device> createDevice(const DeviceConfig& cfg) {
+  return std::shared_ptr<Device>(new DeviceADS7830(cfg));
 }

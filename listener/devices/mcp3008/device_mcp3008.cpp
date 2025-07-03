@@ -13,19 +13,17 @@
 #include "device_mcp3008.hpp"
 
 using plantlistener::device::Device;
+using plantlistener::device::DeviceConfig;
 using plantlistener::device::DeviceMCP3008;
 using plantlistener::device::DeviceType;
 
-DeviceMCP3008::DeviceMCP3008(const nlohmann::json& json, const std::string& name, const DeviceType type,
-                             const uint8_t ports)
-    : Device(name, type, ports) {}
+DeviceMCP3008::DeviceMCP3008(const DeviceConfig& cfg) : Device(cfg) {}
 
 double DeviceMCP3008::readPort(const uint8_t port) { return static_cast<double>(dev_.read(port)) / 1024.0 * 256.0; }
 
 /**
  * Device loader function
  */
-extern "C" std::shared_ptr<Device> createDevice(const nlohmann::json& j, const std::string& name, const DeviceType type,
-                                                const uint8_t ports) {
-  return std::shared_ptr<Device>(new DeviceMCP3008(j, name, type, ports));
+extern "C" std::shared_ptr<Device> createDevice(const DeviceConfig& cfg) {
+  return std::shared_ptr<Device>(new DeviceMCP3008(cfg));
 }

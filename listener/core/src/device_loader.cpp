@@ -26,7 +26,7 @@ plantlistener::Expected<std::shared_ptr<Device>> DeviceLoader::createDevice(cons
     return ftn_res;
   }
 
-  return {(*ftn_res)(cfg.cfg, cfg.name, cfg.type, cfg.ports)};
+  return {(*ftn_res)(cfg)};
 }
 
 nlohmann::json DeviceLoader::dump() {

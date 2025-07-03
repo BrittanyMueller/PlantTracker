@@ -19,13 +19,13 @@
 #include <thread>
 
 using plantlistener::device::Device;
+using plantlistener::device::DeviceConfig;
 using plantlistener::device::DeviceDHT22;
 using plantlistener::device::DeviceType;
 
-DeviceDHT22::DeviceDHT22(const nlohmann::json& j, const std::string& name, const DeviceType type, const uint8_t ports)
-    : Device(name, type, ports) {
+DeviceDHT22::DeviceDHT22(const DeviceConfig& cfg) : Device(cfg) {
   // TODO add check that this exists
-  dev_ = init_dht22(j["pin"].get<int>());
+  dev_ = init_dht22(cfg.cfg["pin"].get<int>());
 }
 
 DeviceDHT22::~DeviceDHT22() { free_dht22(&dev_); }
@@ -56,7 +56,6 @@ double DeviceDHT22::readPort(const uint8_t port) {
 /**
  * Device loader function
  */
-extern "C" std::shared_ptr<Device> createDevice(const nlohmann::json& j, const std::string& name, const DeviceType type,
-                                                const uint8_t ports) {
-  return std::shared_ptr<Device>(new DeviceDHT22(j, name, type, ports));
+extern "C" std::shared_ptr<Device> createDevice(const DeviceConfig& cfg) {
+  return std::shared_ptr<Device>(new DeviceDHT22(cfg));
 }

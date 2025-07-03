@@ -282,19 +282,19 @@ Error PlantListener::start() {
         plant_data->set_temp(data.temp_data);
 
         float lumens = data.light_data;
-        float moisture = (1 - (data.moisture_data / 255.0f)) * 100.0f;
+        float moisture = data.moisture_data;
 
-        LightSensorData* lightData = new LightSensorData;
-        lightData->set_sensor_value(std::max(static_cast<int64_t>(data.light_data), static_cast<int64_t>(0)));
-        lightData->set_lumens(std::max(lumens, 0.0f));
+        LightSensorData* light_data = new LightSensorData;
+        light_data->set_sensor_value(std::max(static_cast<int64_t>(data.light_data), static_cast<int64_t>(0)));
+        light_data->set_lumens(std::max(lumens, 0.0f));
 
-        MoistureSensorData* moistureData = new MoistureSensorData;
-        moistureData->set_sensor_value(data.moisture_data);
-        moistureData->set_moisture_level(moisture);
-        spdlog::info("Moisture {}  sensor_value: {}", moisture, moistureData->sensor_value());
+        MoistureSensorData* moisture_data = new MoistureSensorData;
+        moisture_data->set_sensor_value(data.moisture_data);
+        moisture_data->set_moisture_level(moisture);
+        spdlog::info("Moisture {}  sensor_value: {}", moisture, moisture_data->sensor_value());
 
-        plant_data->set_allocated_light(lightData);
-        plant_data->set_allocated_moisture(moistureData);
+        plant_data->set_allocated_light(light_data);
+        plant_data->set_allocated_moisture(moisture_data);
       }
 
       {

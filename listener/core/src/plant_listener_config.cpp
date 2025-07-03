@@ -118,9 +118,18 @@ Error PlantListenerConfig::load() {
       spdlog::debug("Found sensor {} in config", sensors.back().device_name);
     }
 
-    // Parse devices TODO parse safer
-    std::unordered_map<std::string, std::string> libs;
-    for (const auto& dev : cfg["devices"]["libs"]) {
+    auto devices_it = cfg.find("devices");
+    if (devices_it == cfg.end() || !devices_it->is_object()) {
+      return {Error::Code::ERROR_NOT_FOUND, "Missing key devices or is not JSON object"};
+    }
+
+    auto libs_it = devices_it->find("libs");
+    if (libs_it == devices_it->end()) {
+      return {Error::Code::ERROR_NOT_FOUND, "Missing key devices.libs or is not array"};
+    }
+
+    std ::unordered_map<std::string, std::string> libs;
+    for (const auto& dev : *libs_it) {
       std::string lib_name, lib_path;
       parseValue<std::string>(dev, "name", lib_name);
       parseValue<std::string>(dev, "lib_path", lib_path);
@@ -128,19 +137,29 @@ Error PlantListenerConfig::load() {
       spdlog::debug("Found dev_lib {}={} in config", lib_name, lib_path);
     }
 
-    for (const auto& dev : cfg["devices"]["instances"]) {
+    auto instances_it = devices_it->find("instances");
+    if (instances_it == devices_it->end()) {
+      return {Error::Code::ERROR_NOT_FOUND, "Missing key devices.instances or is not array"};
+    }
+    for (const auto& dev : *instances_it) {
       DeviceConfig dev_cfg;
       std::string lib_name, dev_type;
 
       dev_cfg.cfg = (dev.contains("cfg")) ? dev["cfg"] : json::object();
       parseValue<std::string>(dev, "name", dev_cfg.name);
       parseValue<uint32_t>(dev, "ports", dev_cfg.ports);
+      parseValue<int64_t>(dev, "min", dev_cfg.min_value, true);
+      parseValue<int64_t>(dev, "max", dev_cfg.max_value, true);
 
       parseValue<std::string>(dev, "lib", lib_name);
       parseValue<std::string>(dev, "type", dev_type);
 
-      dev_cfg.lib = libs[lib_name];  // todo verify the lib was found.
+      auto lib_it = libs.find(lib_name);
+      if (lib_it == libs.end()) {
+        return {Error::Code::ERROR_NOT_FOUND, "Missing library: " + lib_name};
+      }
 
+      dev_cfg.lib = lib_it->second;
       auto dev_res = plantlistener::device::strToDeviceType(dev_type);
       if (dev_res.isError()) {
         return dev_res;

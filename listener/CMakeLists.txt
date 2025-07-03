@@ -9,7 +9,7 @@
 # @author: qawse3dr a.k.a Larry Milne
 # @author: BrittanyMueller
 #
-Project("Plant Listener" VERSION 1.0.1)
+Project("Plant Listener" VERSION 1.0.2)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

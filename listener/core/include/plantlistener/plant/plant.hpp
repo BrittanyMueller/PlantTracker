@@ -19,7 +19,7 @@ class Plant {
  public:
   struct PlantData {
     int64_t light_data = -1;
-    int64_t moisture_data = -1;
+    double moisture_data = -1;
     double temp_data = -1;
     double humidity_data = -1;
   };
@@ -35,7 +35,7 @@ class Plant {
   inline const int64_t getId() const { return id_; }
 
   inline void setLight(int64_t data) { data_.light_data = data; }
-  inline void setMoisture(int64_t data) { data_.moisture_data = data; }
+  inline void setMoisture(double data) { data_.moisture_data = data; }
   inline void setHumidity(double data) { data_.humidity_data = data; }
   inline void setTemp(double data) { data_.temp_data = data; }
 };
